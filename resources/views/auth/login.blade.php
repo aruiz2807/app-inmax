@@ -29,7 +29,9 @@
             <div class="mt-4" x-data="{ pin: '' }">
                 <x-label for="pin" value="PIN" />
                 <input type="hidden" name="password" x-model="pin" required />
-                <x-ui.otp class="mt-1" x-model="pin" length="4" />
+                <div class="mt-1 flex justify-center">
+                    <x-ui.otp x-model="pin" length="4" />
+                </div>
             </div>
 
             <div class="block mt-4">
