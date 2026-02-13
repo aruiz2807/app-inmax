@@ -13,6 +13,8 @@ class PinSetupPage extends Component
 {
     public string $token = '';
     public ?User $user = null;
+    public string $tokenStatus = PinSetupTokenService::STATUS_INVALID;
+    public ?string $tokenMessage = null;
 
     #[Validate('required|digits:6|confirmed')]
     public string $pin = '';
@@ -28,32 +30,46 @@ class PinSetupPage extends Component
     public function mount(string $token, PinSetupTokenService $tokenService): void
     {
         $this->token = $token;
+        $resolved = $tokenService->resolveTokenStatus($this->token);
 
-        $setupToken = $tokenService->resolveActiveToken($this->token);
-
-        if (! $setupToken) {
-            abort(404);
-        }
-
-        $this->user = $setupToken->user;
+        $this->tokenStatus = $resolved['status'];
+        $this->user = $resolved['token']?->user;
+        $this->tokenMessage = $this->resolveTokenMessage($this->tokenStatus);
     }
 
     public function save(PinSetupTokenService $tokenService)
     {
         $this->validate();
 
-        $setupToken = $tokenService->resolveActiveToken($this->token);
+        $resolved = $tokenService->resolveTokenStatus($this->token);
+        $this->tokenStatus = $resolved['status'];
+        $this->tokenMessage = $this->resolveTokenMessage($this->tokenStatus);
 
-        if (! $setupToken) {
+        if ($this->tokenStatus !== PinSetupTokenService::STATUS_ACTIVE || ! $resolved['token']) {
             throw ValidationException::withMessages([
-                'pin' => __('El enlace para configurar PIN es invalido o ya expiro.'),
+                'pin' => __($this->tokenMessage),
             ]);
         }
 
-        $tokenService->consumeToken($setupToken, $this->pin);
+        $tokenService->consumeToken($resolved['token'], $this->pin);
 
         return redirect()
             ->route('login')
             ->with('status', __('PIN configurado correctamente. Inicia sesion con tu telefono y PIN.'));
+    }
+
+    public function canSetPin(): bool
+    {
+        return $this->tokenStatus === PinSetupTokenService::STATUS_ACTIVE;
+    }
+
+    private function resolveTokenMessage(string $status): string
+    {
+        return match ($status) {
+            PinSetupTokenService::STATUS_USED => 'Este enlace ya fue usado. Solicita uno nuevo al administrador.',
+            PinSetupTokenService::STATUS_EXPIRED => 'Este enlace ya vencio. Solicita uno nuevo al administrador.',
+            PinSetupTokenService::STATUS_ACTIVE => '',
+            default => 'Este enlace es invalido. Solicita uno nuevo al administrador.',
+        };
     }
 }

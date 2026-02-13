@@ -65,7 +65,7 @@ class PinSetupTest extends TestCase
         $this->assertNotNull($pinToken->used_at);
     }
 
-    public function test_pin_setup_screen_returns_404_with_expired_token(): void
+    public function test_pin_setup_screen_shows_expired_message_when_token_is_expired(): void
     {
         $user = User::factory()->create();
 
@@ -79,6 +79,26 @@ class PinSetupTest extends TestCase
 
         $response = $this->get('/pin/setup/'.$token);
 
-        $response->assertStatus(404);
+        $response->assertStatus(200);
+        $response->assertSee('Este enlace ya vencio. Solicita uno nuevo al administrador.');
+    }
+
+    public function test_pin_setup_screen_shows_used_message_when_token_was_used(): void
+    {
+        $user = User::factory()->create();
+
+        $token = 'used-token-123';
+
+        UserPinSetupToken::create([
+            'user_id' => $user->id,
+            'token_hash' => hash('sha256', $token),
+            'expires_at' => now()->addMinutes(30),
+            'used_at' => now(),
+        ]);
+
+        $response = $this->get('/pin/setup/'.$token);
+
+        $response->assertStatus(200);
+        $response->assertSee('Este enlace ya fue usado. Solicita uno nuevo al administrador.');
     }
 }

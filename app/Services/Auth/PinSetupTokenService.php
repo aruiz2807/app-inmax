@@ -11,6 +11,11 @@ use Illuminate\Support\Str;
 
 class PinSetupTokenService
 {
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_USED = 'used';
+    public const STATUS_EXPIRED = 'expired';
+    public const STATUS_INVALID = 'invalid';
+
     /**
      * Generate a setup link for user pin configuration and log it as WhatsApp simulation.
      *
@@ -40,12 +45,50 @@ class PinSetupTokenService
      */
     public function resolveActiveToken(string $plainTextToken): ?UserPinSetupToken
     {
-        return UserPinSetupToken::query()
+        $resolved = $this->resolveTokenStatus($plainTextToken);
+
+        return $resolved['status'] === self::STATUS_ACTIVE
+            ? $resolved['token']
+            : null;
+    }
+
+    /**
+     * Resolve token and identify its current status.
+     *
+     * @return array{token: UserPinSetupToken|null, status: string}
+     */
+    public function resolveTokenStatus(string $plainTextToken): array
+    {
+        $token = UserPinSetupToken::query()
             ->with('user')
             ->where('token_hash', hash('sha256', $plainTextToken))
-            ->whereNull('used_at')
-            ->where('expires_at', '>', now())
             ->first();
+
+        if (! $token) {
+            return [
+                'token' => null,
+                'status' => self::STATUS_INVALID,
+            ];
+        }
+
+        if ($token->used_at !== null) {
+            return [
+                'token' => $token,
+                'status' => self::STATUS_USED,
+            ];
+        }
+
+        if ($token->expires_at->isPast()) {
+            return [
+                'token' => $token,
+                'status' => self::STATUS_EXPIRED,
+            ];
+        }
+
+        return [
+            'token' => $token,
+            'status' => self::STATUS_ACTIVE,
+        ];
     }
 
     /**
