@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Services\Auth;
+
+use App\Models\User;
+use App\Models\UserPinSetupToken;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
+class PinSetupTokenService
+{
+    /**
+     * Generate a setup link for user pin configuration and log it as WhatsApp simulation.
+     *
+     * @return array{url: string, expires_at: Carbon}
+     */
+    public function generateSetupLink(User $user, ?User $createdBy = null): array
+    {
+        $token = $this->createToken($user, $createdBy);
+        $url = route('pin.setup', ['token' => $token['plain_text_token']]);
+
+        Log::info('WHATSAPP_SIM_PIN_SETUP', [
+            'user_id' => $user->id,
+            'phone' => $user->phone,
+            'name' => $user->name,
+            'url' => $url,
+            'expires_at' => $token['expires_at']->toDateTimeString(),
+        ]);
+
+        return [
+            'url' => $url,
+            'expires_at' => $token['expires_at'],
+        ];
+    }
+
+    /**
+     * Resolve a valid and active setup token.
+     */
+    public function resolveActiveToken(string $plainTextToken): ?UserPinSetupToken
+    {
+        return UserPinSetupToken::query()
+            ->with('user')
+            ->where('token_hash', hash('sha256', $plainTextToken))
+            ->whereNull('used_at')
+            ->where('expires_at', '>', now())
+            ->first();
+    }
+
+    /**
+     * Consume the setup token and persist the new user pin.
+     */
+    public function consumeToken(UserPinSetupToken $token, string $pin): void
+    {
+        DB::transaction(function () use ($token, $pin) {
+            $user = $token->user()->lockForUpdate()->firstOrFail();
+            $now = now();
+
+            $user->forceFill([
+                'pin' => $pin,
+                'pin_set_at' => $now,
+                'phone_verified_at' => $user->phone_verified_at ?? $now,
+            ])->save();
+
+            UserPinSetupToken::query()
+                ->where('user_id', $user->id)
+                ->whereNull('used_at')
+                ->update(['used_at' => $now]);
+        });
+    }
+
+    /**
+     * Create a new setup token and invalidate previous active tokens for the user.
+     *
+     * @return array{plain_text_token: string, expires_at: Carbon}
+     */
+    private function createToken(User $user, ?User $createdBy = null): array
+    {
+        $now = now();
+        $expiresAt = $now->copy()->addMinutes(config('auth.pin_setup.ttl', 30));
+        $plainTextToken = Str::random(64);
+
+        DB::transaction(function () use ($user, $createdBy, $now, $expiresAt, $plainTextToken) {
+            UserPinSetupToken::query()
+                ->where('user_id', $user->id)
+                ->whereNull('used_at')
+                ->update(['used_at' => $now]);
+
+            UserPinSetupToken::create([
+                'user_id' => $user->id,
+                'created_by' => $createdBy?->id,
+                'token_hash' => hash('sha256', $plainTextToken),
+                'expires_at' => $expiresAt,
+            ]);
+        });
+
+        return [
+            'plain_text_token' => $plainTextToken,
+            'expires_at' => $expiresAt,
+        ];
+    }
+}

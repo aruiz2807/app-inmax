@@ -1,12 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Services\ServicesPage;
 use App\Livewire\Specialties\SpecialtiesPage;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::middleware('guest')->group(function () {
+    Route::get('/pin/setup/{token}', PinSetupPage::class)->name('pin.setup');
 });
 
 Route::middleware([
