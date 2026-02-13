@@ -47,6 +47,16 @@
                         x-on:click="closeSidebar()"
                     />
 
+                    @if (auth()->user()?->profile === 'Admin')
+                        <x-ui.navlist.item
+                            icon="user-group"
+                            :label="__('Users')"
+                            href="{{ route('users') }}"
+                            :active="request()->routeIs('users')"
+                            x-on:click="closeSidebar()"
+                        />
+                    @endif
+
                     <x-ui.navlist.group
                         label="Settings"
                         :collapsable="true"

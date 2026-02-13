@@ -5,6 +5,7 @@ use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Services\ServicesPage;
 use App\Livewire\Specialties\SpecialtiesPage;
+use App\Livewire\Users\UsersPage;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,6 +34,10 @@ Route::middleware([
 
 /*doctors*/
     Route::get('/doctors', DoctorsPage::class)->name('doctors');
+/*--------*/
+
+/*users*/
+    Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
 /*--------*/
 
 });
