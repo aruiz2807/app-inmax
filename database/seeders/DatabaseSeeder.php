@@ -18,15 +18,18 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Admin',
-            'profile' => 'Admin',
-            'email' => 'super@admin.com',
-            'phone' => '3310000000',
-            'phone_verified_at' => now(),
-            'pin' => Hash::make('1234'),
-            'pin_set_at' => now(),
-            'password' => Hash::make('ld19M7sY3FzE'),
-        ]);
+        User::query()->updateOrCreate(
+            ['email' => 'super@admin.com'],
+            [
+                'name' => 'Admin',
+                'profile' => 'Admin',
+                'phone' => '3310000000',
+                'phone_verified_at' => now(),
+                'pin' => Hash::make('1234'),
+                'pin_set_at' => now(),
+                'password' => Hash::make('ld19M7sY3FzE'),
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
