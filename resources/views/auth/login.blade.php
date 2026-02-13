@@ -18,18 +18,18 @@
             </div>
         @endsession
 
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
 
-            <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            </div>
+                <div>
+                    <x-label for="phone" value="Telefono" />
+                    <x-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" required autofocus inputmode="numeric" autocomplete="tel" />
+                </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
-            </div>
+                <div class="mt-4">
+                    <x-label for="pin" value="PIN" />
+                    <x-input id="pin" class="block mt-1 w-full" type="password" name="password" required inputmode="numeric" autocomplete="one-time-code" />
+                </div>
 
             <div class="block mt-4">
                 <x-checkbox id="remember_me" name="remember">
@@ -38,12 +38,6 @@
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="ui-link text-sm pr-4" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-
                 <x-ui.button type="submit" color="teal" icon="arrow-left-end-on-rectangle">
                     {{ __('Log in') }}
                 </x-ui.button>
