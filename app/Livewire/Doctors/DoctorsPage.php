@@ -5,6 +5,8 @@ namespace App\Livewire\Doctors;
 use App\Livewire\Forms\DoctorsForm;
 use App\Models\Doctor;
 use App\Models\Specialty;
+use App\Services\Auth\PinSetupTokenService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -38,7 +40,7 @@ class DoctorsPage extends Component
         $this->dispatch('open-doctor-modal');
     }
 
-    public function save()
+    public function save(PinSetupTokenService $tokenService)
     {
         if($this->doctorId)
         {
@@ -46,7 +48,8 @@ class DoctorsPage extends Component
         }
         else
         {
-            $this->form->store();
+            $doctorUser = $this->form->store();
+            $tokenService->generateSetupLink($doctorUser, Auth::user());
         }
 
         // Show success toast

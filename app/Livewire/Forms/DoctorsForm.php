@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Doctor;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -35,7 +36,7 @@ class DoctorsForm extends Form
     /**
     * Store the doctor in the DB.
     */
-    public function store()
+    public function store(): User
     {
         $this->validate();
 
@@ -52,6 +53,8 @@ class DoctorsForm extends Form
             'university' => $this->university,
             'address' => $this->address,
         ]);
+
+        return $user;
     }
 
     /**
@@ -66,8 +69,10 @@ class DoctorsForm extends Form
             'profile' => 'Doctor',
             'email' => $input['email'],
             'phone' => $input['phone'],
-            // for now, the phone number will be the user's password
-            'password' => Hash::make($input['phone']),
+            'password' => Hash::make(Str::random(32)),
+            'pin' => null,
+            'pin_set_at' => null,
+            'phone_verified_at' => null,
         ]);
     }
 
