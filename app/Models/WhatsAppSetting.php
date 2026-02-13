@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class WhatsAppSetting extends Model
 {
     /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'whatsapp_settings';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
