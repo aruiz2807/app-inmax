@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Services\ServicesPage;
@@ -13,6 +14,7 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/pin/setup/{token}', PinSetupPage::class)->name('pin.setup');
+    Route::get('/forgot-pin', ForgotPinPage::class)->name('pin.forgot');
 });
 
 Route::middleware([

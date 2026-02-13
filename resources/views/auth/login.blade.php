@@ -40,7 +40,11 @@
                 </x-checkbox>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
+            <div class="flex items-center justify-between mt-4">
+                <a class="ui-link text-sm" href="{{ route('pin.forgot') }}">
+                    Olvide mi PIN
+                </a>
+
                 <x-ui.button type="submit" color="teal" icon="arrow-left-end-on-rectangle">
                     {{ __('Log in') }}
                 </x-ui.button>
