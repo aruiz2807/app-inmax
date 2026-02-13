@@ -40,7 +40,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request) {
             $request->validate([
                 'phone' => ['required', 'digits:10'],
-                'password' => ['required', 'digits:6'],
+                'password' => ['required', 'digits:4'],
             ]);
 
             $user = User::where('phone', (string) $request->string('phone'))->first();

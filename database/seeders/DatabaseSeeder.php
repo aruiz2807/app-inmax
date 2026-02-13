@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'super@admin.com',
             'phone' => '3310000000',
             'phone_verified_at' => now(),
-            'pin' => Hash::make('123456'),
+            'pin' => Hash::make('1234'),
             'pin_set_at' => now(),
             'password' => Hash::make('ld19M7sY3FzE'),
         ]);

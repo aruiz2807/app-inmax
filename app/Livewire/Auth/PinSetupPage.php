@@ -16,7 +16,7 @@ class PinSetupPage extends Component
     public string $tokenStatus = PinSetupTokenService::STATUS_INVALID;
     public ?string $tokenMessage = null;
 
-    #[Validate('required|digits:6|confirmed')]
+    #[Validate('required|digits:4|confirmed')]
     public string $pin = '';
 
     public string $pin_confirmation = '';

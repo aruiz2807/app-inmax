@@ -28,7 +28,7 @@
 
                 <div class="mt-4">
                     <x-label for="pin" value="PIN" />
-                    <x-input id="pin" class="block mt-1 w-full" type="password" name="password" required inputmode="numeric" autocomplete="one-time-code" />
+                    <x-input id="pin" class="block mt-1 w-full" type="password" name="password" required inputmode="numeric" maxlength="4" autocomplete="one-time-code" />
                 </div>
 
             <div class="block mt-4">

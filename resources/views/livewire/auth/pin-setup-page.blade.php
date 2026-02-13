@@ -14,7 +14,7 @@
 
         @if ($this->canSetPin())
             <div class="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
-                Confirma tu acceso y define tu PIN de 6 digitos para iniciar sesion en Inmax-Sure.
+                Confirma tu acceso y define tu PIN de 4 digitos para iniciar sesion en Inmax-Sure.
             </div>
         @endif
 
@@ -41,13 +41,13 @@
         @if ($this->canSetPin())
             <form wire:submit="save">
                 <div>
-                    <x-label for="pin" value="PIN (6 digitos)" />
+                    <x-label for="pin" value="PIN (4 digitos)" />
                     <x-input
                         id="pin"
                         class="block mt-1 w-full"
                         type="password"
                         inputmode="numeric"
-                        maxlength="6"
+                        maxlength="4"
                         wire:model="pin"
                         required
                         autofocus
@@ -62,7 +62,7 @@
                         class="block mt-1 w-full"
                         type="password"
                         inputmode="numeric"
-                        maxlength="6"
+                        maxlength="4"
                         wire:model="pin_confirmation"
                         required
                     />

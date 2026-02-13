@@ -14,7 +14,7 @@ class AdminUsersAccessTest extends TestCase
     {
         $admin = User::factory()->create([
             'profile' => 'Admin',
-            'pin' => '123456',
+            'pin' => '1234',
             'pin_set_at' => now(),
         ]);
 
@@ -27,7 +27,7 @@ class AdminUsersAccessTest extends TestCase
     {
         $user = User::factory()->create([
             'profile' => 'User',
-            'pin' => '123456',
+            'pin' => '1234',
             'pin_set_at' => now(),
         ]);
 

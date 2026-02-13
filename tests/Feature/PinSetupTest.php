@@ -52,8 +52,8 @@ class PinSetupTest extends TestCase
         ]);
 
         Livewire::test(PinSetupPage::class, ['token' => $token])
-            ->set('pin', '123456')
-            ->set('pin_confirmation', '123456')
+            ->set('pin', '1234')
+            ->set('pin_confirmation', '1234')
             ->call('save')
             ->assertRedirect(route('login', absolute: false));
 
@@ -61,7 +61,7 @@ class PinSetupTest extends TestCase
         $pinToken->refresh();
 
         $this->assertNotNull($user->pin_set_at);
-        $this->assertTrue(Hash::check('123456', $user->pin));
+        $this->assertTrue(Hash::check('1234', $user->pin));
         $this->assertNotNull($pinToken->used_at);
     }
 
