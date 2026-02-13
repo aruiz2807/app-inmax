@@ -7,6 +7,7 @@ use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Services\ServicesPage;
 use App\Livewire\Specialties\SpecialtiesPage;
 use App\Livewire\Users\UsersPage;
+use App\Livewire\Settings\WhatsAppSettingsPage;
 
 Route::get('/', function () {
     return view('welcome');
@@ -40,6 +41,10 @@ Route::middleware([
 
 /*users*/
     Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
+/*--------*/
+
+/*whatsapp settings*/
+    Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
 /*--------*/
 
 });

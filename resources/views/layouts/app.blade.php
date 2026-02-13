@@ -85,6 +85,16 @@
                             x-on:click="closeSidebar()"
                         />
 
+                        @if (auth()->user()?->profile === 'Admin')
+                            <x-ui.navlist.item
+                                icon="chat-bubble-left-right"
+                                :label="__('WhatsApp')"
+                                href="{{ route('settings.whatsapp') }}"
+                                :active="request()->routeIs('settings.whatsapp')"
+                                x-on:click="closeSidebar()"
+                            />
+                        @endif
+
                         @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                             <x-ui.navlist.item
                                 icon="key"
