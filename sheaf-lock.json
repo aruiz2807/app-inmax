@@ -46,6 +46,9 @@
         ],
         "text": [
             "select"
+        ],
+        "separator": [
+            "otp"
         ]
     }
 }

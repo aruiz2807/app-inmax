@@ -18,18 +18,19 @@
             </div>
         @endsession
 
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
 
-                <div>
-                    <x-label for="phone" value="Telefono" />
-                    <x-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" required autofocus inputmode="numeric" autocomplete="tel" />
-                </div>
+            <div>
+                <x-label for="phone" value="Telefono" />
+                <x-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" required autofocus inputmode="numeric" autocomplete="tel" />
+            </div>
 
-                <div class="mt-4">
-                    <x-label for="pin" value="PIN" />
-                    <x-input id="pin" class="block mt-1 w-full" type="password" name="password" required inputmode="numeric" maxlength="4" autocomplete="one-time-code" />
-                </div>
+            <div class="mt-4" x-data="{ pin: '' }">
+                <x-label for="pin" value="PIN" />
+                <input type="hidden" name="password" x-model="pin" required />
+                <x-ui.otp class="mt-1" x-model="pin" length="4" />
+            </div>
 
             <div class="block mt-4">
                 <x-checkbox id="remember_me" name="remember">
