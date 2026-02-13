@@ -46,6 +46,8 @@ class UserFactory extends Factory
             'phone_verified_at' => null,
             'phone' => $phone,
             'password' => static::$password ??= Hash::make('password'),
+            'pin' => null,
+            'pin_set_at' => null,
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'remember_token' => Str::random(10),

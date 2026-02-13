@@ -29,8 +29,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'pin',
+        'pin_set_at',
         'profile',
         'phone',
+        'phone_verified_at',
     ];
 
     /**
@@ -40,6 +43,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'pin',
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
@@ -64,6 +68,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'pin' => 'hashed',
+            'pin_set_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
         ];
     }
 }
