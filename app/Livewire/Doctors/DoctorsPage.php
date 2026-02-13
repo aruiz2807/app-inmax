@@ -49,7 +49,11 @@ class DoctorsPage extends Component
         else
         {
             $doctorUser = $this->form->store();
-            $tokenService->generateSetupLink($doctorUser, Auth::user());
+            $tokenService->generateSetupLink(
+                $doctorUser,
+                Auth::user(),
+                PinSetupTokenService::PURPOSE_ACTIVATION
+            );
         }
 
         // Show success toast

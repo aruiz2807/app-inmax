@@ -12,6 +12,7 @@ class WhatsAppCloudApiService
      * Send a template message using WhatsApp Cloud API.
      *
      * @param  array<int, string>  $parameters
+     * @param  array<int, string>  $buttonUrlParameters
      * @return array{ok: bool, status: int, data: array<string, mixed>, payload: array<string, mixed>}
      */
     public function sendTemplateMessage(
@@ -20,6 +21,7 @@ class WhatsAppCloudApiService
         string $templateName,
         string $languageCode,
         array $parameters = [],
+        array $buttonUrlParameters = [],
     ): array {
         $payload = [
             'messaging_product' => 'whatsapp',
@@ -33,14 +35,32 @@ class WhatsAppCloudApiService
             ],
         ];
 
+        $components = [];
+
         if (! empty($parameters)) {
-            $payload['template']['components'] = [[
+            $components[] = [
                 'type' => 'body',
                 'parameters' => array_map(
                     fn (string $param) => ['type' => 'text', 'text' => $param],
                     $parameters
                 ),
-            ]];
+            ];
+        }
+
+        if (! empty($buttonUrlParameters)) {
+            $components[] = [
+                'type' => 'button',
+                'sub_type' => 'url',
+                'index' => '0',
+                'parameters' => array_map(
+                    fn (string $param) => ['type' => 'text', 'text' => $param],
+                    $buttonUrlParameters
+                ),
+            ];
+        }
+
+        if (! empty($components)) {
+            $payload['template']['components'] = $components;
         }
 
         $endpoint = sprintf(

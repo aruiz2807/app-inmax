@@ -34,8 +34,21 @@ class ForgotPinPage extends Component
             ]);
         }
 
-        $result = $tokenService->generateSetupLink($user);
+        $result = $tokenService->generateSetupLink($user, null, PinSetupTokenService::PURPOSE_RESET);
 
         $this->generatedPinSetupUrl = $result['url'];
+
+        $content = match (true) {
+            ($result['whatsapp']['ok'] ?? false) => 'Enlace de restablecimiento enviado por WhatsApp.',
+            ($result['whatsapp']['attempted'] ?? false) => 'No se pudo enviar WhatsApp. Se muestra enlace para pruebas.',
+            default => 'WhatsApp no esta configurado. Se muestra enlace para pruebas.',
+        };
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: $content,
+            duration: 4000
+        );
     }
 }

@@ -39,16 +39,26 @@ class UsersPage extends Component
     public function sendPinSetupLink(int $userId, PinSetupTokenService $tokenService): void
     {
         $user = User::findOrFail($userId);
-        $result = $tokenService->generateSetupLink($user, Auth::user());
+        $purpose = $user->pin_set_at
+            ? PinSetupTokenService::PURPOSE_RESET
+            : PinSetupTokenService::PURPOSE_ACTIVATION;
+
+        $result = $tokenService->generateSetupLink($user, Auth::user(), $purpose);
 
         $this->lastPinSetupUrl = $result['url'];
         $this->lastPinSetupName = $user->name;
         $this->lastPinSetupPhone = $user->phone;
 
+        $content = match (true) {
+            ($result['whatsapp']['ok'] ?? false) => 'Enlace de PIN enviado por WhatsApp correctamente.',
+            ($result['whatsapp']['attempted'] ?? false) => 'No se pudo enviar WhatsApp. Se genero enlace de prueba.',
+            default => 'No hay configuracion de WhatsApp. Se genero enlace de prueba.',
+        };
+
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Enlace de configuracion de PIN generado y simulado por WhatsApp.',
+            content: $content,
             duration: 4000
         );
     }
@@ -66,16 +76,26 @@ class UsersPage extends Component
             );
         } else {
             $user = $this->form->store();
-            $result = $tokenService->generateSetupLink($user, Auth::user());
+            $result = $tokenService->generateSetupLink(
+                $user,
+                Auth::user(),
+                PinSetupTokenService::PURPOSE_ACTIVATION
+            );
 
             $this->lastPinSetupUrl = $result['url'];
             $this->lastPinSetupName = $user->name;
             $this->lastPinSetupPhone = $user->phone;
 
+            $content = match (true) {
+                ($result['whatsapp']['ok'] ?? false) => 'Usuario creado y enlace de activacion enviado por WhatsApp.',
+                ($result['whatsapp']['attempted'] ?? false) => 'Usuario creado. No se pudo enviar WhatsApp, enlace disponible para prueba.',
+                default => 'Usuario creado. Falta configurar WhatsApp, enlace disponible para prueba.',
+            };
+
             $this->dispatch(
                 'notify',
                 type: 'success',
-                content: 'Usuario creado y enlace de PIN enviado.',
+                content: $content,
                 duration: 4000
             );
         }
