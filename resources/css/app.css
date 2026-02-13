@@ -1,0 +1,27 @@
+@import './theme.css'; /* By Sheaf.dev */
+@import "tailwindcss";
+
+/*powergrid tables*/
+@import '../../vendor/power-components/livewire-powergrid/resources/css/tailwind4.css';
+
+@source "../views/**/*.blade.php";
+@source "../js/**/*.js";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+
+/*powergrid tables*/
+@source '../../app/Livewire/*Table.php';
+@source '../../app/Livewire/**/*Table.php';
+@source '../../vendor/power-components/livewire-powergrid/src/Themes/Tailwind.php';
+@source '../../vendor/power-components/livewire-powergrid/resources/views/**/*.php';
+
+@custom-variant dark (&:where(.dark, .dark *)); /* By Sheaf.dev */
+
+[x-cloak] {
+    display: none;
+}
+
+@layer components {
+    .ui-link {
+        @apply inline font-medium text-start underline underline-offset-[6px] hover:decoration-current text-neutral-800 dark:text-white decoration-neutral-800/20 dark:decoration-white/20;
+    }
+}

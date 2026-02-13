@@ -1,0 +1,27 @@
+/* By Sheaf.dev */
+@theme inline {
+    /* base color variables */
+
+    /* --color-neutral-900: var(--color-neutral-950); */
+
+    /* font variables */
+    --font-sans: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+    /* primary color varibles */
+    --color-primary: var(--color-neutral-800);
+    --color-primary-content: var(--color-neutral-800);
+    --color-primary-fg: var(--color-white);
+
+    /* radius variables */
+    --radius-field: 0.25rem;
+    --radius-box: 0.5rem;
+}
+
+
+@layer theme {
+    .dark {
+        --color-primary: var(--color-white);
+        --color-primary-content: var(--color-white);
+        --color-primary-fg:  var(--color-neutral-800);
+    }
+}

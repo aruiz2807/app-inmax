@@ -1,0 +1,51 @@
+{
+    "files": {
+        "resources/js/utils.js": [
+            "dark-theme",
+            "modal"
+        ],
+        "resources/js/globals/modals.js": [
+            "modal"
+        ]
+    },
+    "helpers": {
+        "popup": [
+            "select"
+        ]
+    },
+    "internalDependencies": {
+        "icon": [
+            "button",
+            "input",
+            "error",
+            "dropdown",
+            "alerts",
+            "badge",
+            "navlist",
+            "sidebar",
+            "navbar",
+            "radio",
+            "select"
+        ],
+        "button": [
+            "badge",
+            "navlist",
+            "sidebar",
+            "navbar",
+            "theme-switcher"
+        ],
+        "badge": [
+            "navlist",
+            "navbar"
+        ],
+        "navlist": [
+            "sidebar"
+        ],
+        "dropdown": [
+            "theme-switcher"
+        ],
+        "text": [
+            "select"
+        ]
+    }
+}
