@@ -34,16 +34,6 @@
                 <x-ui.error name="phone" />
             </div>
 
-            @if ($generatedPinSetupUrl)
-                <div class="mt-4 rounded-lg border border-teal-300 bg-teal-50 px-3 py-3">
-                    <p class="text-sm text-teal-900 font-medium">Enlace generado para pruebas:</p>
-                    <x-input class="mt-2 w-full" type="text" :value="$generatedPinSetupUrl" readonly />
-                    <a class="ui-link text-sm mt-2 inline-block break-all" href="{{ $generatedPinSetupUrl }}" target="_blank" rel="noopener noreferrer">
-                        Abrir enlace
-                    </a>
-                </div>
-            @endif
-
             <div class="flex items-center justify-between mt-4">
                 <a class="ui-link text-sm" href="{{ route('login') }}">
                     Volver a login

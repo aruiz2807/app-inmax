@@ -25,18 +25,14 @@ class ForgotPinTest extends TestCase
             'phone' => '3312345678',
         ]);
 
-        $component = Livewire::test(ForgotPinPage::class)
+        Livewire::test(ForgotPinPage::class)
             ->set('phone', $user->phone)
-            ->call('sendResetLink');
+            ->call('sendResetLink')
+            ->assertHasNoErrors();
 
         $this->assertDatabaseHas('user_pin_setup_tokens', [
             'user_id' => $user->id,
         ]);
-
-        $url = (string) $component->get('generatedPinSetupUrl');
-
-        $this->assertNotEmpty($url);
-        $this->assertStringContainsString('/pin/setup/', $url);
     }
 
     public function test_unknown_phone_returns_validation_error(): void
