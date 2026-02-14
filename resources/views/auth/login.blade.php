@@ -30,7 +30,7 @@
                 <x-label for="pin" value="PIN" />
                 <input type="hidden" name="password" x-model="pin" required />
                 <div class="mt-1 flex justify-center">
-                    <x-ui.otp x-model="pin" length="4" />
+                    <x-ui.otp x-model="pin" length="4" type="password" />
                 </div>
             </div>
 
