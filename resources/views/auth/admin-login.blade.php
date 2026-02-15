@@ -18,20 +18,17 @@
             </div>
         @endsession
 
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('admin.login.store') }}">
             @csrf
 
             <div>
-                <x-label for="phone" value="Telefono" />
-                <x-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" required autofocus inputmode="numeric" autocomplete="tel" />
+                <x-label for="email" value="Correo administrador" />
+                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
 
-            <div class="mt-4" x-data="{ pin: '' }">
-                <x-label for="pin" value="PIN" />
-                <input type="hidden" name="password" x-model="pin" required />
-                <div class="mt-1 flex justify-center">
-                    <x-ui.otp x-model="pin" length="4" type="password" />
-                </div>
+            <div class="mt-4">
+                <x-label for="password" value="Contrasena" />
+                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
             </div>
 
             <div class="block mt-4">
@@ -41,18 +38,12 @@
             </div>
 
             <div class="flex items-center justify-between mt-4">
-                <div class="flex items-center gap-3">
-                    <a class="ui-link text-sm" href="{{ route('pin.forgot') }}">
-                        Olvide mi PIN
-                    </a>
-
-                    <a class="ui-link text-sm" href="{{ route('admin.login') }}">
-                        Acceso administradores
-                    </a>
-                </div>
+                <a class="ui-link text-sm" href="{{ route('login') }}">
+                    Volver a login por PIN
+                </a>
 
                 <x-ui.button type="submit" color="teal" icon="arrow-left-end-on-rectangle">
-                    {{ __('Log in') }}
+                    Ingresar como Admin
                 </x-ui.button>
             </div>
         </form>

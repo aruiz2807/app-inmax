@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
@@ -16,6 +17,10 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/pin/setup/{token}', PinSetupPage::class)->name('pin.setup');
     Route::get('/forgot-pin', ForgotPinPage::class)->name('pin.forgot');
+    Route::get('/admin/login', [AdminAuthenticatedSessionController::class, 'create'])->name('admin.login');
+    Route::post('/admin/login', [AdminAuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:admin-login')
+        ->name('admin.login.store');
 });
 
 Route::middleware([
