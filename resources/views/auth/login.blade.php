@@ -41,15 +41,9 @@
             </div>
 
             <div class="flex items-center justify-between mt-4">
-                <div class="flex items-center gap-3">
-                    <a class="ui-link text-sm" href="{{ route('pin.forgot') }}">
-                        Olvide mi PIN
-                    </a>
-
-                    <a class="ui-link text-sm" href="{{ route('admin.login') }}">
-                        Acceso administradores
-                    </a>
-                </div>
+                <a class="ui-link text-sm" href="{{ route('pin.forgot') }}">
+                    Olvide mi PIN
+                </a>
 
                 <x-ui.button type="submit" color="teal" icon="arrow-left-end-on-rectangle">
                     {{ __('Log in') }}
