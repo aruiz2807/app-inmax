@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Doctor extends Model
 {
@@ -25,49 +26,32 @@ class Doctor extends Model
      * @var array<int, string>
      */
     protected $appends = [
-        'name',
-        'email',
-        'phone',
-        'specialty',
+        'rating',
     ];
 
     /**
-     * Get the doctors's name
+     * Get the doctor's rating
      */
-    protected function getNameAttribute()
+    protected function getRatingAttribute()
     {
-        $user = User::find($this->user_id);
+        $rating = rand(1, 5);
 
-        return empty($user) ? 'N/D' : $user->name;
+        return $rating;
     }
 
     /**
-     * Get the doctors's email
+     * Each doctor can have one user.
      */
-    protected function getEmailAttribute()
+    public function user(): BelongsTo
     {
-        $user = User::find($this->user_id);
-
-        return empty($user) ? 'N/D' : $user->email;
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the doctors's phone
+     * Each doctor can have one specialty.
      */
-    protected function getPhoneAttribute()
+    public function specialty(): BelongsTo
     {
-        $user = User::find($this->user_id);
-
-        return empty($user) ? 'N/D' : $user->phone;
-    }
-
-        /**
-     * Get the doctors's specialty
-     */
-    protected function getSpecialtyAttribute()
-    {
-        $specialty = Specialty::find($this->specialty_id);
-
-        return empty($specialty) ? 'N/D' : $specialty->name;
+        return $this->belongsTo(Specialty::class);
     }
 }

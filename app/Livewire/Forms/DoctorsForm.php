@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Doctor;
 
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -36,7 +35,7 @@ class DoctorsForm extends Form
     /**
     * Store the doctor in the DB.
     */
-    public function store(): User
+    public function store()
     {
         $this->validate();
 
@@ -53,8 +52,6 @@ class DoctorsForm extends Form
             'university' => $this->university,
             'address' => $this->address,
         ]);
-
-        return $user;
     }
 
     /**
@@ -69,21 +66,19 @@ class DoctorsForm extends Form
             'profile' => 'Doctor',
             'email' => $input['email'],
             'phone' => $input['phone'],
-            'password' => Hash::make(Str::random(32)),
-            'pin' => null,
-            'pin_set_at' => null,
-            'phone_verified_at' => null,
+            // for now, the phone number will be the user's password
+            'password' => Hash::make($input['phone']),
         ]);
     }
 
     /**
-    * Sets the service to edit.
+    * Sets the doctor to edit.
     */
     public function set(Doctor $doctor)
     {
-        $this->name = $doctor->name;
-        $this->email = $doctor->email;
-        $this->phone = $doctor->phone;
+        $this->name = $doctor->user->name;
+        $this->email = $doctor->user->email;
+        $this->phone = $doctor->user->phone;
         $this->specialty = (string) $doctor->specialty_id;
         $this->license = $doctor->license;
         $this->university = $doctor->university;
@@ -91,7 +86,7 @@ class DoctorsForm extends Form
     }
 
     /**
-    * Updates the service in the DB.
+    * Updates the doctor in the DB.
     */
     public function update($doctorId)
     {

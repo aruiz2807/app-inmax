@@ -25,7 +25,8 @@
             "sidebar",
             "navbar",
             "radio",
-            "select"
+            "select",
+            "switch"
         ],
         "button": [
             "badge",

@@ -46,8 +46,8 @@ return [
          */
         'flatpickr' => [
             'locales' => [
-                'pt_BR' => [
-                    'locale' => 'pt',
+                'es_MX' => [
+                    'locale' => 'es',
                     'dateFormat' => 'd/m/Y H:i',
                     'enableTime' => true,
                     'time_24hr' => true,

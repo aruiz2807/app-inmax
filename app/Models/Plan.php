@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Specialty extends Model
+class Plan extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -14,13 +14,15 @@ class Specialty extends Model
      */
     protected $fillable = [
         'name',
+        'price',
+        'type',
     ];
 
     /**
-     * Each specialty may be assigned to one or many docotrs.
+     * Each plan may have one or many plan benefits.
      */
     public function benefits(): HasMany
     {
-        return $this->hasMany(Doctor::class);
+        return $this->hasMany(PlanBenefit::class);
     }
 }

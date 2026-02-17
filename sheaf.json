@@ -90,6 +90,9 @@
         },
         "otp": {
             "installationTime": 1771015333
+        },
+        "switch": {
+            "installationTime": 1771294515
         }
     }
 }

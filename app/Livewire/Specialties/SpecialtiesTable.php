@@ -67,7 +67,7 @@ final class SpecialtiesTable extends PowerGridComponent
 
             Column::make('Fecha registro', 'created_at_formatted', 'created_at')
                 ->sortable()
-                ->searchable(),
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::action('Opciones')
         ];

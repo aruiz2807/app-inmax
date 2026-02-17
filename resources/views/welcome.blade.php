@@ -34,7 +34,7 @@
                     <ul class="grid gap-3 text-sm leading-normal content-center pt-8">
                         <li>
                             <x-ui.button color="teal" icon="arrow-long-right" href="{{ route('login') }}">
-                                {{ __('Continuar') }}
+                                {{ __('app.next') }}
                             </x-ui.button>
                         </li>
                     </ul>

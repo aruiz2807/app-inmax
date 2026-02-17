@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Livewire\Auth\ForgotPinPage;
+use App\Livewire\Plans\PlansPage;
+use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Services\ServicesPage;
@@ -28,28 +30,25 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
 
-/*services*/
-    Route::get('/services', ServicesPage::class)->name('services');
-/*--------*/
+    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
 
-/*specialties*/
-    Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
-/*--------*/
+    Route::prefix('admin')->group(function () {
 
-/*doctors*/
-    Route::get('/doctors', DoctorsPage::class)->name('doctors');
-/*--------*/
+        Route::get('/doctors', DoctorsPage::class)->name('doctors');
 
-/*users*/
-    Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
-/*--------*/
+        Route::get('/plans', PlansPage::class)->name('plans');
 
-/*whatsapp settings*/
-    Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
-/*--------*/
+        Route::get('/policies', PoliciesPage::class)->name('policies');
+
+        Route::get('/services', ServicesPage::class)->name('services');
+
+        Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
+
+        Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
+
+        Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
+
+    });
 
 });

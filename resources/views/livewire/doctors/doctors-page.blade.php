@@ -1,6 +1,6 @@
 <div>
     <x-slot name="header">
-        {{ __('Doctors') }}
+        {{ __('app.doctors') }}
     </x-slot>
 
     <div>
@@ -8,12 +8,13 @@
             <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
                 <span>Catalogo de medicos</span>
 
-                <x-ui.modal.trigger id="doctors-modal" wire:click="resetForm">
+                <x-ui.modal.trigger id="doctor-modal" wire:click="resetForm">
                     <x-ui.button color="teal" icon="plus-circle">
                         Agregar medico
                     </x-ui.button>
                 </x-ui.modal.trigger>
             </x-ui.heading>
+
             <p>Administre los medicos que pueden ser asignados para las interconsultas</p>
         </x-ui.card>
     </div>
@@ -25,7 +26,7 @@
     </div>
 
     <x-ui.modal
-        id="doctors-modal"
+        id="doctor-modal"
         animation="fade"
         width="2xl"
         heading="{{$doctorId ? 'Editar medico' : 'Nuevo medico'}}"

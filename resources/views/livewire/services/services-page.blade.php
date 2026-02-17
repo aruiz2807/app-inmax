@@ -1,6 +1,6 @@
 <div>
     <x-slot name="header">
-        {{ __('Services') }}
+        {{ __('app.services') }}
     </x-slot>
 
     <div>
