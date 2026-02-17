@@ -29,3 +29,4 @@
 /.stylelintcache
 /.vite
 /.cache
+/yarn.lock
