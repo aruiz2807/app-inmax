@@ -63,12 +63,14 @@
         @endif
 
         @if($policyType === 'Individual')
-            <livewire:policies.individual-policy-page :policyId="$policyId" :key="$policyId"/>
+            <livewire:policies.individual-policy-page :policyId="$policyId" :newMember="$newMember" :key="$policyId"/>
         @endif
 
         @if($policyType === 'Group')
             <livewire:policies.group-policy-page :policyId="$policyId" :key="$policyId"/>
         @endif
+
+
 
         @if(!$policyType)
             <div class="w-full flex justify-end gap-3 pt-4">
@@ -78,4 +80,8 @@
             </div>
         @endif
     </x-ui.modal>
+
+    @include('livewire.policies.activation-modal')
+    @include('livewire.policies.deactivation-modal')
+    @include('livewire.policies.cancel-modal')
 </div>

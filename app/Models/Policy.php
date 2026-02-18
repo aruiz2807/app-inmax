@@ -20,6 +20,7 @@ class Policy extends Model
         'start_date',
         'end_date',
         'insurance',
+        'status',
     ];
 
     /**

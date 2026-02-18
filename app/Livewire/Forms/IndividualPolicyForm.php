@@ -41,6 +41,8 @@ class IndividualPolicyForm extends Form
 
     public bool $foreigner = false;
 
+    public bool $addingMember = false;
+
     /**
     * Store the individual policy in the DB.
     */
@@ -56,6 +58,14 @@ class IndividualPolicyForm extends Form
             'curp' => $this->curp,
             'passport' => $this->passport,
         ]);
+
+        if($this->addingMember)
+        {
+            $parent_policy = Policy::find($this->parent_policy);
+            $user->update([
+                'company_id' => $parent_policy->user->company_id,
+            ]);
+        }
 
         Policy::create([
             'user_id' => $user->id,
@@ -105,6 +115,16 @@ class IndividualPolicyForm extends Form
         {
             $this->foreigner = true;
         }
+    }
+
+    /**
+    * Sets the policy to add member.
+    */
+    public function member(Policy $policy)
+    {
+        $this->plan = (string) $policy->plan_id;
+        $this->parent_policy = (string) $policy->id;
+        $this->addingMember = true;
     }
 
     /**

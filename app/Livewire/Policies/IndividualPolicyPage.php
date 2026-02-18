@@ -17,6 +17,7 @@ class IndividualPolicyPage extends Component
     public ?int $policyId = null;
     public $plans = [];
     public $policies = [];
+    public $member = false;
 
     #[Layout('layouts.app')]
     public function render()
@@ -24,32 +25,47 @@ class IndividualPolicyPage extends Component
         return view('livewire.policies.individual-policy-page');
     }
 
-    public function mount($policyId)
+    public function mount($policyId, $newMember)
     {
-        if($policyId)
+        if($policyId && !$newMember)
         {
             $this->policyId = $policyId;
-            $policy = Policy::find($policyId);
-
-            $this->form->set($policy);
+            $this->form->set(Policy::find($policyId));
         }
 
-        $this->plans = Plan::orderBy('name')->where([
-            ['type', 'Individual'],
-            ['status', 'Active'],
-        ])->get();
+        if(!$newMember)
+        {
+            $this->plans = Plan::orderBy('name')->where([
+                ['type', 'Individual'],
+                ['status', 'Active'],
+            ])->get();
 
-        $this->policies = Policy::with('user:id,name')
-            ->whereNull('parent_policy_id')
-            ->whereHas('plan', function ($query) {
-                $query->where('type', 'individual'); // filter only 'individual' plans
-            })
-            ->get();
+            $this->policies = Policy::with('user:id,name')
+                ->whereNull('parent_policy_id')
+                ->whereHas('plan', function ($query) {
+                    $query->where('type', 'individual'); // filter only 'individual' plans
+            })->get();
+        }
+        else
+        {
+            $this->plans = Plan::orderBy('name')->where([
+                ['type', 'Group'],
+                ['status', 'Active'],
+            ])->get();
+
+            $this->policies = Policy::where('id', $policyId)
+                ->with(['user:id,name,company_id', 'user.company:id,name'])
+                ->get();
+
+            $this->form->member(Policy::find($policyId));
+            $this->member = $newMember;
+
+        }
     }
 
     public function save()
     {
-        if($this->policyId)
+        if($this->policyId and !$this->member)
         {
             $this->form->update($this->policyId);
         }

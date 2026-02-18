@@ -57,6 +57,7 @@
                 <x-ui.select
                     placeholder="Buscar cobertura..."
                     icon="wallet"
+                    :class="$form->addingMember ? 'pointer-events-none opacity-50' : ''"
                     searchable
                     wire:model="form.plan">
                         @foreach($plans as $plan)
@@ -73,11 +74,12 @@
                 <x-ui.select
                     placeholder="Buscar poliza..."
                     icon="wallet"
+                    :class="$form->addingMember ? 'pointer-events-none opacity-50' : ''"
                     searchable
                     wire:model="form.parent_policy">
                         @foreach($policies as $policy)
                             <x-ui.select.option value="{{ $policy->id }}">
-                                {{ $policy->number }} - {{ $policy->user->name }}
+                                {{ $policy->number }} - {{ $policy->user->name }} - {{ $policy->user->company?->name }}
                             </x-ui.select.option>
                         @endforeach
                 </x-ui.select>

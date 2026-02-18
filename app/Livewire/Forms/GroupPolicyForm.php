@@ -125,7 +125,7 @@ class GroupPolicyForm extends Form
     */
     public function set(Policy $policy)
     {
-        $this->name = $policy->user->company->name;
+        $this->company = $policy->user->company->name;
         $this->type = $policy->user->company->type;
         $this->legal_name = $policy->user->company->legal_name;
         $this->rfc = $policy->user->company->rfc;

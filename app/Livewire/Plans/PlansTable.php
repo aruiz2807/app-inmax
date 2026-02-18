@@ -47,7 +47,8 @@ final class PlansTable extends PowerGridComponent
             ->add('id')
             ->add('name')
             ->add('price')
-            ->add('type', fn ($model) => $model->type === 'Group' ? 'Colectiva' : 'Individual')
+            ->add('type')
+            ->add('type_formatted', fn ($model) => $model->type === 'Group' ? 'Colectiva' : 'Individual')
             ->add('status')
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
@@ -69,9 +70,8 @@ final class PlansTable extends PowerGridComponent
             Column::make('Precio', 'price_in_mxn', 'price')
                 ->sortable(),
 
-            Column::make('Tipo', 'type')
-                ->sortable()
-                ->searchable(),
+            Column::make('Tipo', 'type_formatted', 'type')
+                ->sortable(),
 
             Column::make('Estatus', 'status_toggle', 'status')
                 ->toggleable(),

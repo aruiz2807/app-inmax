@@ -108,7 +108,7 @@ class PlanBenefitsModal extends Component
                 default  => null,
             };
 
-            $this->values[$benefit->id] = $value !== null ? (string) $value : '';
+            $this->values[$benefit->id] = $value !== null ? (string) $value : '0';
         }
     }
 
