@@ -36,6 +36,9 @@ class IndividualPolicyForm extends Form
     #[Validate('nullable')]
     public $parent_policy = null;
 
+    #[Validate('nullable')]
+    public $sales_user = null;
+
     #[Validate('nullable|array')]
     public $insurance = [];
 
@@ -69,6 +72,7 @@ class IndividualPolicyForm extends Form
 
         Policy::create([
             'user_id' => $user->id,
+            'sales_user_id' => $this->sales_user,
             'plan_id' => $this->plan,
             'parent_policy_id' => $this->parent_policy ?: null,
             'number' => $this->getPolicyNumber(),
@@ -108,6 +112,7 @@ class IndividualPolicyForm extends Form
         $this->curp = $policy->user->curp;
         $this->passport = $policy->user->passport;
         $this->plan = (string) $policy->plan_id;
+        $this->sales_user = (string) $policy->sales_user_id;
         $this->parent_policy = (string) $policy->parent_policy_id;
         $this->insurance = $policy->insurance;
 

@@ -50,9 +50,7 @@ final class DoctorsTable extends PowerGridComponent
             ->add('email', fn ($model) => e($model->user->email))
             ->add('phone', fn ($model) => e($model->user->phone))
             ->add('specialty', fn ($model) => e($model->specialty->name))
-
             ->add('rating_stars', fn ($model) => Blade::render('<livewire:star-rating rate="' . $model->rating . '"/>'))
-
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
             ->add('created_at_formatted', function ($model) {

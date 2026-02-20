@@ -35,7 +35,7 @@ final class PoliciesTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Policy::query()->with(['plan:id,name,type', 'user:id,name,company_id', 'user.company:id,name']);
+        return Policy::query()->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id', 'user.company:id,name']);
     }
 
     public function relationSearch(): array
@@ -49,6 +49,8 @@ final class PoliciesTable extends PowerGridComponent
             ->add('id')
             ->add('user_id')
             ->add('name', fn ($model) => e($model->user->name))
+            ->add('sales_user_id')
+            ->add('sales_agent', fn ($model) => e($model->sales_user->name))
             ->add('company', fn ($model) => e($model->user->company->name ?? ''))
             ->add('plan_id')
             ->add('plan_name', fn ($model) => e($model->plan->name))
@@ -87,6 +89,10 @@ final class PoliciesTable extends PowerGridComponent
 
             Column::make('Finaliza', 'end_date_formatted', 'end_date')
                 ->sortable(),
+
+            Column::make('Promotor', 'sales_agent')
+                ->sortable()
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Estatus', 'status'),
 

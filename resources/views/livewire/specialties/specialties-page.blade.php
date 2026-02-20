@@ -34,13 +34,27 @@
         x-on:open-specialty-modal.window="$data.open()"
     >
         <form wire:submit="save">
-            @csrf
-
             <x-ui.fieldset label="Información de la especialidad">
                 <x-ui.field required>
                     <x-ui.label>Nombre</x-ui.label>
                     <x-ui.input wire:model="form.name" name="name" placeholder="Pediatría" />
                     <x-ui.error name="form.name" />
+                </x-ui.field>
+
+                <x-ui.field required>
+                    <x-ui.label>Tipo de servicio</x-ui.label>
+                    <x-ui.select
+                        placeholder="Buscar servicios..."
+                        icon="wallet"
+                        searchable
+                        wire:model="form.service_id">
+                            @foreach($services as $service)
+                                <x-ui.select.option value="{{ $service->id }}">
+                                    {{ $service->name }}
+                                </x-ui.select.option>
+                            @endforeach
+                    </x-ui.select>
+                    <x-ui.error name="form.service" />
                 </x-ui.field>
             </x-ui.fieldset>
 

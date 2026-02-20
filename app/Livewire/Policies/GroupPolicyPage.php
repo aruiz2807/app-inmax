@@ -5,6 +5,8 @@ namespace App\Livewire\Policies;
 use App\Livewire\Forms\GroupPolicyForm;
 use App\Models\Plan;
 use App\Models\Policy;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -16,6 +18,7 @@ class GroupPolicyPage extends Component
     public GroupPolicyForm $form;
     public ?int $policyId = null;
     public $plans = [];
+    public $sales_agents = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -34,9 +37,14 @@ class GroupPolicyPage extends Component
         }
 
         $this->plans = Plan::orderBy('name')->where([
-            ['type', 'Group'],
             ['status', 'Active'],
         ])->get();
+
+        $this->form->sales_user = Auth::user()?->profile === 'Sales' ? Auth::user()->id : null;
+
+        $this->sales_agents = User::where('profile', 'Sales')
+            ->select('id', 'name')
+            ->get();
     }
 
     public function save()
@@ -88,5 +96,6 @@ class GroupPolicyPage extends Component
     public function resetForm()
     {
         $this->form->reset();
+        $this->policyId = null;
     }
 }

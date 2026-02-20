@@ -6,6 +6,12 @@
         ],
         "resources/js/globals/modals.js": [
             "modal"
+        ],
+        "resources/js/components/slider.js": [
+            "slider"
+        ],
+        "resources/css/components/slider.css": [
+            "slider"
         ]
     },
     "helpers": {

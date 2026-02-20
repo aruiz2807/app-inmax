@@ -9,6 +9,9 @@ import { Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 // components using Alpine.data(...) and
 // plugins using Alpine.plugin(...)
 
+//slider
+import './components/slider.js'
+
 // power grid tables
 import './../../vendor/power-components/livewire-powergrid/dist/powergrid'
 

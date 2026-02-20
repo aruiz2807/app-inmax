@@ -2,9 +2,13 @@
 
 namespace App\Livewire\Policies;
 
+
+
 use App\Livewire\Forms\IndividualPolicyForm;
 use App\Models\Plan;
 use App\Models\Policy;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -17,6 +21,7 @@ class IndividualPolicyPage extends Component
     public ?int $policyId = null;
     public $plans = [];
     public $policies = [];
+    public $sales_agents = [];
     public $member = false;
 
     #[Layout('layouts.app')]
@@ -42,6 +47,7 @@ class IndividualPolicyPage extends Component
 
             $this->policies = Policy::with('user:id,name')
                 ->whereNull('parent_policy_id')
+                ->where('id', '!=', $policyId) // exclude this policy
                 ->whereHas('plan', function ($query) {
                     $query->where('type', 'individual'); // filter only 'individual' plans
             })->get();
@@ -59,8 +65,13 @@ class IndividualPolicyPage extends Component
 
             $this->form->member(Policy::find($policyId));
             $this->member = $newMember;
-
         }
+
+        $this->form->sales_user = Auth::user()?->profile === 'Sales' ? Auth::user()->id : null;
+
+        $this->sales_agents = User::where('profile', 'Sales')
+            ->select('id', 'name')
+            ->get();
     }
 
     public function save()
@@ -112,5 +123,7 @@ class IndividualPolicyPage extends Component
     public function resetForm()
     {
         $this->form->reset();
+        $this->member = false;
+        $this->policyId = null;
     }
 }

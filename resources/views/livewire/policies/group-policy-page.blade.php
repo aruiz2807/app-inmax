@@ -81,9 +81,20 @@
                 <x-ui.error name="form.curp" />
             </x-ui.field>
             @endif
+
+            <x-ui.field>
+                <x-ui.label>Seguros adicionales</x-ui.label>
+                <div class="flex justify-center">
+                    <x-ui.checkbox.group wire:model="form.insurance" variant="pills">
+                        <x-ui.checkbox label=" IMSS " value="imss" />
+                        <x-ui.checkbox label="ISSSTE" value="issste" />
+                        <x-ui.checkbox label=" SGMM " value="sgmm" />
+                    </x-ui.checkbox.group>
+                </div>
+            </x-ui.field>
         </x-ui.fieldset>
 
-        <x-ui.fieldset label="Información de la poliza">
+        <x-ui.fieldset label="Información de la poliza" class="mt-2">
             <x-ui.field required>
                 <x-ui.label>Cobertura</x-ui.label>
                 <x-ui.select
@@ -100,17 +111,34 @@
                 <x-ui.error name="form.plan" />
             </x-ui.field>
 
-            <x-ui.field>
-                <x-ui.label>Seguros adicionales</x-ui.label>
-                <div class="flex justify-center">
-                    <x-ui.checkbox.group wire:model="form.insurance" variant="pills">
-                        <x-ui.checkbox label=" IMSS " value="imss" />
-                        <x-ui.checkbox label="ISSSTE" value="issste" />
-                        <x-ui.checkbox label=" SGMM " value="sgmm" />
-                    </x-ui.checkbox.group>
-                </div>
+            <x-ui.field required>
+                <x-ui.label>Cantidad de asegurados</x-ui.label>
+                <x-ui.input wire:model="form.members" name="members" type="number" max="99" min="10" />
+                <x-ui.error name="form.members" />
             </x-ui.field>
 
+            @if($form->sales_user)
+            <x-ui.field>
+                <x-ui.label>Promotor</x-ui.label>
+                <x-ui.input :value="auth()->user()->name" readonly copyable="false" />
+            </x-ui.field>
+            @else
+            <x-ui.field>
+                <x-ui.label>Promotor</x-ui.label>
+                <x-ui.select
+                    placeholder="Buscar promotor..."
+                    icon="wallet"
+                    searchable
+                    wire:model="form.sales_user">
+                        @foreach($sales_agents as $agent)
+                            <x-ui.select.option value="{{ $agent->id }}">
+                                {{ $agent->name }}
+                            </x-ui.select.option>
+                        @endforeach
+                </x-ui.select>
+                <x-ui.error name="form.sales_user" />
+            </x-ui.field>
+            @endif
         </x-ui.fieldset>
 
         <div class="w-full flex justify-end gap-3 pt-4">

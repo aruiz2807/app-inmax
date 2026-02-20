@@ -12,6 +12,12 @@ use App\Livewire\Specialties\SpecialtiesPage;
 use App\Livewire\Users\UsersPage;
 use App\Livewire\Settings\WhatsAppSettingsPage;
 
+use App\Livewire\Mobile\User\PolicyStatusPage;
+use App\Livewire\Mobile\User\SchedulePage;
+use App\Livewire\Mobile\User\ScheduleConfirmationPage;
+use App\Livewire\Mobile\User\RecordPage;
+use App\Livewire\Mobile\User\HistoryPage;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -50,5 +56,24 @@ Route::middleware([
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
 
     });
+
+    Route::prefix('user')->group(function () {
+
+        Route::get('/home', function () { return view('livewire.mobile.user.home'); })->name('user.home');
+
+        Route::get('/schedule', SchedulePage::class)->name('user.schedule');
+        Route::get('/schedule-confirmation', ScheduleConfirmationPage::class)->name('user.schedule-confirmation');
+
+        Route::get('/status', PolicyStatusPage::class)->name('user.status');
+
+        Route::get('/record', RecordPage::class)->name('user.record');
+
+        Route::get('/history', HistoryPage::class)->name('user.history');
+    });
+
+    Route::prefix('doctors')->group(function () {
+
+    });
+
 
 });

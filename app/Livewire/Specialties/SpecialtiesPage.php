@@ -3,6 +3,7 @@
 namespace App\Livewire\Specialties;
 
 use App\Livewire\Forms\SpecialtiesForm;
+use App\Models\Service;
 use App\Models\Specialty;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -12,11 +13,17 @@ class SpecialtiesPage extends Component
 {
     public SpecialtiesForm $form;
     public ?int $specialtyId = null;
+    public $services = [];
 
     #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.specialties.specialties-page');
+    }
+
+    public function mount()
+    {
+        $this->services = Service::orderBy('name')->get();
     }
 
     #[On('editSpecialty')]

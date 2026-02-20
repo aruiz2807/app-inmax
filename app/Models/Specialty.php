@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Specialty extends Model
 {
@@ -14,6 +15,7 @@ class Specialty extends Model
      */
     protected $fillable = [
         'name',
+        'service_id',
     ];
 
     /**
@@ -22,5 +24,13 @@ class Specialty extends Model
     public function benefits(): HasMany
     {
         return $this->hasMany(Doctor::class);
+    }
+
+    /**
+     * Each specialty can be of one service type.
+     */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
     }
 }

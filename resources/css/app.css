@@ -4,6 +4,9 @@
 /*powergrid tables*/
 @import '../../vendor/power-components/livewire-powergrid/resources/css/tailwind4.css';
 
+/*slider*/
+@import './components/slider.css';
+
 @source "../views/**/*.blade.php";
 @source "../js/**/*.js";
 @source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";

@@ -46,8 +46,14 @@ class GroupPolicyForm extends Form
     #[Validate('required')]
     public $plan = null;
 
+    #[Validate('nullable')]
+    public $sales_user = null;
+
     #[Validate('nullable|array')]
     public $insurance = [];
+
+    #[Validate('required|numeric|min:1|max:99')]
+    public $members = 0;
 
     public bool $foreigner = false;
 
@@ -78,9 +84,11 @@ class GroupPolicyForm extends Form
 
         Policy::create([
             'user_id' => $user->id,
+            'sales_user_id' => $this->sales_user,
             'plan_id' => $this->plan,
             'number' => $this->getPolicyNumber(),
             'insurance' => $this->insurance,
+            'members' => $this->members,
         ]);
     }
 
@@ -137,7 +145,9 @@ class GroupPolicyForm extends Form
         $this->curp = $policy->user->curp;
         $this->passport = $policy->user->passport;
         $this->plan = (string) $policy->plan_id;
+        $this->sales_user = (string) $policy->sales_user_id;
         $this->insurance = $policy->insurance;
+        $this->members = $policy->members;
 
         if($this->passport)
         {

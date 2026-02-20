@@ -50,7 +50,7 @@
             "installationTime": 1770086548
         },
         "separator": {
-            "installationTime": 1770086549
+            "installationTime": 1771558087
         },
         "layout": {
             "installationTime": 1770089375
@@ -74,7 +74,7 @@
             "installationTime": 1770440896
         },
         "radio": {
-            "installationTime": 1770683308
+            "installationTime": 1771573590
         },
         "fieldset": {
             "installationTime": 1770684555
@@ -93,6 +93,9 @@
         },
         "switch": {
             "installationTime": 1771294515
+        },
+        "slider": {
+            "installationTime": 1771553353
         }
     }
 }

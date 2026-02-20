@@ -11,6 +11,9 @@ class SpecialtiesForm extends Form
     #[Validate('required|string|max:100')]
     public $name = '';
 
+    #[Validate('required')]
+    public $service_id = '';
+
     /**
     * Store the service in the DB.
     */
@@ -18,7 +21,7 @@ class SpecialtiesForm extends Form
     {
         $this->validate();
 
-        Specialty::create($this->only(['name']));
+        Specialty::create($this->only(['name', 'service_id']));
     }
 
     /**
@@ -27,6 +30,7 @@ class SpecialtiesForm extends Form
     public function set(Specialty $specialty)
     {
         $this->name = $specialty->name;
+        $this->service_id = (string) $specialty->service_id;
     }
 
     /**
@@ -40,6 +44,7 @@ class SpecialtiesForm extends Form
 
         $specialty->update([
             'name' => $this->name,
+            'service_id' => $this->service_id,
         ]);
     }
 }

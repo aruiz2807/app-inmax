@@ -32,7 +32,7 @@ final class SpecialtiesTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Specialty::query();
+        return Specialty::query()->with(['service:id,name']);
     }
 
     public function relationSearch(): array
@@ -45,6 +45,7 @@ final class SpecialtiesTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('name')
+            ->add('service', fn ($model) => e($model->service->name))
             ->add('status')
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
@@ -61,6 +62,9 @@ final class SpecialtiesTable extends PowerGridComponent
             Column::make('Nombre', 'name')
                 ->sortable()
                 ->searchable(),
+
+            Column::make('Tipo de servicio', 'service')
+                ->sortable(),
 
             Column::make('Estatus', 'status_toggle', 'status')
                 ->toggleable(),

@@ -14,6 +14,7 @@ class Policy extends Model
      */
     protected $fillable = [
         'user_id',
+        'sales_user_id',
         'plan_id',
         'parent_policy_id',
         'number',
@@ -40,6 +41,14 @@ class Policy extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Each policy can have only one sales agent.
+     */
+    public function sales_user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sales_user_id');
     }
 
     /**
