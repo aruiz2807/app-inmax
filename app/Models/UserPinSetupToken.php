@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class UserPinSetupToken extends Model
 {
@@ -47,5 +48,13 @@ class UserPinSetupToken extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Legal acceptance generated through this token.
+     */
+    public function legalAcceptance(): HasOne
+    {
+        return $this->hasOne(UserLegalAcceptance::class, 'user_pin_setup_token_id');
     }
 }

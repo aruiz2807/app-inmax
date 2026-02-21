@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -101,5 +102,13 @@ class User extends Authenticatable
     public function policy(): HasOne
     {
         return $this->hasOne(Policy::class);
+    }
+
+    /**
+     * Legal acceptance records created by this user.
+     */
+    public function legalAcceptances(): HasMany
+    {
+        return $this->hasMany(UserLegalAcceptance::class);
     }
 }
