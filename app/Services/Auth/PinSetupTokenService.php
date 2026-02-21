@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Models\UserLegalAcceptance;
 use App\Models\UserPinSetupToken;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
@@ -14,17 +15,20 @@ use Illuminate\Support\Str;
 class PinSetupTokenService
 {
     public const PURPOSE_ACTIVATION = 'activation';
+
     public const PURPOSE_RESET = 'reset';
 
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_USED = 'used';
+
     public const STATUS_EXPIRED = 'expired';
+
     public const STATUS_INVALID = 'invalid';
 
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService
-    ) {
-    }
+    ) {}
 
     /**
      * Generate a setup link and attempt WhatsApp template delivery.
@@ -39,8 +43,7 @@ class PinSetupTokenService
         User $user,
         ?User $createdBy = null,
         string $purpose = self::PURPOSE_ACTIVATION
-    ): array
-    {
+    ): array {
         $token = $this->createToken($user, $createdBy);
         $url = route('pin.setup', ['token' => $token['plain_text_token']]);
         $whatsAppDelivery = $this->sendWhatsAppTemplate(
@@ -120,9 +123,9 @@ class PinSetupTokenService
     /**
      * Consume the setup token and persist the new user pin.
      */
-    public function consumeToken(UserPinSetupToken $token, string $pin): void
+    public function consumeToken(UserPinSetupToken $token, string $pin, ?array $legalAcceptance = null): void
     {
-        DB::transaction(function () use ($token, $pin) {
+        DB::transaction(function () use ($token, $pin, $legalAcceptance) {
             $user = $token->user()->lockForUpdate()->firstOrFail();
             $now = now();
 
@@ -136,6 +139,30 @@ class PinSetupTokenService
                 ->where('user_id', $user->id)
                 ->whereNull('used_at')
                 ->update(['used_at' => $now]);
+
+            if ($legalAcceptance !== null) {
+                $existingAcceptance = UserLegalAcceptance::query()
+                    ->where('user_pin_setup_token_id', $token->id)
+                    ->exists();
+
+                if (! $existingAcceptance) {
+                    UserLegalAcceptance::query()->create([
+                        'acceptance_code' => $this->generateLegalAcceptanceCode(),
+                        'user_id' => $user->id,
+                        'user_pin_setup_token_id' => $token->id,
+                        'terms_document_id' => data_get($legalAcceptance, 'terms_document_id'),
+                        'privacy_document_id' => data_get($legalAcceptance, 'privacy_document_id'),
+                        'terms_version' => (string) data_get($legalAcceptance, 'terms_version', ''),
+                        'privacy_version' => (string) data_get($legalAcceptance, 'privacy_version', ''),
+                        'accepted_terms' => (bool) data_get($legalAcceptance, 'accepted_terms', false),
+                        'accepted_privacy' => (bool) data_get($legalAcceptance, 'accepted_privacy', false),
+                        'accepted_sensitive_data' => (bool) data_get($legalAcceptance, 'accepted_sensitive_data', false),
+                        'accepted_at' => data_get($legalAcceptance, 'accepted_at', $now),
+                        'ip_address' => data_get($legalAcceptance, 'ip_address'),
+                        'user_agent' => data_get($legalAcceptance, 'user_agent'),
+                    ]);
+                }
+            }
         });
     }
 
@@ -216,5 +243,17 @@ class PinSetupTokenService
             'ok' => $response['ok'],
             'status' => $response['status'],
         ];
+    }
+
+    /**
+     * Generate a unique internal legal acceptance code.
+     */
+    private function generateLegalAcceptanceCode(): string
+    {
+        do {
+            $code = 'LGL-'.strtoupper(Str::random(10));
+        } while (UserLegalAcceptance::query()->where('acceptance_code', $code)->exists());
+
+        return $code;
     }
 }

@@ -68,11 +68,54 @@
                     />
                 </div>
 
-                <div class="flex items-center justify-end mt-4">
-                    <x-ui.button type="submit" color="teal" icon="check">
-                        Confirmar PIN
-                    </x-ui.button>
+                <div class="mt-6 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
+                    <p class="text-sm font-semibold">Consentimiento legal</p>
+
+                    @if ($legalReady)
+                        <div class="mt-3 space-y-2">
+                            <x-checkbox id="accept_terms" wire:model="acceptTerms">
+                                Acepto {{ $termsTitle }} (version {{ $termsVersion }})
+                            </x-checkbox>
+                            <x-ui.error name="acceptTerms" />
+
+                            <x-checkbox id="accept_privacy" wire:model="acceptPrivacy">
+                                Acepto {{ $privacyTitle }} (version {{ $privacyVersion }})
+                            </x-checkbox>
+                            <x-ui.error name="acceptPrivacy" />
+
+                            <x-checkbox id="accept_sensitive" wire:model="acceptSensitiveData">
+                                Consiento el tratamiento de datos personales sensibles para la prestacion del servicio.
+                            </x-checkbox>
+                            <x-ui.error name="acceptSensitiveData" />
+                        </div>
+
+                        <details class="mt-4 rounded-lg border border-neutral-200 dark:border-neutral-700 p-3">
+                            <summary class="cursor-pointer text-sm font-semibold">Ver {{ $termsTitle }} ({{ $termsVersion }})</summary>
+                            <div class="mt-2 max-h-36 overflow-auto text-sm whitespace-pre-line text-neutral-700 dark:text-neutral-300">
+                                {{ $termsContent }}
+                            </div>
+                        </details>
+
+                        <details class="mt-3 rounded-lg border border-neutral-200 dark:border-neutral-700 p-3">
+                            <summary class="cursor-pointer text-sm font-semibold">Ver {{ $privacyTitle }} ({{ $privacyVersion }})</summary>
+                            <div class="mt-2 max-h-36 overflow-auto text-sm whitespace-pre-line text-neutral-700 dark:text-neutral-300">
+                                {{ $privacyContent }}
+                            </div>
+                        </details>
+                    @else
+                        <div class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                            {{ $legalMessage }}
+                        </div>
+                    @endif
                 </div>
+
+                @if ($legalReady)
+                    <div class="flex items-center justify-end mt-4">
+                        <x-ui.button type="submit" color="teal" icon="check">
+                            Confirmar PIN
+                        </x-ui.button>
+                    </div>
+                @endif
             </form>
         @endif
     </x-authentication-card>
