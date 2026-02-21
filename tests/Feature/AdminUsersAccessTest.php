@@ -18,7 +18,7 @@ class AdminUsersAccessTest extends TestCase
             'pin_set_at' => now(),
         ]);
 
-        $response = $this->actingAs($admin)->get('/users');
+        $response = $this->actingAs($admin)->get(route('users'));
 
         $response->assertStatus(200);
     }
@@ -31,7 +31,7 @@ class AdminUsersAccessTest extends TestCase
             'pin_set_at' => now(),
         ]);
 
-        $response = $this->actingAs($user)->get('/users');
+        $response = $this->actingAs($user)->get(route('users'));
 
         $response->assertStatus(403);
     }

@@ -22,7 +22,7 @@ class WhatsAppSettingsTest extends TestCase
             'pin_set_at' => now(),
         ]);
 
-        $response = $this->actingAs($admin)->get('/settings/whatsapp');
+        $response = $this->actingAs($admin)->get(route('settings.whatsapp'));
 
         $response->assertStatus(200);
     }
@@ -35,7 +35,7 @@ class WhatsAppSettingsTest extends TestCase
             'pin_set_at' => now(),
         ]);
 
-        $response = $this->actingAs($user)->get('/settings/whatsapp');
+        $response = $this->actingAs($user)->get(route('settings.whatsapp'));
 
         $response->assertStatus(403);
     }
