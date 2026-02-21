@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Models\User;
+use App\Models\UserLegalAcceptance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -30,7 +31,16 @@ final class UsersTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return User::query();
+        return User::query()
+            ->select('users.*')
+            ->addSelect([
+                'legal_accepted_at' => UserLegalAcceptance::query()
+                    ->select('accepted_at')
+                    ->whereColumn('user_id', 'users.id')
+                    ->orderByDesc('accepted_at')
+                    ->orderByDesc('id')
+                    ->limit(1),
+            ]);
     }
 
     public function relationSearch(): array
@@ -47,6 +57,14 @@ final class UsersTable extends PowerGridComponent
             ->add('phone')
             ->add('profile')
             ->add('pin_status', fn (User $user) => $user->pin_set_at ? 'Configurado' : 'Pendiente')
+            ->add('legal_accepted_at')
+            ->add('legal_accepted_at_formatted', function (User $user): string {
+                if (blank($user->legal_accepted_at)) {
+                    return 'Sin aceptar';
+                }
+
+                return Carbon::parse($user->legal_accepted_at)->format('d/m/Y H:i:s');
+            })
             ->add('created_at')
             ->add('created_at_formatted', fn (User $user) => Carbon::parse($user->created_at)->format('d/m/Y'));
     }
@@ -70,6 +88,9 @@ final class UsersTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('PIN', 'pin_status')
+                ->sortable(),
+
+            Column::make('Aceptacion legal', 'legal_accepted_at_formatted', 'legal_accepted_at')
                 ->sortable(),
 
             Column::make('Fecha registro', 'created_at_formatted', 'created_at')
