@@ -101,6 +101,14 @@
                                 :active="request()->routeIs('settings.whatsapp')"
                                 x-on:click="closeSidebar()"
                             />
+
+                            <x-ui.navlist.item
+                                icon="document-text"
+                                :label="__('Legal')"
+                                href="{{ route('settings.legal') }}"
+                                :active="request()->routeIs('settings.legal')"
+                                x-on:click="closeSidebar()"
+                            />
                         @endif
 
                         @if (Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()?->profile === 'Admin')

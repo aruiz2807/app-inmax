@@ -119,6 +119,10 @@ class LegalDocumentService
             throw new InvalidArgumentException('No puedes activar una version ya vencida.');
         }
 
+        if ($document->effective_at && $document->effective_at->isFuture()) {
+            throw new InvalidArgumentException('No puedes activar una version con vigencia futura.');
+        }
+
         $now = now();
 
         LegalDocument::query()

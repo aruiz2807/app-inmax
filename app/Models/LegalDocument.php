@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class LegalDocument extends Model
 {
     public const TYPE_TERMS = 'terms';
+
     public const TYPE_PRIVACY = 'privacy';
 
     /**

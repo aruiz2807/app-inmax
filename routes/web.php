@@ -1,22 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Livewire\Auth\ForgotPinPage;
-use App\Livewire\Plans\PlansPage;
-use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
+use App\Livewire\Mobile\User\HistoryPage;
+use App\Livewire\Mobile\User\PolicyStatusPage;
+use App\Livewire\Mobile\User\RecordPage;
+use App\Livewire\Mobile\User\ScheduleConfirmationPage;
+use App\Livewire\Mobile\User\SchedulePage;
+use App\Livewire\Plans\PlansPage;
+use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Services\ServicesPage;
+use App\Livewire\Settings\LegalSettingsPage;
+use App\Livewire\Settings\WhatsAppSettingsPage;
 use App\Livewire\Specialties\SpecialtiesPage;
 use App\Livewire\Users\UsersPage;
-use App\Livewire\Settings\WhatsAppSettingsPage;
-
-use App\Livewire\Mobile\User\PolicyStatusPage;
-use App\Livewire\Mobile\User\SchedulePage;
-use App\Livewire\Mobile\User\ScheduleConfirmationPage;
-use App\Livewire\Mobile\User\RecordPage;
-use App\Livewire\Mobile\User\HistoryPage;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,7 +37,9 @@ Route::middleware([
     'verified',
 ])->group(function () {
 
-    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
     Route::prefix('admin')->group(function () {
 
@@ -54,12 +56,15 @@ Route::middleware([
         Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
+        Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');
 
     });
 
     Route::prefix('user')->group(function () {
 
-        Route::get('/home', function () { return view('livewire.mobile.user.home'); })->name('user.home');
+        Route::get('/home', function () {
+            return view('livewire.mobile.user.home');
+        })->name('user.home');
 
         Route::get('/schedule', SchedulePage::class)->name('user.schedule');
         Route::get('/schedule-confirmation', ScheduleConfirmationPage::class)->name('user.schedule-confirmation');
@@ -71,9 +76,6 @@ Route::middleware([
         Route::get('/history', HistoryPage::class)->name('user.history');
     });
 
-    Route::prefix('doctors')->group(function () {
-
-    });
-
+    Route::prefix('doctors')->group(function () {});
 
 });
