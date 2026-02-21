@@ -45,7 +45,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             $user = User::where('phone', (string) $request->string('phone'))->first();
 
-            if (! $user || ! filled($user->pin) || $user->profile === 'Admin') {
+            if (! $user || ! filled($user->pin)) {
                 return null;
             }
 

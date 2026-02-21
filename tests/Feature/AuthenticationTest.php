@@ -48,7 +48,7 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_admin_users_can_not_authenticate_using_phone_pin_login(): void
+    public function test_admin_users_can_authenticate_using_phone_pin_login(): void
     {
         $admin = User::factory()->create([
             'profile' => 'Admin',
@@ -56,11 +56,12 @@ class AuthenticationTest extends TestCase
             'pin_set_at' => now(),
         ]);
 
-        $this->post('/login', [
+        $response = $this->post('/login', [
             'phone' => $admin->phone,
             'password' => '1234',
         ]);
 
-        $this->assertGuest();
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect(route('dashboard', absolute: false));
     }
 }
