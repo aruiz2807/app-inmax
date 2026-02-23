@@ -26,7 +26,7 @@
             "installationTime": 1770086543
         },
         "link": {
-            "installationTime": 1770086544
+            "installationTime": 1771744066
         },
         "card": {
             "installationTime": 1770086545
@@ -96,6 +96,12 @@
         },
         "slider": {
             "installationTime": 1771633167
+        },
+        "tabs": {
+            "installationTime": 1771740930
+        },
+        "avatar": {
+            "installationTime": 1771742704
         }
     }
 }

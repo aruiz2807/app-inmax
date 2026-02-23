@@ -21,16 +21,6 @@ class PolicyService extends Model
     ];
 
     /**
-     * The attributes that are appended when model is retrieved
-     *
-     * @var array<int, string>
-     */
-    protected $appends = [
-        'level',
-        'color',
-    ];
-
-    /**
      * Get the service's level
      */
     protected function getLevelAttribute()

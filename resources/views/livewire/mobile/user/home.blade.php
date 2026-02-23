@@ -2,6 +2,22 @@
     <div class="max-w-md mx-auto bg-white min-h-screen overflow-hidden font-sans">
         <div class="relative w-full">
             <img src="/img/home.png" alt="Header" class="w-full object-cover">
+
+            <!-- User Profile Button -->
+            <a href="{{ route('user.my-profile') }}"
+            class="absolute -bottom-0 left-3 bg-white p-3 rounded-full shadow-lg border border-gray-100 hover:shadow-xl transition">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-[#1A3A5A]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                    />
+                </svg>
+            </a>
         </div>
 
         <div class="px-6 pt-12 pb-8">
@@ -50,4 +66,4 @@
             </div>
         </div>
     </div>
-</x-guest-layout>
+</x-mobile-layout>

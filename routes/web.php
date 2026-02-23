@@ -4,9 +4,12 @@ use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
+use App\Livewire\Mobile\User\ContactPage;
 use App\Livewire\Mobile\User\HistoryPage;
 use App\Livewire\Mobile\User\PolicyStatusPage;
+use App\Livewire\Mobile\User\ProfilePage;
 use App\Livewire\Mobile\User\RecordPage;
+use App\Livewire\Mobile\User\ScheduleCancellationPage;
 use App\Livewire\Mobile\User\ScheduleConfirmationPage;
 use App\Livewire\Mobile\User\SchedulePage;
 use App\Livewire\Plans\PlansPage;
@@ -68,12 +71,17 @@ Route::middleware([
 
         Route::get('/schedule', SchedulePage::class)->name('user.schedule');
         Route::get('/schedule-confirmation', ScheduleConfirmationPage::class)->name('user.schedule-confirmation');
+        Route::get('/schedule-cancellation', ScheduleCancellationPage::class)->name('user.schedule-cancellation');
 
         Route::get('/status', PolicyStatusPage::class)->name('user.status');
 
         Route::get('/record', RecordPage::class)->name('user.record');
 
         Route::get('/history', HistoryPage::class)->name('user.history');
+
+        Route::get('/my-profile', ProfilePage::class)->name('user.my-profile');
+
+        Route::get('/contact', ContactPage::class)->name('user.contact');
     });
 
     Route::prefix('doctors')->group(function () {});

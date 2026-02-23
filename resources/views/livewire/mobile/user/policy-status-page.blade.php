@@ -28,14 +28,16 @@
                 {{ $total_used }} de {{ $total_included }} servicios utilizados
             </x-ui.text>
 
+            <a href="#" class="w-full mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
             @foreach ($services as $service)
-                <x-ui.separator />
-                <div class="grid grid-cols-[auto_6rem_4rem] justify-stretch items-center">
+                <div class="grid grid-cols-[auto_6rem_4rem] justify-stretch items-center p-4">
                     <x-ui.text>{{ $service->service->name }}</x-ui.text>
                     <x-ui.text class="opacity-50">{{ $service->used }} de {{ $service->included }} usados</x-ui.text>
                     <x-ui.icon :name="$service->level" :class="'justify-self-end '.$service->color" />
                 </div>
+                <x-ui.separator />
             @endforeach
+            </a>
         </x-ui.card>
 
         <x-ui.card size="full" class="mt-4">
