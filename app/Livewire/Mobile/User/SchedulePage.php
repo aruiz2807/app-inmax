@@ -106,7 +106,7 @@ class SchedulePage extends Component
 
     public function schedule()
     {
-        $doctor = Doctor::inRandomOrder()->first(); //get random doctor
+        $doctor = Doctor::where('specialty_id', '1')->inRandomOrder()->first(); //get random doctor
 
         $appointment = Appointment::create([
             'user_id' => Auth::user()->id,

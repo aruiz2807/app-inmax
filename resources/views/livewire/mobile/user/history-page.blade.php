@@ -17,6 +17,13 @@
 
             <x-ui.tab.panel>
                 <x-ui.card size="full">
+
+                    @if($upcomingAppointments->isEmpty())
+                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay citas proximas</x-ui.text>
+                    </div>
+                    @endif
+
                     @foreach($upcomingAppointments as $upcoming)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                         <div class="flex">
@@ -58,6 +65,13 @@
 
             <x-ui.tab.panel>
                 <x-ui.card size="full">
+
+                    @if($upcomingAppointments->isEmpty())
+                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay citas pasadas</x-ui.text>
+                    </div>
+                    @endif
+
                     @foreach($pastAppointments as $past)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                         <div class="flex justify-center mb-4">
