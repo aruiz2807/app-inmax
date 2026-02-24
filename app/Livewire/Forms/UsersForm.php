@@ -35,7 +35,6 @@ class UsersForm extends Form
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'phone_country_code' => '52',
             'profile' => $this->profile,
             // Password remains as compatibility fallback, but pin is now used for login.
             'password' => Hash::make(Str::random(32)),
@@ -79,7 +78,6 @@ class UsersForm extends Form
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'phone_country_code' => '52',
             'profile' => $this->profile,
         ]);
     }
