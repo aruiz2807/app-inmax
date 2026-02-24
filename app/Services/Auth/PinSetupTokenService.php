@@ -284,31 +284,40 @@ class PinSetupTokenService
     /**
      * Resolve destination phone(s) for WhatsApp delivery.
      *
-     * For Mexico (52), first try 521XXXXXXXXXX and fallback to 52XXXXXXXXXX.
+     * For Mexico numbers, first try 521XXXXXXXXXX and fallback to 52XXXXXXXXXX.
      *
      * @return array<int, string>
      */
     private function resolveWhatsAppDestinations(User $user): array
     {
-        $countryCode = $this->digits((string) ($user->phone_country_code ?? '52'));
         $phone = $this->digits((string) $user->phone);
 
         if ($phone === '') {
             return [];
         }
 
-        if (str_starts_with($phone, $countryCode) && strlen($phone) > 10) {
-            return [$phone];
-        }
-
-        if ($countryCode === '52' && strlen($phone) === 10) {
+        if (strlen($phone) === 10) {
             return [
                 '521'.$phone,
                 '52'.$phone,
             ];
         }
 
-        return [$countryCode.$phone];
+        if (str_starts_with($phone, '521') && strlen($phone) === 13) {
+            return [
+                $phone,
+                '52'.substr($phone, 3),
+            ];
+        }
+
+        if (str_starts_with($phone, '52') && strlen($phone) === 12) {
+            return [
+                '521'.substr($phone, 2),
+                $phone,
+            ];
+        }
+
+        return [$phone];
     }
 
     /**

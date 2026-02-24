@@ -110,7 +110,6 @@ class PinSetupWhatsAppTemplateTest extends TestCase
         $user = User::factory()->create([
             'name' => 'Carlos Ramos',
             'phone' => '3314445566',
-            'phone_country_code' => '52',
         ]);
 
         WhatsAppSetting::query()->create([
@@ -143,7 +142,6 @@ class PinSetupWhatsAppTemplateTest extends TestCase
         $user = User::factory()->create([
             'name' => 'Alicia Gomez',
             'phone' => '3318887766',
-            'phone_country_code' => '52',
         ]);
 
         WhatsAppSetting::query()->create([

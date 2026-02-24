@@ -33,7 +33,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'super@admin.com',
             'email_verified_at' => now(),
             'phone' => '3310000000',
-            'phone_country_code' => '52',
             'phone_verified_at' => now(),
             'pin' => Hash::make('1234'),
             'pin_set_at' => now(),

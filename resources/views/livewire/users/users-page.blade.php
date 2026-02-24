@@ -73,12 +73,6 @@
                 </x-ui.field>
 
                 <x-ui.field required>
-                    <x-ui.label>Codigo pais</x-ui.label>
-                    <x-ui.input wire:model="form.phone_country_code" name="phone_country_code" placeholder="52" />
-                    <x-ui.error name="form.phone_country_code" />
-                </x-ui.field>
-
-                <x-ui.field required>
                     <x-ui.label>Perfil</x-ui.label>
                     <x-ui.select wire:model="form.profile" placeholder="Selecciona un perfil">
                         <x-ui.select.option value="Admin">Admin</x-ui.select.option>
