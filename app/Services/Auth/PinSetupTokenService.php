@@ -290,10 +290,15 @@ class PinSetupTokenService
      */
     private function resolveWhatsAppDestinations(User $user): array
     {
+        $countryCode = $this->digits((string) ($user->phone_country_code ?? '52')) ?: '52';
         $phone = $this->digits((string) $user->phone);
 
         if ($phone === '') {
             return [];
+        }
+
+        if ($countryCode !== '52') {
+            return [str_starts_with($phone, $countryCode) ? $phone : $countryCode.$phone];
         }
 
         if (strlen($phone) === 10) {

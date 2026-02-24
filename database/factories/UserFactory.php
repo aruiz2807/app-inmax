@@ -45,6 +45,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'phone_verified_at' => null,
             'phone' => $phone,
+            'phone_country_code' => '52',
             'password' => static::$password ??= Hash::make('password'),
             'pin' => null,
             'pin_set_at' => null,

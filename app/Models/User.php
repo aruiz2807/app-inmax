@@ -38,6 +38,7 @@ class User extends Authenticatable
         'pin_set_at',
         'profile',
         'phone',
+        'phone_country_code',
         'phone_verified_at',
         'birth_date',
         'company_id',
