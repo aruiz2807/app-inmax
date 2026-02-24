@@ -13,7 +13,7 @@
             <div class="flex flex-col items-center">
                 <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
 
-                <x-ui.text class="pt-1 text-xl">{{$user->name}}</x-ui.text>
+                <x-ui.text class="pt-2 pb-2 text-xl">{{$user->name}}</x-ui.text>
 
                 @if($user->policy->status === 'Active')
                 <x-ui.badge icon="shield-check" variant="outline" color="green" pill>Cobertura activa</x-ui.badge>
@@ -21,7 +21,7 @@
                 <x-ui.badge icon="shield-exclamation" variant="outline" color="gray" pill>Cobertura inactiva</x-ui.badge>
                 @endif
 
-                <a href="#" class="w-full mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                <a href="#" class="w-5/6 mt-8 mb-6 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                         <x-ui.text>Poliza : </x-ui.text>
                         <x-ui.text class="font-semibold">{{$user->policy->number}}</x-ui.text>
@@ -63,6 +63,13 @@
                 <x-ui.button class="w-1/2 mt-4" wire:click="help" variant="outline" color="indigo" icon="question-mark-circle">
                     Necesitas ayuda?
                 </x-ui.button>
+
+                <form class="w-1/2 mt-4 mb-2" method="POST" action="{{ route('logout') }}" x-data>
+                    @csrf
+                    <x-ui.button class="w-full" type="submit" variant="outline" color="red" icon="arrow-left-start-on-rectangle">
+                        {{ __('app.logout') }}
+                    </x-ui.button>
+                </form>
             </div>
         </x-ui.card>
     </div>

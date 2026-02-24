@@ -15,6 +15,8 @@ class PolicyStatusPage extends Component
     public $total_used;
     public $total_extra;
     public $services = [];
+    public $policy_type;
+    public $icon;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -25,12 +27,22 @@ class PolicyStatusPage extends Component
     public function mount()
     {
         $user = Auth::user();
-        $this->services = PolicyService::where('policy_id', $user->policy->id)->get();
+
+        if($user->policy->type === 'Member')
+        {
+            $this->services = PolicyService::where('policy_id', $user->policy->parent_policy_id)->get();
+        }
+        else
+        {
+            $this->services = PolicyService::where('policy_id', $user->policy->id)->get();
+        }
 
         $sum = PolicyService::where('policy_id', $user->policy->id)
             ->selectRaw('SUM(included) as total_included, SUM(used) as total_used, SUM(extra) as total_extra')
             ->first();
 
+        $this->policy_type = $user->policy->type === 'Individual' ? 'Individual' : 'Colectiva';
+        $this->icon = $user->policy->type === 'Individual' ? 'user' : 'user-group';
         $this->total_included = $sum->total_included;
         $this->total_used = $sum->total_used;
         $this->total_extra = $sum->total_extra;

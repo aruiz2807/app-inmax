@@ -163,7 +163,7 @@ final class PoliciesTable extends PowerGridComponent
                 ->hide(),
 
             Rule::button('members')
-                ->when(fn($model) => $model->plan->type !== 'Group' || $model->parent_policy_id)
+                ->when(fn($model) => $model->type !== 'Group' || $model->parent_policy_id)
                 ->hide(),
 
         ];

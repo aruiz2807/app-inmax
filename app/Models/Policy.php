@@ -18,6 +18,8 @@ class Policy extends Model
         'plan_id',
         'parent_policy_id',
         'number',
+        'type',
+        'members',
         'start_date',
         'end_date',
         'insurance',

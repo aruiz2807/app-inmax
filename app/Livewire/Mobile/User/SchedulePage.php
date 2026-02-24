@@ -28,12 +28,22 @@ class SchedulePage extends Component
     public function mount()
     {
         $date = Carbon::now();
+        $user = Auth::user();
         $count = 0;
         $maxDays = 15;
 
+        if($user->policy->type === 'Member')
+        {
+            $policy_id  = $user->policy->parent_policy_id;
+        }
+        else
+        {
+            $policy_id  = $user->policy->id;
+        }
+
         $this->isIncluded = PolicyService::query()
-            ->where('policy_id', Auth::user()->policy->id)
-            ->where('service_id', 1) //improve para no pasar hardcoded
+            ->where('policy_id', $policy_id)
+            ->where('service_id', 1) //revisar como no pasar hardcodeado
             ->whereColumn('used', '<', 'included')
             ->exists();
 

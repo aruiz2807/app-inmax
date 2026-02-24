@@ -15,10 +15,14 @@
                 <x-ui.text class="text-lg ml-2">Uso de la poliza</x-ui.text>
             </x-ui.heading>
 
+            <div class="flex justify-center pt-2">
+                <x-ui.badge :icon="$icon" variant="outline" color="blue" pill>{{ $policy_type }}</x-ui.badge>
+            </div>
+
             <x-ui.slider
                 wire:model="percentage"
                 handleVariant="circle"
-                class="pointer-events-none"
+                class="pointer-events-none w-5/6 pl-14"
                 tooltips
                 :fill-track="[true, false]"
                 x-init="$slider.formatTooltipUsing((value) => value.toFixed() + '%')"

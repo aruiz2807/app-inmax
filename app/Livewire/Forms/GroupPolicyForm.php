@@ -4,6 +4,8 @@ namespace App\Livewire\Forms;
 
 use App\Models\User;
 use App\Models\Company;
+use App\Models\PlanBenefit;
+use App\Models\PolicyService;
 use App\Models\Policy;
 
 use Illuminate\Support\Facades\Hash;
@@ -82,14 +84,26 @@ class GroupPolicyForm extends Form
             'company' => $company->id,
         ]);
 
-        Policy::create([
+        $policy = Policy::create([
             'user_id' => $user->id,
             'sales_user_id' => $this->sales_user,
             'plan_id' => $this->plan,
             'number' => $this->getPolicyNumber(),
-            'insurance' => $this->insurance,
+            'type' => 'Group',
             'members' => $this->members,
+            'insurance' => $this->insurance,
         ]);
+
+        $benefits = PlanBenefit::where('plan_id', $this->plan)->orderBy('service_id')->get();
+
+        foreach($benefits as $benefit)
+        {
+            PolicyService::create([
+                'policy_id' => $policy->id,
+                'service_id' => $benefit->service_id,
+                'included' => round(($benefit->events * $this->members) / 2),
+            ]);
+        }
     }
 
     /**

@@ -4,7 +4,8 @@ namespace App\Livewire\Forms;
 
 use App\Models\User;
 use App\Models\Policy;
-
+use App\Models\PlanBenefit;
+use App\Models\PolicyService;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -70,14 +71,29 @@ class IndividualPolicyForm extends Form
             ]);
         }
 
-        Policy::create([
+        $policy = Policy::create([
             'user_id' => $user->id,
             'sales_user_id' => $this->sales_user,
             'plan_id' => $this->plan,
             'parent_policy_id' => $this->parent_policy ?: null,
             'number' => $this->getPolicyNumber(),
+            'type' => $this->addingMember ? 'Member' : 'Individual',
             'insurance' => $this->insurance,
         ]);
+
+        if(!$this->addingMember)
+        {
+            $benefits = PlanBenefit::where('plan_id', $this->plan)->orderBy('service_id')->get();
+
+            foreach($benefits as $benefit)
+            {
+                PolicyService::create([
+                    'policy_id' => $policy->id,
+                    'service_id' => $benefit->service_id,
+                    'included' => $benefit->events
+                ]);
+            }
+        }
     }
 
     /**
