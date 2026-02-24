@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             ->first();
 
         if (! $admin) {
-            $admin = new User();
+            $admin = new User;
         }
 
         $admin->forceFill([
@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'super@admin.com',
             'email_verified_at' => now(),
             'phone' => '3310000000',
+            'phone_country_code' => '52',
             'phone_verified_at' => now(),
             'pin' => Hash::make('1234'),
             'pin_set_at' => now(),

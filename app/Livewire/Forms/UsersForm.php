@@ -21,6 +21,9 @@ class UsersForm extends Form
     #[Validate('required|digits:10|unique:users,phone')]
     public string $phone = '';
 
+    #[Validate('required|regex:/^\+?\d{1,4}$/')]
+    public string $phone_country_code = '52';
+
     #[Validate('required|in:Admin,Doctor,Sales,User')]
     public string $profile = 'User';
 
@@ -35,6 +38,7 @@ class UsersForm extends Form
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'phone_country_code' => $this->normalizeCountryCode($this->phone_country_code),
             'profile' => $this->profile,
             // Password remains as compatibility fallback, but pin is now used for login.
             'password' => Hash::make(Str::random(32)),
@@ -52,6 +56,7 @@ class UsersForm extends Form
         $this->name = $user->name;
         $this->email = $user->email;
         $this->phone = $user->phone;
+        $this->phone_country_code = $user->phone_country_code ?: '52';
         $this->profile = $user->profile;
     }
 
@@ -64,11 +69,13 @@ class UsersForm extends Form
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'phone_country_code' => $this->phone_country_code,
             'profile' => $this->profile,
         ], [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'phone' => ['required', 'digits:10', Rule::unique('users', 'phone')->ignore($userId)],
+            'phone_country_code' => ['required', 'regex:/^\+?\d{1,4}$/'],
             'profile' => ['required', Rule::in(['Admin', 'Doctor', 'Sales', 'User'])],
         ])->validate();
 
@@ -78,7 +85,16 @@ class UsersForm extends Form
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'phone_country_code' => $this->normalizeCountryCode($this->phone_country_code),
             'profile' => $this->profile,
         ]);
+    }
+
+    /**
+     * Keep only dial code digits (strip optional + and separators).
+     */
+    private function normalizeCountryCode(string $value): string
+    {
+        return preg_replace('/\D+/', '', $value) ?: '52';
     }
 }

@@ -228,20 +228,44 @@ class PinSetupTokenService
         }
 
         $languageCode = $setting->default_language ?: 'es_MX';
+        $destinations = $this->resolveWhatsAppDestinations($user);
 
-        $response = $this->whatsAppService->sendTemplateMessage(
-            setting: $setting,
-            to: $user->phone,
-            templateName: $templateName,
-            languageCode: $languageCode,
-            parameters: [$user->name],
-            buttonUrlParameters: [$plainTextToken]
-        );
+        if (empty($destinations)) {
+            return [
+                'attempted' => false,
+                'ok' => false,
+                'reason' => 'invalid_phone',
+            ];
+        }
+
+        $lastResponse = null;
+
+        foreach ($destinations as $destination) {
+            $lastResponse = $this->whatsAppService->sendTemplateMessage(
+                setting: $setting,
+                to: $destination,
+                templateName: $templateName,
+                languageCode: $languageCode,
+                parameters: [$user->name],
+                buttonUrlParameters: [$plainTextToken]
+            );
+
+            if ($lastResponse['ok']) {
+                return [
+                    'attempted' => true,
+                    'ok' => true,
+                    'status' => $lastResponse['status'],
+                    'to' => $destination,
+                ];
+            }
+        }
 
         return [
             'attempted' => true,
-            'ok' => $response['ok'],
-            'status' => $response['status'],
+            'ok' => false,
+            'status' => $lastResponse['status'] ?? null,
+            'reason' => 'all_destinations_failed',
+            'tried_to' => $destinations,
         ];
     }
 
@@ -255,5 +279,43 @@ class PinSetupTokenService
         } while (UserLegalAcceptance::query()->where('acceptance_code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Resolve destination phone(s) for WhatsApp delivery.
+     *
+     * For Mexico (52), first try 521XXXXXXXXXX and fallback to 52XXXXXXXXXX.
+     *
+     * @return array<int, string>
+     */
+    private function resolveWhatsAppDestinations(User $user): array
+    {
+        $countryCode = $this->digits((string) ($user->phone_country_code ?? '52'));
+        $phone = $this->digits((string) $user->phone);
+
+        if ($phone === '') {
+            return [];
+        }
+
+        if (str_starts_with($phone, $countryCode) && strlen($phone) > 10) {
+            return [$phone];
+        }
+
+        if ($countryCode === '52' && strlen($phone) === 10) {
+            return [
+                '521'.$phone,
+                '52'.$phone,
+            ];
+        }
+
+        return [$countryCode.$phone];
+    }
+
+    /**
+     * Keep only digits from phone/code values.
+     */
+    private function digits(string $value): string
+    {
+        return preg_replace('/\D+/', '', $value) ?? '';
     }
 }

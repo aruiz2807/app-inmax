@@ -20,6 +20,7 @@ class User extends Authenticatable
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
@@ -37,6 +38,7 @@ class User extends Authenticatable
         'pin_set_at',
         'profile',
         'phone',
+        'phone_country_code',
         'phone_verified_at',
         'birth_date',
         'company_id',
@@ -86,12 +88,9 @@ class User extends Authenticatable
      */
     public function getAgeAttribute()
     {
-        try
-        {
+        try {
             return Carbon::parse($this->birth_date)->age;
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             return null;
         }
     }
