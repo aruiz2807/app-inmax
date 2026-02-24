@@ -42,9 +42,9 @@ Route::middleware([
 
     Route::get('/dashboard', function () {
         return view('dashboard');
-    })->name('dashboard');
+    })->middleware('not-user')->name('dashboard');
 
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('not-user')->group(function () {
 
         Route::get('/doctors', DoctorsPage::class)->name('doctors');
 
