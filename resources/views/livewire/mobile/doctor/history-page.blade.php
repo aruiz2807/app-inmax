@@ -26,7 +26,16 @@
 
                     @foreach($upcomingAppointments as $upcoming)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <div class="flex">
+
+                        <div class="flex justify-center">
+                            @if($upcoming->covered)
+                            <x-ui.badge icon="shield-check" variant="outline" color="green" pill>Cubierta</x-ui.badge>
+                            @else
+                            <x-ui.badge icon="shield-exclamation" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
+                            @endif
+                        </div>
+
+                        <div class="flex mt-4">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#00D5BE" viewBox="0 0 256 256">
                                     <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"></path>
@@ -39,23 +48,22 @@
                         </div>
 
                         <div class="flex mt-8">
-                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/doctor.png" circle />
+                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
                             <div class="pl-4">
-                                <x-ui.text class="pt-1 text-xl">{{$upcoming->doctor->user->name}}</x-ui.text>
-                                <x-ui.text class="text-base opacity-75">{{$upcoming->doctor->specialty->name}}</x-ui.text>
+                                <x-ui.text class="pt-1 text-xl">{{$upcoming->user->name}}</x-ui.text>
+                                <x-ui.text class="text-base opacity-75">{{$upcoming->user->policy->number}}</x-ui.text>
                             </div>
                         </div>
-
-                        <a href="#" class="flex mt-8">
-                            <x-ui.icon name="map-pin" />
-                            <x-ui.text class="text-base">{{$upcoming->doctor->address}}</x-ui.text>
-                        </a>
 
                         <x-ui.separator class="mt-2 mb-2"/>
 
                         <div class="flex justify-center">
-                            <x-ui.button wire:click="cancel({{ $upcoming->id }})" variant="outline" color="red" icon="x-circle">
-                                Cancelar cita
+                            <x-ui.button class="w-40 mr-1" wire:click="attend({{ $upcoming->id }})" variant="outline" color="blue" icon="clipboard">
+                                Atender cita
+                            </x-ui.button>
+
+                            <x-ui.button class="w-40 ml-1" wire:click="noshow({{ $upcoming->id }})" variant="outline" color="red" icon="eye-slash">
+                                No-show
                             </x-ui.button>
                         </div>
                     </div>
@@ -91,17 +99,12 @@
                         </div>
 
                         <div class="flex mt-8">
-                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/doctor.png" circle />
+                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
                             <div class="pl-4">
-                                <x-ui.text class="pt-1 text-xl">{{$past->doctor->user->name}}</x-ui.text>
-                                <x-ui.text class="text-base opacity-75">{{$past->doctor->specialty->name}}</x-ui.text>
+                                <x-ui.text class="pt-1 text-xl">{{$past->user->name}}</x-ui.text>
+                                <x-ui.text class="text-base opacity-75">{{$past->user->policy->number}}</x-ui.text>
                             </div>
                         </div>
-
-                        <a href="#" class="flex mt-8">
-                            <x-ui.icon name="map-pin" />
-                            <x-ui.text class="text-base">{{$past->doctor->address}}</x-ui.text>
-                        </a>
 
                         @if($past->status === 'Completed')
                         <x-ui.separator class="mt-2 mb-2"/>
@@ -120,20 +123,20 @@
     </div>
 
     <x-ui.modal
-        id="cancel-modal"
+        id="noshow-modal"
         animation="fade"
         width="md"
-        heading="Cancelar cita"
-        description="Está seguro que desea cancelar esta cita?"
-        x-on:open-cancel-modal.window="$data.open()"
-        x-on:close-cancel-modal.window="$data.close()"
+        heading="Finalizar cita"
+        description="El cliente no se presento a la cita? Si confirma, se descontará la consulta del cliente"
+        x-on:open-noshow-modal.window="$data.open()"
+        x-on:close-noshow-modal.window="$data.close()"
     >
         <div class="flex justify-end gap-3 pt-4">
             <x-ui.button x-on:click="$data.close()" icon="x-mark" variant="outline">
                 Cancelar
             </x-ui.button>
 
-            <x-ui.button color="teal" icon="check" wire:click="confirmCancel">
+            <x-ui.button color="teal" icon="check" wire:click="confirmNoshow">
                 Confirmar
             </x-ui.button>
         </div>

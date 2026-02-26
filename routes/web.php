@@ -4,6 +4,11 @@ use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Doctors\DoctorsPage;
+use App\Livewire\Mobile\Doctor\DRHomePage;
+use App\Livewire\Mobile\Doctor\DRHistoryPage;
+use App\Livewire\Mobile\Doctor\DRNotesPage;
+use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
+use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Livewire\Mobile\User\ContactPage;
 use App\Livewire\Mobile\User\HistoryPage;
 use App\Livewire\Mobile\User\PolicyStatusPage;
@@ -84,6 +89,16 @@ Route::middleware([
         Route::get('/contact', ContactPage::class)->name('user.contact');
     });
 
-    Route::prefix('doctors')->group(function () {});
+    Route::prefix('doctor')->group(function () {
+
+        Route::get('/home', DRHomePage::class)->name('doctor.home');
+
+        Route::get('/history', DRHistoryPage::class)->name('doctor.history');
+
+        Route::get('/notes/{appointment}', DRNotesPage::class)->name('doctor.notes');
+        Route::get('/notes-confirmation', NotesConfirmationPage::class)->name('doctor.notes-confirmation');
+
+        Route::get('/noshow-confirmation', NoShowConfirmationPage::class)->name('doctor.noshow-confirmation');
+    });
 
 });

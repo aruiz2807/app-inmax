@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
 {
@@ -95,6 +96,30 @@ class Appointment extends Model
         return $status;
     }
 
+    /**
+     * Get the appointment covered status color
+     */
+    protected function getCoveredColorAttribute()
+    {
+        return $this->covered ? 'green' : 'yellow';
+    }
+
+    /**
+     * Get the appointment covered text
+     */
+    protected function getCoveredTextAttribute()
+    {
+        return $this->covered ? 'Cubierta' : 'Adicional';
+    }
+
+    /**
+     * Get the appointment covered status icon
+     */
+    protected function getCoveredIconAttribute()
+    {
+        return $this->covered ? 'shield-check' : 'shield-exclamation';
+    }
+
     /*
     *
     */
@@ -127,5 +152,13 @@ class Appointment extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(Doctor::class);
+    }
+
+    /**
+    * An appointment can only have one Note.
+    */
+    public function note(): HasOne
+    {
+        return $this->hasOne(AppointmentNote::class);
     }
 }

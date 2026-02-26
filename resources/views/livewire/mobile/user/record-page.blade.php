@@ -9,16 +9,45 @@
     </div>
 
     <div class="relative w-full">
-        <x-ui.card size="full">
+
+        <x-ui.alerts variant="info" icon="information-circle">
+            <x-ui.alerts.description>
+                Información actualizada: <strong> {{now()->format('d/m/Y')}} </strong>
+            </x-ui.alerts.description>
+        </x-ui.alerts>
+
+        <x-ui.card size="full" class="mt-4">
             <x-ui.accordion>
                 <x-ui.accordion.item expanded trigger="Consultas">
-                    <p>Comnsultas....</p>
+                    @empty($appointments)
+                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay consultas</x-ui.text>
+                    </div>
+                    @endempty
                 </x-ui.accordion.item>
+
                 <x-ui.accordion.item trigger="Diagnosticos y tratamientos">
-                    <p>Diagnosticos....</p>
+                    @empty($diagnoses)
+                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay diagnosticos</x-ui.text>
+                    </div>
+                    @endempty
                 </x-ui.accordion.item>
-                <x-ui.accordion.item trigger="Examenes">
-                    <p>Examenes...</p>
+
+                <x-ui.accordion.item trigger="Diagnosticos y tratamientos">
+                    @empty($exams)
+                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay diagnosticos</x-ui.text>
+                    </div>
+                    @endempty
+                </x-ui.accordion.item>
+
+                <x-ui.accordion.item trigger="Medicamentos">
+                    @empty($medications)
+                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay medicamentos</x-ui.text>
+                    </div>
+                    @endempty
                 </x-ui.accordion.item>
             </x-ui.accordion>
         </x-ui.card>
