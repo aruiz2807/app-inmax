@@ -47,9 +47,9 @@ Route::middleware([
 
     Route::get('/dashboard', function () {
         return view('dashboard');
-    })->middleware('not-user')->name('dashboard');
+    })->middleware('profile:Admin,Sales')->name('dashboard');
 
-    Route::prefix('admin')->middleware('not-user')->group(function () {
+    Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
 
         Route::get('/doctors', DoctorsPage::class)->name('doctors');
 
@@ -68,7 +68,7 @@ Route::middleware([
 
     });
 
-    Route::prefix('user')->group(function () {
+    Route::prefix('user')->middleware('profile:User,Admin')->group(function () {
 
         Route::get('/home', function () {
             return view('livewire.mobile.user.home');
@@ -89,7 +89,7 @@ Route::middleware([
         Route::get('/contact', ContactPage::class)->name('user.contact');
     });
 
-    Route::prefix('doctor')->group(function () {
+    Route::prefix('doctor')->middleware('profile:Doctor,Admin')->group(function () {
 
         Route::get('/home', DRHomePage::class)->name('doctor.home');
 

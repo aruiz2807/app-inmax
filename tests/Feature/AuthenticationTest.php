@@ -65,4 +65,21 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($admin);
         $response->assertRedirect(route('dashboard', absolute: false));
     }
+
+    public function test_doctor_users_redirect_to_doctor_home_after_login(): void
+    {
+        $doctor = User::factory()->create([
+            'profile' => 'Doctor',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $response = $this->post('/login', [
+            'phone' => $doctor->phone,
+            'password' => '1234',
+        ]);
+
+        $this->assertAuthenticatedAs($doctor);
+        $response->assertRedirect(route('doctor.home', absolute: false));
+    }
 }

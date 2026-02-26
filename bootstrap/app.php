@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'not-user' => \App\Http\Middleware\EnsureProfileIsNotUser::class,
+            'profile' => \App\Http\Middleware\EnsureUserHasAllowedProfile::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

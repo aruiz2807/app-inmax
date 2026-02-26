@@ -18,9 +18,11 @@ class LoginResponse implements LoginResponseContract
         }
 
         $user = $request->user();
-        $target = $user?->profile === 'User'
-            ? route('user.home', absolute: false)
-            : route('dashboard', absolute: false);
+        $target = match ($user?->profile) {
+            'User' => route('user.home', absolute: false),
+            'Doctor' => route('doctor.home', absolute: false),
+            default => route('dashboard', absolute: false),
+        };
 
         return redirect()->intended($target);
     }
