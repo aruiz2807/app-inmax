@@ -17,7 +17,7 @@
     <div class="pt-2">
         <x-ui.card size="full">
             <x-ui.heading level="h3" size="sm">
-                Nuevo parametro
+                {{ $parameterId ? 'Editar parametro' : 'Nuevo parametro' }}
             </x-ui.heading>
 
             <form wire:submit="saveParameter" class="pt-4">
@@ -48,8 +48,14 @@
                 </x-ui.fieldset>
 
                 <div class="w-full flex justify-end gap-3 pt-4">
+                    @if ($parameterId)
+                        <x-ui.button type="button" icon="x-mark" variant="outline" wire:click="cancelEdit">
+                            Cancelar edicion
+                        </x-ui.button>
+                    @endif
+
                     <x-ui.button type="submit" icon="check" variant="primary" color="teal">
-                        Guardar parametro
+                        {{ $parameterId ? 'Actualizar parametro' : 'Guardar parametro' }}
                     </x-ui.button>
                 </div>
             </form>
@@ -108,6 +114,7 @@
                             <th class="text-left px-3 py-2 font-semibold">Descripcion</th>
                             <th class="text-left px-3 py-2 font-semibold">Valor</th>
                             <th class="text-left px-3 py-2 font-semibold">Fecha alta</th>
+                            <th class="text-left px-3 py-2 font-semibold">Opciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,10 +125,20 @@
                                 <td class="px-3 py-2">{{ $parameter->description }}</td>
                                 <td class="px-3 py-2">{{ $parameter->value }}</td>
                                 <td class="px-3 py-2">{{ $parameter->created_at?->format('d/m/Y H:i') }}</td>
+                                <td class="px-3 py-2">
+                                    <x-ui.button
+                                        type="button"
+                                        icon="document-text"
+                                        variant="outline"
+                                        wire:click="editParameter({{ $parameter->id }})"
+                                    >
+                                        Editar
+                                    </x-ui.button>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-3 py-4 text-center text-neutral-600 dark:text-neutral-300">
+                                <td colspan="6" class="px-3 py-4 text-center text-neutral-600 dark:text-neutral-300">
                                     No hay parametros registrados con los filtros actuales.
                                 </td>
                             </tr>

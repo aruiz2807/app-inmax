@@ -14,6 +14,8 @@ class ParametersPage extends Component
 {
     use WithPagination;
 
+    public ?int $parameterId = null;
+
     public string $type = '';
 
     public string $parameterKey = '';
@@ -42,19 +44,31 @@ class ParametersPage extends Component
 
     public function saveParameter(): void
     {
+        $isEditing = $this->parameterId !== null;
+        $type = trim($this->type);
+        $key = trim($this->parameterKey);
+        $description = trim($this->description);
+        $value = trim($this->value);
+
+        $uniqueRule = Rule::unique('parameters', 'key')
+            ->where(fn ($query) => $query->where('type', $type));
+
+        if ($this->parameterId !== null) {
+            $uniqueRule->ignore($this->parameterId);
+        }
+
         $validated = Validator::make([
-            'type' => $this->type,
-            'key' => $this->parameterKey,
-            'description' => $this->description,
-            'value' => $this->value,
+            'type' => $type,
+            'key' => $key,
+            'description' => $description,
+            'value' => $value,
         ], [
             'type' => ['required', 'string', 'max:50'],
             'key' => [
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('parameters', 'key')
-                    ->where(fn ($query) => $query->where('type', trim($this->type))),
+                $uniqueRule,
             ],
             'description' => ['required', 'string', 'max:120'],
             'value' => ['required', 'string', 'max:120'],
@@ -62,12 +76,22 @@ class ParametersPage extends Component
             'key.unique' => 'Ya existe un parametro con la misma combinacion Tipo + Clave.',
         ])->validate();
 
-        Parameter::query()->create([
-            'type' => trim($validated['type']),
-            'key' => trim($validated['key']),
-            'description' => trim($validated['description']),
-            'value' => trim($validated['value']),
-        ]);
+        if (! $isEditing) {
+            Parameter::query()->create([
+                'type' => $validated['type'],
+                'key' => $validated['key'],
+                'description' => $validated['description'],
+                'value' => $validated['value'],
+            ]);
+        } else {
+            $parameter = Parameter::query()->findOrFail($this->parameterId);
+            $parameter->update([
+                'type' => $validated['type'],
+                'key' => $validated['key'],
+                'description' => $validated['description'],
+                'value' => $validated['value'],
+            ]);
+        }
 
         $this->resetForm();
         $this->resetPage();
@@ -75,9 +99,29 @@ class ParametersPage extends Component
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Parametro guardado correctamente.',
+            content: ! $isEditing
+                ? 'Parametro guardado correctamente.'
+                : 'Parametro actualizado correctamente.',
             duration: 4000
         );
+    }
+
+    public function editParameter(int $parameterId): void
+    {
+        $parameter = Parameter::query()->findOrFail($parameterId);
+
+        $this->parameterId = $parameter->id;
+        $this->type = $parameter->type;
+        $this->parameterKey = $parameter->key;
+        $this->description = $parameter->description;
+        $this->value = $parameter->value;
+        $this->resetErrorBag();
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->resetForm();
+        $this->resetErrorBag();
     }
 
     public function clearFilters(): void
@@ -117,6 +161,7 @@ class ParametersPage extends Component
 
     private function resetForm(): void
     {
+        $this->parameterId = null;
         $this->type = '';
         $this->parameterKey = '';
         $this->description = '';

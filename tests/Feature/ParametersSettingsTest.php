@@ -155,4 +155,69 @@ class ParametersSettingsTest extends TestCase
             ->set('filterKey', 'TOKEN_TIMEOUT')
             ->assertSee('TOKEN_TIMEOUT');
     }
+
+    public function test_admin_can_edit_parameter(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $parameter = Parameter::query()->create([
+            'type' => 'GENERAL',
+            'key' => 'MAX_INTENTOS',
+            'description' => 'Numero maximo de intentos',
+            'value' => '5',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(ParametersPage::class)
+            ->call('editParameter', $parameter->id)
+            ->set('description', 'Intentos maximos para autenticacion')
+            ->set('value', '8')
+            ->call('saveParameter')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('parameters', [
+            'id' => $parameter->id,
+            'type' => 'GENERAL',
+            'key' => 'MAX_INTENTOS',
+            'description' => 'Intentos maximos para autenticacion',
+            'value' => '8',
+        ]);
+    }
+
+    public function test_editing_parameter_respects_type_key_unique_rule(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $existing = Parameter::query()->create([
+            'type' => 'GENERAL',
+            'key' => 'MAX_INTENTOS',
+            'description' => 'Descripcion base',
+            'value' => '5',
+        ]);
+
+        $toEdit = Parameter::query()->create([
+            'type' => 'GENERAL',
+            'key' => 'TOKEN_TIMEOUT',
+            'description' => 'Tiempo de token',
+            'value' => '30',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(ParametersPage::class)
+            ->call('editParameter', $toEdit->id)
+            ->set('type', $existing->type)
+            ->set('parameterKey', $existing->key)
+            ->call('saveParameter')
+            ->assertHasErrors(['key' => ['unique']]);
+    }
 }
