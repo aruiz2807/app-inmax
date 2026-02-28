@@ -21,6 +21,7 @@ use App\Livewire\Plans\PlansPage;
 use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Services\ServicesPage;
 use App\Livewire\Settings\LegalSettingsPage;
+use App\Livewire\Settings\ParametersPage;
 use App\Livewire\Settings\WhatsAppSettingsPage;
 use App\Livewire\Specialties\SpecialtiesPage;
 use App\Livewire\Users\UsersPage;
@@ -65,6 +66,7 @@ Route::middleware([
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
         Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');
+        Route::get('/settings/parameters', ParametersPage::class)->middleware('admin')->name('settings.parameters');
 
     });
 

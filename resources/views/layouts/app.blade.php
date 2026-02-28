@@ -112,6 +112,14 @@
                                 :active="request()->routeIs('settings.legal')"
                                 x-on:click="closeSidebar()"
                             />
+
+                            <x-ui.navlist.item
+                                icon="document"
+                                :label="__('app.parameters')"
+                                href="{{ route('settings.parameters') }}"
+                                :active="request()->routeIs('settings.parameters')"
+                                x-on:click="closeSidebar()"
+                            />
                         @endif
 
                         @if (Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()?->profile === 'Admin')

@@ -9,6 +9,7 @@ return [
     'services' => 'Servicios',
     'specialties' => 'Especialidades',
     'plans' => 'Coberturas',
+    'parameters' => 'Parametros',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',
