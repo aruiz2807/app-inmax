@@ -28,11 +28,7 @@
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
 
                         <div class="flex justify-center">
-                            @if($upcoming->covered)
-                            <x-ui.badge icon="shield-check" variant="outline" color="green" pill>Cubierta</x-ui.badge>
-                            @else
-                            <x-ui.badge icon="shield-exclamation" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
-                            @endif
+                            <x-ui.badge :icon="$upcoming->covered_icon" variant="outline" :color="$upcoming->covered_color" pill>{{$upcoming->covered_text}}</x-ui.badge>
                         </div>
 
                         <div class="flex mt-4">
@@ -82,8 +78,9 @@
 
                     @foreach($pastAppointments as $past)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <div class="flex justify-center mb-4">
+                        <div class="flex justify-center mb-4 gap-x-2">
                             <x-ui.badge :icon="$past->status_icon" variant="outline" :color="$past->status_color" pill>{{$past->formatted_status}}</x-ui.badge>
+                            <x-ui.badge :icon="$past->covered_icon" variant="outline" :color="$past->covered_color" pill>{{$past->covered_text}}</x-ui.badge>
                         </div>
 
                         <div class="flex">
@@ -110,8 +107,12 @@
                         <x-ui.separator class="mt-2 mb-2"/>
 
                         <div class="flex justify-center">
-                            <x-ui.button wire:click="open({{ $past->id }})" variant="outline" color="teal" icon="clipboard">
-                                Nota medica
+                            <x-ui.button class="w-40 mr-1" wire:click="schedule({{ $past->id }})" variant="outline" color="blue" icon="calendar">
+                                Agendar
+                            </x-ui.button>
+
+                            <x-ui.button class="w-40 ml-1" wire:click="print({{ $past->id }})" variant="outline" color="indigo" icon="document">
+                                Receta digital
                             </x-ui.button>
                         </div>
                         @endif

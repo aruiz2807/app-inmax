@@ -4,6 +4,7 @@ namespace App\Livewire\Policies;
 
 use App\Models\Policy;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -35,7 +36,21 @@ final class PoliciesTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Policy::query()->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id', 'user.company:id,name']);
+        $policies = null;
+        $user = Auth::user();
+
+        if($user->profile === 'Sales')
+        {
+            $policies = Policy::query()
+                ->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id', 'user.company:id,name'])
+                ->where('sales_user_id', $user->id);
+        }
+        else
+        {
+            $policies = Policy::query()->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id', 'user.company:id,name']);
+        }
+
+         return $policies;
     }
 
     public function relationSearch(): array
@@ -148,6 +163,30 @@ final class PoliciesTable extends PowerGridComponent
 
     public function actionRules(): array
     {
+
+        if(Auth::user()->profile === 'Sales')
+        {
+            return [
+
+                Rule::button('activate')
+                    ->when(fn($model) => true)
+                    ->hide(),
+
+                Rule::button('inactive')
+                    ->when(fn($model) => true)
+                    ->hide(),
+
+                Rule::button('cancel')
+                    ->when(fn($model) => true)
+                    ->hide(),
+
+                Rule::button('members')
+                    ->when(fn($model) => $model->type !== 'Group' || $model->parent_policy_id)
+                    ->hide(),
+
+            ];
+        }
+
         return [
 
             Rule::button('activate')

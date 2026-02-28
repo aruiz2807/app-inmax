@@ -4,7 +4,7 @@
             <img src="/img/home.png" alt="Header" class="w-full object-cover">
 
             <!-- User Profile Button -->
-            <a href="{{ route('user.my-profile') }}"
+            <a href="{{ route('doctor.my-profile') }}"
             class="absolute -bottom-0 left-3 bg-white p-3 rounded-full shadow-lg border border-gray-100 hover:shadow-xl transition">
                 <svg xmlns="http://www.w3.org/2000/svg"
                     class="h-6 w-6 text-[#1A3A5A]"
@@ -32,6 +32,12 @@
                         <x-ui.icon name="calendar" class="self-center" />
                         <x-ui.text class="text-lg ml-2">Consultas de hoy</x-ui.text>
                     </x-ui.heading>
+
+                    @if($todayAppointments->isEmpty())
+                    <div class="flex justify-center mt-2 p-2 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay citas para hoy</x-ui.text>
+                    </div>
+                    @endif
 
                     @foreach ($todayAppointments as $appointment)
                     <div class="grid grid-cols-[auto_6rem] justify-stretch items-center p-4">

@@ -38,6 +38,30 @@ class Policy extends Model
     ];
 
     /**
+     * Get the appointment covered status color
+     */
+    protected function getStatusColorAttribute()
+    {
+        return $this->status === 'Active' ? 'green' : 'gray';
+    }
+
+    /**
+     * Get the appointment covered text
+     */
+    protected function getStatusTextAttribute()
+    {
+        return $this->status === 'Active' ? 'Cobertura activa' : 'Cobertura inactiva';
+    }
+
+    /**
+     * Get the appointment covered status icon
+     */
+    protected function getStatusIconAttribute()
+    {
+        return $this->status === 'Active' ? 'shield-check' : 'shield-exclamation';
+    }
+
+    /**
      * Each policy belongs to only one user.
      */
     public function user(): BelongsTo

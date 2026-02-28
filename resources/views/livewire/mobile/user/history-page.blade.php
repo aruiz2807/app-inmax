@@ -26,7 +26,12 @@
 
                     @foreach($upcomingAppointments as $upcoming)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <div class="flex">
+
+                        <div class="flex justify-center">
+                            <x-ui.badge :icon="$upcoming->covered_icon" variant="outline" :color="$upcoming->covered_color" pill>{{$upcoming->covered_text}}</x-ui.badge>
+                        </div>
+
+                        <div class="flex mt-4">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#00D5BE" viewBox="0 0 256 256">
                                     <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"></path>
@@ -74,8 +79,9 @@
 
                     @foreach($pastAppointments as $past)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <div class="flex justify-center mb-4">
+                        <div class="flex justify-center mb-4 gap-x-2">
                             <x-ui.badge :icon="$past->status_icon" variant="outline" :color="$past->status_color" pill>{{$past->formatted_status}}</x-ui.badge>
+                            <x-ui.badge :icon="$past->covered_icon" variant="outline" :color="$past->covered_color" pill>{{$past->covered_text}}</x-ui.badge>
                         </div>
 
                         <div class="flex">
@@ -107,8 +113,12 @@
                         <x-ui.separator class="mt-2 mb-2"/>
 
                         <div class="flex justify-center">
-                            <x-ui.button wire:click="open({{ $past->id }})" variant="outline" color="teal" icon="clipboard">
+                            <x-ui.button class="w-40 mr-1" wire:click="notes({{ $past->id }})" variant="outline" color="blue" icon="clipboard">
                                 Nota medica
+                            </x-ui.button>
+
+                            <x-ui.button class="w-40 ml-1" wire:click="print({{ $past->id }})" variant="outline" color="indigo" icon="document">
+                                Receta digital
                             </x-ui.button>
                         </div>
                         @endif

@@ -19,35 +19,66 @@
         <x-ui.card size="full" class="mt-4">
             <x-ui.accordion>
                 <x-ui.accordion.item expanded trigger="Consultas">
-                    @empty($appointments)
-                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        @if($appointments->isEmpty())
                         <x-ui.text class="text-base">No hay consultas</x-ui.text>
+                        @endif
+                        @foreach($appointments as $record)
+                        <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                            <x-ui.icon name="calendar" />
+                            <div class="flex flex-col justify-start ml-1" >
+                                <x-ui.text class="text-sm font-semibold">{{$record->date->format('d/m/Y')}}</x-ui.text>
+                                <x-ui.text class="text-sm">{{$record->note->symptoms}}</x-ui.text>
+                            </div>
+                        </div>
+                        <x-ui.separator />
+                        @endforeach
                     </div>
-                    @endempty
                 </x-ui.accordion.item>
 
                 <x-ui.accordion.item trigger="Diagnosticos y tratamientos">
-                    @empty($diagnoses)
-                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        @if($appointments->isEmpty())
                         <x-ui.text class="text-base">No hay diagnosticos</x-ui.text>
+                        @endif
+                        @foreach($appointments as $record)
+                        <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                            <x-ui.icon name="clipboard-document-list" />
+                            <div class="flex flex-col justify-start ml-1" >
+                                <x-ui.text class="text-sm font-semibold">{{$record->date->format('d/m/Y')}}</x-ui.text>
+                                <x-ui.text class="text-sm"><b>Diagnostico :</b> {{$record->note->diagnosis}}</x-ui.text>
+                                <x-ui.text class="text-sm"><b>Tratamiento :</b> {{$record->note->treatment}}</x-ui.text>
+                            </div>
+                        </div>
+                        <x-ui.separator />
+                        @endforeach
                     </div>
-                    @endempty
                 </x-ui.accordion.item>
 
-                <x-ui.accordion.item trigger="Diagnosticos y tratamientos">
-                    @empty($exams)
-                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                <x-ui.accordion.item trigger="Imagenologia y examenes">
+                    <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        @if($exams->isEmpty())
                         <x-ui.text class="text-base">No hay diagnosticos</x-ui.text>
+                        @endif
+                        @foreach($exams as $record)
+                        <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                            <x-ui.icon name="paper-clip" />
+                            <div class="flex flex-col justify-start ml-1" >
+                                <x-ui.text class="text-sm font-semibold">{{$record->date->format('d/m/Y')}}</x-ui.text>
+                                <a href="{{ route('attachment.download', $record->note->id) }}">
+                                    <x-ui.text class="text-sm">{{$record->note->attachment_name}}</x-ui.text>
+                                </a>
+                            </div>
+                        </div>
+                        <x-ui.separator />
+                        @endforeach
                     </div>
-                    @endempty
                 </x-ui.accordion.item>
 
-                <x-ui.accordion.item trigger="Medicamentos">
-                    @empty($medications)
-                    <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <x-ui.text class="text-base">No hay medicamentos</x-ui.text>
+                <x-ui.accordion.item trigger="Vacunas">
+                    <div class="flex justify-start p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.text class="text-base">No hay vacunas</x-ui.text>
                     </div>
-                    @endempty
                 </x-ui.accordion.item>
             </x-ui.accordion>
         </x-ui.card>

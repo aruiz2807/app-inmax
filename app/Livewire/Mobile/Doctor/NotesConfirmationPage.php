@@ -31,7 +31,7 @@ class NotesConfirmationPage extends Component
     {
         $pdf = Pdf::loadView('pdf.prescription', [
             'note' => $this->note,
-        ]);
+        ])->setPaper('letter', 'portrait');
 
         return response()->streamDownload(
             fn () => print($pdf->output()),

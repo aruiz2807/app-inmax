@@ -5,7 +5,6 @@ namespace App\Livewire\Mobile\Doctor;
 use App\Livewire\Forms\DoctorNotesForm;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Models\Appointment;
-use App\Models\Policy;
 use App\Models\PolicyService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;

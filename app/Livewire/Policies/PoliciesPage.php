@@ -2,8 +2,6 @@
 
 namespace App\Livewire\Policies;
 
-use App\Livewire\Forms\PoliciesForm;
-use App\Models\Plan;
 use App\Models\Policy;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -12,7 +10,6 @@ use Carbon\Carbon;
 
 class PoliciesPage extends Component
 {
-    public PoliciesForm $form;
     public ?int $policyId = null;
     public ?string $policyType = null;
     public $newMember = false;
@@ -171,7 +168,6 @@ class PoliciesPage extends Component
 
     public function resetForm()
     {
-        $this->form->reset();
         $this->policyId = null;
         $this->policyType = null;
         $this->newMember = false;

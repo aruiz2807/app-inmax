@@ -4,6 +4,7 @@ namespace App\Livewire\Mobile\User;
 
 use App\Livewire\Mobile\User\ScheduleCancellationPage;
 use App\Models\Appointment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -74,5 +75,24 @@ class HistoryPage extends Component
         session()->flash('appointment_cancellation_id', $appointment->id);
 
         return $this->redirect(ScheduleCancellationPage::class);
+    }
+
+    public function notes($id)
+    {
+        return $this->redirectRoute('user.notes', ['appointment' => $id]);
+    }
+
+    public function print($id)
+    {
+        $note = Appointment::findOrFail($id)->note;
+
+        $pdf = Pdf::loadView('pdf.prescription', [
+            'note' => $note,
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "prescription-{$note->id}.pdf"
+        );
     }
 }

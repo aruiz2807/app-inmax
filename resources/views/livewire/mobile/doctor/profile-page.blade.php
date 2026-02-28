@@ -11,28 +11,23 @@
     <div class="relative w-full">
         <x-ui.card size="full">
             <div class="flex flex-col items-center">
-                <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
+                <x-ui.avatar size="xl" icon="user" color="teal" src="/img/doctor.png" circle />
 
-                <x-ui.text class="pt-2 pb-2 text-xl">{{$user->name}}</x-ui.text>
+                <x-ui.text class="pt-2 text-xl">{{$user->name}}</x-ui.text>
+                <x-ui.text class="pb-2 text-sm opacity-75">{{$user->doctor->specialty->name}}</x-ui.text>
 
-                <x-ui.badge :icon="$user->policy->status_icon" variant="outline" :color="$user->policy->status_color" pill>
-                    {{$user->policy->status_text}}
-                </x-ui.badge>
+                <x-ui.badge :icon="$user->doctor->status_icon" variant="outline" :color="$user->doctor->status_color" pill>{{$user->doctor->formatted_status}}</x-ui.badge>
 
                 <a href="#" class="w-5/6 mt-8 mb-6 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                        <x-ui.text>Poliza : </x-ui.text>
-                        <x-ui.text class="font-semibold">{{$user->policy->number}}</x-ui.text>
+                        <x-ui.text>Cedula : </x-ui.text>
+                        <x-ui.text class="font-semibold">{{$user->doctor->license}}</x-ui.text>
                     </div>
-
-                    <x-ui.separator />
 
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                        <x-ui.text>Vigencia : </x-ui.text>
-                        <x-ui.text class="font-semibold">{{$user->policy->end_date->format('d/m/Y')}}</x-ui.text>
+                        <x-ui.text>Universidad : </x-ui.text>
+                        <x-ui.text class="font-semibold">{{$user->doctor->university}}</x-ui.text>
                     </div>
-
-                    <x-ui.separator />
 
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                         <x-ui.text>Email : </x-ui.text>
@@ -45,18 +40,7 @@
                         <x-ui.text>Telefono : </x-ui.text>
                         <x-ui.text class="font-semibold">{{$user->phone}}</x-ui.text>
                     </div>
-
-                    <x-ui.separator />
-
-                    <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                        <x-ui.text>Edad : </x-ui.text>
-                        <x-ui.text class="font-semibold">{{$user->age}}</x-ui.text>
-                    </div>
                 </a>
-
-                <x-ui.button class="w-1/2 mt-4" wire:click="record({{ $user->id }})" variant="outline" color="sky" icon="clipboard">
-                    Historial medico
-                </x-ui.button>
 
                 <x-ui.button class="w-1/2 mt-4" wire:click="help" variant="outline" color="indigo" icon="question-mark-circle">
                     Necesitas ayuda?

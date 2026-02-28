@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Livewire\Mobile\User;
+namespace App\Livewire\Mobile\Doctor;
 
 use App\Livewire\Mobile\ContactPage;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 
-class ProfilePage extends Component
+class DRProfilePage extends Component
 {
     public $user = null;
 
     #[Layout('layouts.mobile')]
     public function render()
     {
-        return view('livewire.mobile.user.profile-page');
+        return view('livewire.mobile.doctor.profile-page');
     }
 
     public function mount()

@@ -30,6 +30,30 @@ class Doctor extends Model
     ];
 
     /**
+     * Get the appointment icon according status
+     */
+    protected function getFormattedStatusAttribute()
+    {
+        return $this->status === 'Active' ? 'Activo' : 'Inactivo';
+    }
+
+    /**
+     * Get the doctor icon according to status
+     */
+    protected function getStatusIconAttribute()
+    {
+        return $this->status === 'Active' ? 'shield-check' : 'shield-exclamation';
+    }
+
+    /**
+     * Get the doctor color according to status
+     */
+    protected function getStatusColorAttribute()
+    {
+        return $this->status === 'Active' ? 'green' : 'gray';
+    }
+
+    /**
      * Get the doctor's rating
      */
     protected function getRatingAttribute()

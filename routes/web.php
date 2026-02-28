@@ -1,22 +1,28 @@
 <?php
 
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
+use App\Http\Controllers\AttachmentController;
 use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
-use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRHistoryPage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
+use App\Livewire\Mobile\Doctor\DRProfilePage;
+use App\Livewire\Mobile\Doctor\DRSchedulePage;
+use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
-use App\Livewire\Mobile\User\ContactPage;
+use App\Livewire\Mobile\ContactPage;
 use App\Livewire\Mobile\User\HistoryPage;
 use App\Livewire\Mobile\User\PolicyStatusPage;
 use App\Livewire\Mobile\User\ProfilePage;
 use App\Livewire\Mobile\User\RecordPage;
+use App\Livewire\Mobile\User\NotesPage;
 use App\Livewire\Mobile\User\ScheduleCancellationPage;
 use App\Livewire\Mobile\User\ScheduleConfirmationPage;
 use App\Livewire\Mobile\User\SchedulePage;
+use App\Livewire\Appointments\AppointmentsPage;
+use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Plans\PlansPage;
 use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Services\ServicesPage;
@@ -50,6 +56,10 @@ Route::middleware([
         return view('dashboard');
     })->middleware('profile:Admin,Sales')->name('dashboard');
 
+    Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
+
+    Route::get('/contact', ContactPage::class)->name('user.contact');
+
     Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
 
         Route::get('/doctors', DoctorsPage::class)->name('doctors');
@@ -57,6 +67,8 @@ Route::middleware([
         Route::get('/plans', PlansPage::class)->name('plans');
 
         Route::get('/policies', PoliciesPage::class)->name('policies');
+
+        Route::get('/appointments', AppointmentsPage::class)->name('appointments');
 
         Route::get('/services', ServicesPage::class)->name('services');
 
@@ -86,14 +98,18 @@ Route::middleware([
 
         Route::get('/history', HistoryPage::class)->name('user.history');
 
+        Route::get('/notes/{appointment}', NotesPage::class)->name('user.notes');
+
         Route::get('/my-profile', ProfilePage::class)->name('user.my-profile');
 
-        Route::get('/contact', ContactPage::class)->name('user.contact');
     });
 
     Route::prefix('doctor')->middleware('profile:Doctor,Admin')->group(function () {
 
         Route::get('/home', DRHomePage::class)->name('doctor.home');
+
+        Route::get('/schedule/{appointment}', DRSchedulePage::class)->name('doctor.schedule');
+        Route::get('/schedule-confirmation', DRScheduleConfirmationPage::class)->name('doctor.schedule-confirmation');
 
         Route::get('/history', DRHistoryPage::class)->name('doctor.history');
 
@@ -101,6 +117,8 @@ Route::middleware([
         Route::get('/notes-confirmation', NotesConfirmationPage::class)->name('doctor.notes-confirmation');
 
         Route::get('/noshow-confirmation', NoShowConfirmationPage::class)->name('doctor.noshow-confirmation');
+
+        Route::get('/my-profile', DRProfilePage::class)->name('doctor.my-profile');
     });
 
 });

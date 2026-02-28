@@ -2,6 +2,7 @@
 
 return [
     'home' => 'Home',
+    'appointments' => 'Citas',
     'policies' => 'Polizas',
     'doctors' => 'Medicos',
 
@@ -23,4 +24,11 @@ return [
     'password' => 'Contraseña',
     'profile' => 'Perfil',
     'remember_me' => 'Recordarme',
+
+    'appointment_booked' => 'Agendada',
+    'appointment_cancelled' => 'Cancelada',
+    'appointment_noshow' => 'Falto',
+    'appointment_completed' => 'Atendida',
+    'appointment_covered' => 'Cubierta',
+    'appointment_extra' => 'Adicional',
 ];
