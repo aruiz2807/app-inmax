@@ -39,7 +39,10 @@
                     <x-ui.text class="opacity-50">{{ $service->used }} de {{ $service->included }} usados</x-ui.text>
                     <x-ui.icon :name="$service->level" :class="'justify-self-end '.$service->color" />
                 </div>
-                <x-ui.separator />
+
+                @unless ($loop->last)
+                    <x-ui.separator />
+                @endunless
             @endforeach
             </a>
         </x-ui.card>

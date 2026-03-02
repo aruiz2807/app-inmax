@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On;
 use Carbon\Carbon;
+use Livewire\WithFileUploads;
 
 class IndividualPolicyPage extends Component
 {
+    use WithFileUploads;
+
     public IndividualPolicyForm $form;
     public ?int $policyId = null;
     public $plans = [];

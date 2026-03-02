@@ -11,7 +11,7 @@
     <div class="relative w-full">
         <x-ui.card size="full">
             <div class="flex flex-col items-center">
-                <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
+                <x-ui.avatar size="xl" icon="user" color="teal" :src="$appointment->user->photo_url" circle />
                 <x-ui.text class="pt-2 pb-2 text-xl">{{$appointment->user->name}}</x-ui.text>
                 <x-ui.badge :icon="$appointment->user->policy->status_icon" variant="outline" :color="$appointment->user->policy->status_color" pill>
                     {{$appointment->user->policy->status_text}}

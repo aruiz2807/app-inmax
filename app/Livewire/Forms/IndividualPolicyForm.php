@@ -7,6 +7,7 @@ use App\Models\Policy;
 use App\Models\PlanBenefit;
 use App\Models\PolicyService;
 use Illuminate\Support\Facades\Hash;
+
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 use Carbon\Carbon;
@@ -25,14 +26,17 @@ class IndividualPolicyForm extends Form
     #[Validate('required|date|before_or_equal:today|after:1900-01-01')]
     public $birth = null;
 
-    #[Validate('string|size:18')]
-    public $curp = '';
+    #[Validate('nullable|string|size:18')]
+    public $curp = null;
 
     #[Validate('string|max:255')]
     public $passport = '';
 
     #[Validate('required')]
     public $plan = null;
+
+    #[Validate('required|file|mimes:jpg,jpeg,png|max:2048')]
+    public $attachment = null;
 
     #[Validate('nullable')]
     public $parent_policy = null;
@@ -42,6 +46,8 @@ class IndividualPolicyForm extends Form
 
     #[Validate('nullable|array')]
     public $insurance = [];
+
+    public $photo = '/img/user.png';
 
     public bool $foreigner = false;
 
@@ -54,6 +60,8 @@ class IndividualPolicyForm extends Form
     {
         $this->validate();
 
+        $path = $this->attachment->store('profile-photos', 'public');
+
         $user = $this->createUser([
             'name' => $this->name,
             'email' => $this->email,
@@ -61,6 +69,7 @@ class IndividualPolicyForm extends Form
             'birth' => $this->birth,
             'curp' => $this->curp,
             'passport' => $this->passport,
+            'path' => $path,
         ]);
 
         if($this->addingMember)
@@ -113,6 +122,7 @@ class IndividualPolicyForm extends Form
             'passport' => $input['passport'],
             // for now, the phone number will be the user's password
             'password' => Hash::make($input['phone']),
+            'profile_photo_path' => $input['path'],
         ]);
     }
 
@@ -131,6 +141,7 @@ class IndividualPolicyForm extends Form
         $this->sales_user = (string) $policy->sales_user_id;
         $this->parent_policy = (string) $policy->parent_policy_id;
         $this->insurance = $policy->insurance;
+        $this->photo = $policy->user->photo_url;
 
         if($this->passport)
         {
@@ -153,15 +164,17 @@ class IndividualPolicyForm extends Form
     */
     public function update($policyId)
     {
-        $this->validate();
+        // $this->validate();
 
         $policy = Policy::find($policyId);
         $user = User::find($policy->user_id);
+        $path = $this->attachment->store('profile-photos', 'public');
 
         $user->update([
             'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
+            //'email' => $this->email,
+            //'phone' => $this->phone,
+            'profile_photo_path' => $path,
         ]);
 
         $policy->update([

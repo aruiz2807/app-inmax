@@ -16,9 +16,9 @@ document.addEventListener('alpine:init', () => {
 
             // Resolve the configured theme to be only [light, dark]
             this.currentTheme = computeTheme(this.storedTheme);
-            
+
             // Apply initial theme to DOM
-            applyTheme(this.currentTheme);
+            applyTheme('light'); //applyTheme(this.currentTheme);
 
             // Listen for system theme changes
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -36,7 +36,7 @@ document.addEventListener('alpine:init', () => {
         setTheme(newTheme) {
             this.storedTheme = newTheme;
             localStorage.setItem('theme', newTheme);
-            
+
             this.currentTheme = computeTheme(newTheme);
             applyTheme(this.currentTheme);
         },
@@ -127,20 +127,20 @@ function computeTheme(themePreference) {
 }
 
 function getSystemTheme() {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches 
-        ? 'dark' 
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
         : 'light';
 }
 
 function applyTheme(theme) {
     const documentElement = document.documentElement;
-    
+
     if (theme === 'dark') {
         documentElement.classList.add('dark');
     } else {
         documentElement.classList.remove('dark');
     }
-    
+
     // Dispatch custom event for theme change listeners
     document.dispatchEvent(new CustomEvent('theme-changed', {
         detail: { theme }

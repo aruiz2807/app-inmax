@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -42,6 +43,7 @@ class User extends Authenticatable
         'phone_verified_at',
         'birth_date',
         'company_id',
+        'profile_photo_path',
     ];
 
     /**
@@ -92,6 +94,25 @@ class User extends Authenticatable
             return Carbon::parse($this->birth_date)->age;
         } catch (\Exception $e) {
             return null;
+        }
+    }
+
+    /**
+     * User profile photo url.
+     */
+    public function getPhotoUrlAttribute()
+    {
+        if($this->profile_photo_path)
+        {
+            return Storage::disk('public')->url($this->profile_photo_path);
+        }
+        else if ($this->profile === 'User')
+        {
+            return '/img/user.png';
+        }
+        else if ($this->profile === 'Doctor')
+        {
+            return '/img/doctor.png';
         }
     }
 

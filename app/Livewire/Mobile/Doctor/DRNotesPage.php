@@ -61,9 +61,10 @@ class DRNotesPage extends Component
     {
         $policy = $this->appointment->user->policy;
         $service = $this->appointment->doctor->specialty->service;
+        $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
 
         $benefit = PolicyService::where([
-            ['policy_id', $policy->id],
+            ['policy_id', $policyId],
             ['service_id', $service->id],
         ])->first();
 

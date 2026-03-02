@@ -11,7 +11,7 @@
     <div class="relative w-full">
         <x-ui.card size="full">
             <div class="flex flex-col items-center">
-                <x-ui.avatar size="xl" icon="user" color="teal" src="/img/doctor.png" circle />
+                <x-ui.avatar size="xl" icon="user" color="teal" :src="$user->photo_url" circle />
 
                 <x-ui.text class="pt-2 text-xl">{{$user->name}}</x-ui.text>
                 <x-ui.text class="pb-2 text-sm opacity-75">{{$user->doctor->specialty->name}}</x-ui.text>

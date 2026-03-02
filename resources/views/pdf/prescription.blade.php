@@ -215,7 +215,7 @@
         </table>
 
         <div class="space-16">
-            <div class="block-title">Productos:</div>
+            <div class="block-title">Tratamiento:</div>
             <div class="product-row">{{$note->treatment}}</div>
         </div>
 

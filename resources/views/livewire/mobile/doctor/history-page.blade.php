@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="flex mt-8">
-                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
+                            <x-ui.avatar size="xl" icon="user" color="teal" :src="$upcoming->user->photo_url" circle />
                             <div class="pl-4">
                                 <x-ui.text class="pt-1 text-xl">{{$upcoming->user->name}}</x-ui.text>
                                 <x-ui.text class="text-base opacity-75">{{$upcoming->user->policy->number}}</x-ui.text>
@@ -96,7 +96,7 @@
                         </div>
 
                         <div class="flex mt-8">
-                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/user.png" circle />
+                            <x-ui.avatar size="xl" icon="user" color="teal" :src="$past->user->photo_url" circle />
                             <div class="pl-4">
                                 <x-ui.text class="pt-1 text-xl">{{$past->user->name}}</x-ui.text>
                                 <x-ui.text class="text-base opacity-75">{{$past->user->policy->number}}</x-ui.text>
