@@ -8,6 +8,7 @@ use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRHistoryPage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
+use App\Livewire\Mobile\Doctor\DRRecordPage;
 use App\Livewire\Mobile\Doctor\DRSchedulePage;
 use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
@@ -16,6 +17,8 @@ use App\Livewire\Mobile\ContactPage;
 use App\Livewire\Mobile\User\HistoryPage;
 use App\Livewire\Mobile\User\PolicyStatusPage;
 use App\Livewire\Mobile\User\ProfilePage;
+use App\Livewire\Mobile\User\RatingPage;
+use App\Livewire\Mobile\User\RatingConfirmationPage;
 use App\Livewire\Mobile\User\RecordPage;
 use App\Livewire\Mobile\User\NotesPage;
 use App\Livewire\Mobile\User\ScheduleCancellationPage;
@@ -100,6 +103,9 @@ Route::middleware([
 
         Route::get('/notes/{appointment}', NotesPage::class)->name('user.notes');
 
+        Route::get('/rating/{appointment}', RatingPage::class)->name('user.rating');
+        Route::get('/rating-confirmation', RatingConfirmationPage::class)->name('user.rating-confirmation');
+
         Route::get('/my-profile', ProfilePage::class)->name('user.my-profile');
 
     });
@@ -112,6 +118,8 @@ Route::middleware([
         Route::get('/schedule-confirmation', DRScheduleConfirmationPage::class)->name('doctor.schedule-confirmation');
 
         Route::get('/history', DRHistoryPage::class)->name('doctor.history');
+
+        Route::get('/record/{user}', DRRecordPage::class)->name('doctor.record');
 
         Route::get('/notes/{appointment}', DRNotesPage::class)->name('doctor.notes');
         Route::get('/notes-confirmation', NotesConfirmationPage::class)->name('doctor.notes-confirmation');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
@@ -19,6 +20,8 @@ class Appointment extends Model
         'date',
         'time',
         'covered',
+        'rating',
+        'comments',
         'status',
     ];
 
@@ -160,5 +163,13 @@ class Appointment extends Model
     public function note(): HasOne
     {
         return $this->hasOne(AppointmentNote::class);
+    }
+
+    /**
+    * An appointment can have many services.
+    */
+    public function services(): HasMany
+    {
+        return $this->hasMany(AppointmentService::class);
     }
 }

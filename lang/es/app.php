@@ -3,13 +3,19 @@
 return [
     'home' => 'Home',
     'appointments' => 'Citas',
-    'policies' => 'Polizas',
-    'doctors' => 'Medicos',
+    'policies' => 'Membresias',
+    'doctors' => 'Red',
+    'users' => 'Usuarios',
+
+    'policy' => 'Membresía',
+    'user' => 'Miembro',
+
+
 
     'settings' => 'Configuraciones',
     'services' => 'Servicios',
     'specialties' => 'Especialidades',
-    'plans' => 'Coberturas',
+    'plans' => 'Planes',
     'parameters' => 'Parametros',
 
     'policy_active' => 'Activa',

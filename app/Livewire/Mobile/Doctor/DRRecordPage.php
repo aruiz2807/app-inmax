@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Livewire\Mobile\User;
+namespace App\Livewire\Mobile\Doctor;
 
 use App\Models\Appointment;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
-class RecordPage extends Component
+class DRRecordPage extends Component
 {
     public $appointments;
     public $exams;
+    public $user;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -18,17 +19,17 @@ class RecordPage extends Component
         return view('livewire.mobile.user.record-page');
     }
 
-    public function mount()
+    public function mount($user)
     {
-        $user = Auth::user();
+        $this->user = User::findOrFail($user);
 
         $this->appointments = Appointment::where([
-            ['user_id', $user->id],
+            ['user_id', $this->user->id],
             ['status', 'Completed'],
         ])->get();
 
         $this->exams = Appointment::where([
-            ['user_id', $user->id],
+            ['user_id', $this->user->id],
             ['status', 'Completed'],
         ])
         ->whereHas('note', function ($query) {

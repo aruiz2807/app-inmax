@@ -26,11 +26,19 @@ class Specialty extends Model
         return $this->hasMany(Doctor::class);
     }
 
-    /**
+    /**  !! UPDATE OR DELETE !!
      * Each specialty can be of one service type.
      */
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * many-to-many relationship between specialty and service
+     */
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'specialty_services');
     }
 }

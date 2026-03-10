@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto bg-white min-h-screen overflow-hidden font-sans">
+<div>
     <div class="relative w-full">
         <img src="/img/top.png" alt="Header" class="w-full object-cover">
     </div>
@@ -29,7 +29,9 @@
 
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                         <x-ui.text>Vigencia : </x-ui.text>
-                        <x-ui.text class="font-semibold">{{$user->policy->end_date->format('d/m/Y')}}</x-ui.text>
+                        <x-ui.text class="font-semibold">
+                            {{$user->policy->start_date->format('d/m/Y')}} - {{$user->policy->end_date->format('d/m/Y')}}
+                        </x-ui.text>
                     </div>
 
                     <x-ui.separator />

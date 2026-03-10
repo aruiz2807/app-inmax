@@ -3,6 +3,7 @@
 namespace App\Livewire\Appointments;
 
 use App\Models\Appointment;
+use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\Policy;
 use App\Models\Service;
@@ -17,17 +18,18 @@ class AppointmentFormPage extends Component
     public $appointment;
     public $selectedDate;
     public $selectedTime;
-    public $selectedService;
+    public $selectedServices = [];
     public $selectedUser;
     public $selectedDoctor;
     public $availableDates = [];
     public $availableHours = [];
-    public $isIncluded;
+    public $isIncluded = 1;
     public $services;
     public $doctors;
     public $policies;
     public $user;
     public $doctor;
+    public $servicesData = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -40,6 +42,7 @@ class AppointmentFormPage extends Component
         $this->services = Service::where('status', 'Active')->get();
         $this->policies = Policy::where('status', 'Active')->get();
         $this->doctors = Doctor::where('status', 'Active')->get();
+
         $date = Carbon::now();
         $count = 0;
         $maxDays = 15;
@@ -71,31 +74,40 @@ class AppointmentFormPage extends Component
         $this->user = User::find($value);
     }
 
-    public function updatedSelectedService($value)
-    {
-        $this->selectedService = $value;
-        $this->doctors = Doctor::where('specialty_id', $value)->get();
-    }
-
     public function updatedSelectedDoctor($value)
     {
         $this->selectedDoctor = $value;
         $this->doctor = Doctor::find($value);
+        $this->services = $this->doctor->specialty->services;
+    }
 
-        if($this->user->policy->type === 'Member')
-        {
-            $policy_id  = $this->user->policy->parent_policy_id;
-        }
-        else
-        {
-            $policy_id  = $this->user->policy->id;
-        }
+    public function updatedSelectedServices($value)
+    {
+        $policyId = $this->user->policy->type === 'Member'
+            ? $this->user->policy->parent_policy_id
+            : $this->user->policy->id;
 
-        $this->isIncluded = PolicyService::query()
-            ->where('policy_id', $policy_id)
-            ->where('service_id', $this->selectedService)
+        $includedServices = PolicyService::query()
+            ->where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
-            ->exists();
+            ->pluck('service_id')
+            ->toArray();
+
+        $services = Service::whereIn('id', $this->selectedServices)
+            ->get()
+            ->keyBy('id');
+
+        $this->servicesData = collect($this->selectedServices)->map(function ($serviceId) use ($services, $includedServices)
+        {
+            $service = $services->get($serviceId);
+
+            return [
+                'id' => $serviceId,
+                'name' => $service?->name,
+                'included' => in_array($serviceId, $includedServices),
+            ];
+
+        })->values()->toArray();
     }
 
     public function updatedSelectedDate($value)
@@ -142,10 +154,11 @@ class AppointmentFormPage extends Component
         $this->doctor = null;
         $this->selectedDate = $this->availableDates[0]['id'];
         $this->selectedTime = $this->availableHours[0]['id'];
-        $this->selectedService = null;
+        $this->selectedServices = null;
         $this->selectedUser = null;
         $this->selectedDoctor = null;
-        $this->isIncluded = null;
+        $this->isIncluded = 1;
+        $this->servicesData = [];
     }
 
     public function schedule()
@@ -161,13 +174,22 @@ class AppointmentFormPage extends Component
         }
         else
         {
-            Appointment::create([
+            $appointment = Appointment::create([
                 'user_id' => $this->selectedUser,
                 'doctor_id' => $this->selectedDoctor,
                 'date' => $this->selectedDate,
                 'time' => $this->selectedTime,
                 'covered' => $this->isIncluded,
             ]);
+
+            foreach($this->servicesData as $service)
+            {
+                AppointmentService::create([
+                    'appointment_id' => $appointment->id,
+                    'service_id' => $service['id'],
+                    'covered' => $service['included'],
+                ]);
+            }
         }
 
         // Show success toast
@@ -192,15 +214,23 @@ class AppointmentFormPage extends Component
         if($appointmentId)
         {
             $this->appointment = Appointment::findOrFail($appointmentId);
+            $appointmentServices = AppointmentService::where('appointment_id', $this->appointment->id)->get();
 
             $this->selectedUser = (string) $this->appointment->user->id;
             $this->user = User::find($this->selectedUser);
-            $this->selectedService = (string) $this->appointment->doctor->specialty->service_id;
             $this->selectedDoctor = (string) $this->appointment->doctor_id;
             $this->doctor = Doctor::find($this->selectedDoctor);
+            $this->services = $this->doctor->specialty->services;
             $this->selectedDate = $this->appointment->date->format('Y-m-d');
             $this->selectedTime = $this->appointment->time->format('H:i');
             $this->isIncluded = $this->appointment->covered;
+
+            $this->selectedServices = $appointmentServices->pluck('id')->toArray();
+            $this->servicesData = $appointmentServices->map(fn ($appointmentService) => [
+                'id' => $appointmentService->id,
+                'name' => $appointmentService->service->name,
+                'included' => $appointmentService->covered,
+            ])->values()->toArray();
         }
     }
 }

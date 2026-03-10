@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto bg-white min-h-screen overflow-hidden font-sans">
+<div>
     <div class="relative w-full">
         <img src="/img/top.png" alt="Header" class="w-full object-cover">
     </div>
@@ -79,10 +79,16 @@
 
                     @foreach($pastAppointments as $past)
                     <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <div class="flex justify-center mb-4 gap-x-2">
+                        <div class="flex justify-center gap-x-2">
                             <x-ui.badge :icon="$past->status_icon" variant="outline" :color="$past->status_color" pill>{{$past->formatted_status}}</x-ui.badge>
                             <x-ui.badge :icon="$past->covered_icon" variant="outline" :color="$past->covered_color" pill>{{$past->covered_text}}</x-ui.badge>
                         </div>
+
+                        @if($past->rating)
+                        <div class="flex justify-center">
+                            <livewire:star-rating :rate="$past->rating"/>
+                        </div>
+                        @endif
 
                         <div class="flex">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
@@ -121,6 +127,14 @@
                                 Receta digital
                             </x-ui.button>
                         </div>
+
+                            @if($past->rating === null)
+                            <div class="flex justify-center mt-2">
+                                <x-ui.button class="w-40 mr-1" wire:click="rating({{ $past->id }})" variant="outline" color="teal" icon="star">
+                                    Calificar
+                                </x-ui.button>
+                            </div>
+                            @endif
                         @endif
                     </div>
                     @endforeach

@@ -63,8 +63,8 @@ final class SpecialtiesTable extends PowerGridComponent
                 ->sortable()
                 ->searchable(),
 
-            Column::make('Tipo de servicio', 'service')
-                ->sortable(),
+            //Column::make('Tipo de servicio', 'service')
+            //    ->sortable(),
 
             Column::make('Estatus', 'status_toggle', 'status')
                 ->toggleable(),
@@ -96,7 +96,13 @@ final class SpecialtiesTable extends PowerGridComponent
                 ->slot('Editar')
                 ->id()
                 ->class('bg-teal-600 text-white px-3 py-1 rounded')
-                ->dispatch('editSpecialty', ['specialtyId' => $row->id])
+                ->dispatch('editSpecialty', ['specialtyId' => $row->id]),
+
+            Button::add('editServices')
+                ->slot('Servicios')
+                ->id()
+                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->dispatch('editServices', ['specialtyId' => $row->id]),
         ];
     }
 

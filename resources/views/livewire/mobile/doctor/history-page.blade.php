@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto bg-white min-h-screen overflow-hidden font-sans">
+<div>
     <div class="relative w-full">
         <img src="/img/top.png" alt="Header" class="w-full object-cover">
     </div>
@@ -60,6 +60,12 @@
 
                             <x-ui.button class="w-40 ml-1" wire:click="noshow({{ $upcoming->id }})" variant="outline" color="red" icon="eye-slash">
                                 No-show
+                            </x-ui.button>
+                        </div>
+
+                        <div class="flex justify-center mt-2">
+                            <x-ui.button class="w-40 mr-1" wire:click="record({{ $upcoming->user->id }})" variant="outline" color="teal" icon="clipboard-document-list">
+                                Expediente
                             </x-ui.button>
                         </div>
                     </div>

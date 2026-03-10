@@ -104,14 +104,8 @@ final class AppointmentsTable extends PowerGridComponent
     public function filters(): array
     {
         return [
-            Filter::datepicker('date'),
+            //Filter::datepicker('date'),
         ];
-    }
-
-    #[\Livewire\Attributes\On('edit')]
-    public function edit($rowId): void
-    {
-        $this->js('alert('.$rowId.')');
     }
 
     public function actions(Appointment $row): array

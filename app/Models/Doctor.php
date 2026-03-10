@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DoctorType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,9 +16,12 @@ class Doctor extends Model
     protected $fillable = [
         'user_id',
         'specialty_id',
+        'type',
         'license',
         'university',
         'address',
+        'discount',
+        'commission',
     ];
 
     /**
@@ -27,6 +31,15 @@ class Doctor extends Model
      */
     protected $appends = [
         'rating',
+    ];
+
+    /**
+     * The attributes that are being casted
+     *
+     * @var array<int, string>
+     */
+    protected $casts = [
+        'type' => DoctorType::class,
     ];
 
     /**

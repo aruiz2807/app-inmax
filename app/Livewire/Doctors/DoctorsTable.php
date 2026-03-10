@@ -47,6 +47,8 @@ final class DoctorsTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('name', fn ($model) => e($model->user->name))
+            ->add('type')
+            ->add('type_translated', fn ($model) => e($model->type->label()))
             ->add('email', fn ($model) => e($model->user->email))
             ->add('phone', fn ($model) => e($model->user->phone))
             ->add('specialty', fn ($model) => e($model->specialty->name))
@@ -67,14 +69,17 @@ final class DoctorsTable extends PowerGridComponent
                 ->sortable()
                 ->searchable(),
 
+            Column::make('Tipo', 'type_translated', 'type')
+                ->sortable(),
+
+            Column::make('Especialidad', 'specialty')
+                ->sortable(),
+
             Column::make('Correo', 'email')
                 ->searchable()
                 ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Telefono', 'phone'),
-
-            Column::make('Especialidad', 'specialty')
-                ->sortable(),
 
             Column::make('Rating', 'rating_stars'),
 

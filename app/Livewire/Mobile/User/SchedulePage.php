@@ -27,10 +27,18 @@ class SchedulePage extends Component
 
     public function mount()
     {
-        $date = Carbon::now();
         $user = Auth::user();
         $count = 0;
         $maxDays = 15;
+
+        if($user->policy->start_date->isBefore(today()))
+        {
+            $date = Carbon::now();
+        }
+        else
+        {
+            $date = $user->policy->start_date;
+        }
 
         if($user->policy->type === 'Member')
         {

@@ -16,6 +16,11 @@ class PlanBenefitsModal extends Component
     public $benefits = [];
     public $values = [];
 
+    public function render()
+    {
+        return view('livewire.plans.plan-benefits-modal');
+    }
+
     public function mount()
     {
         $this->services = Service::query()->where('status', 'Active')->get();
@@ -110,10 +115,5 @@ class PlanBenefitsModal extends Component
 
             $this->values[$benefit->id] = $value !== null ? (string) $value : '0';
         }
-    }
-
-    public function render()
-    {
-        return view('livewire.plans.plan-benefits-modal');
     }
 }

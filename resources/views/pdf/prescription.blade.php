@@ -208,37 +208,31 @@
 
         <table class="patient-table space-16">
             <tr>
-                <td><span class="label">Fecha:</span> {{$note->created_at}}</td>
-                <td><span class="label">Nombre:</span> {{$note->appointment->user->name}}</td>
-                <td><span class="label">Edad:</span> {{$note->appointment->user->age}}</td>
+                <td><span class="label">Folio:</span> <br>{{$note->id}}</td>
+                <td><span class="label">Fecha:</span> <br>{{$note->created_at}}</td>
+                <td><span class="label">Nombre:</span> <br>{{$note->appointment->user->name}}</td>
+                <td><span class="label">Edad:</span> <br>{{$note->appointment->user->age}}</td>
             </tr>
         </table>
 
         <div class="space-16">
+            <div class="block-title">Diagnostico:</div>
+            <div class="product-row">{!!nl2br(e($note->diagnosis))!!}</div>
+        </div>
+
+        <div class="space-16">
             <div class="block-title">Tratamiento:</div>
-            <div class="product-row">{{$note->treatment}}</div>
+            <div class="product-row">{!!nl2br(e($note->treatment))!!}</div>
         </div>
 
         <div class="text-block">
-            <div class="text-title">
-                SINTOMAS:
-            </div>
-            <div class="text-content">{{$note->symptoms}}</div>
-        </div>
-
-        <div class="text-block">
-            <div class="text-title">DIAGNOSTICO:</div>
-            <div class="text-content">{{$note->diagnosis}}</div>
-        </div>
-
-        <div class="text-block">
-            <div class="text-title">NOTAS:</div>
-            <div class="text-content">{{$note->notes}}</div>
+            <div class="text-title">Notas:</div>
+            <div class="text-content">{!!nl2br(e($note->notes))!!}</div>
         </div>
 
         <div class="signature">
             <div class="signature-line"></div>
-            <div class="signature-label">FIRMA</div>
+            <div class="signature-label">Firma</div>
         </div>
 
         <table class="footer-table">

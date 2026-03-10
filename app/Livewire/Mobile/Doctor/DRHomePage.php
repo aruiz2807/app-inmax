@@ -26,9 +26,9 @@ class DRHomePage extends Component
     {
         $this->todayAppointments = Appointment::where([
                 ['status', 'Booked'],
-                ['doctor_id', Auth::user()->id],
+                ['doctor_id', Auth::user()->doctor->id],
             ])
-            ->whereDate('date', '=', today())
+            ->whereDate('date', today())
             ->orderBy('time')
             ->get();
     }

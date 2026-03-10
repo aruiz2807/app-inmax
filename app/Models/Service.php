@@ -24,4 +24,20 @@ class Service extends Model
     {
         return $this->hasMany(PlanBenefit::class);
     }
+
+    /**
+     * Each service may have one or many specialty services.
+     */
+    public function specialtyServices(): HasMany
+    {
+        return $this->hasMany(SpecialtyService::class);
+    }
+
+    /**
+     * Each service may have one or many specialties
+     */
+    public function specialties()
+    {
+        return $this->belongsToMany(Specialty::class, 'specialty_services');
+    }
 }

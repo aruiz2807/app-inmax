@@ -1,5 +1,5 @@
 <x-mobile-layout>
-    <div class="max-w-md mx-auto bg-white min-h-screen overflow-hidden font-sans">
+    <div>
         <div class="relative w-full">
             <img src="/img/home.png" alt="Header" class="w-full object-cover">
 

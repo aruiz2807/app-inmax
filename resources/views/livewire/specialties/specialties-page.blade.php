@@ -14,7 +14,7 @@
                     </x-ui.button>
                 </x-ui.modal.trigger>
             </x-ui.heading>
-            <p>Administre las especilidades que pueden ser asignadas a los medicos</p>
+            <p>Administre las especilidades que pueden ser asignadas a los proveedores</p>
         </x-ui.card>
     </div>
 
@@ -69,4 +69,6 @@
             </div>
         </form>
     </x-ui.modal>
+
+    <livewire:specialties.specialty-services-modal />
 </div>

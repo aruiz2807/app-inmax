@@ -69,7 +69,7 @@
 
                         <x-ui.navlist.item
                             icon="user-group"
-                            :label="__('Users')"
+                            :label="__('app.users')"
                             href="{{ route('users') }}"
                             :active="request()->routeIs('users')"
                             x-on:click="closeSidebar()"

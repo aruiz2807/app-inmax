@@ -21,7 +21,7 @@
         @livewireStyles
     </head>
     <body>
-        <div class="font-sans text-neutral-900 dark:text-neutral-50 antialiased pl-2 pr-2">
+        <div class="max-w-md mx-auto bg-white min-h-screen overflow-hidden font-sans">
             {{ $slot }}
         </div>
 

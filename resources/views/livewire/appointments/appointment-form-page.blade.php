@@ -26,28 +26,13 @@
         </x-ui.select>
     </x-ui.field>
 
-    <x-ui.field>
-        <x-ui.label>Servicio</x-ui.label>
-        <x-ui.select
-            placeholder="Buscar servicio..."
-            icon="wallet"
-            searchable
-            wire:model.live="selectedService">
-                @foreach($services as $service)
-                    <x-ui.select.option value="{{ $service->id }}">
-                        {{ $service->name }}
-                    </x-ui.select.option>
-                @endforeach
-        </x-ui.select>
-    </x-ui.field>
-
-    @if($selectedService)
     <x-ui.field class="mt-2">
-        <x-ui.label>Medico / Proveedor</x-ui.label>
+        <x-ui.label>Médico / Proveedor</x-ui.label>
         <x-ui.select
             placeholder="Seleccionar medico o proveedor..."
             icon="wallet"
             searchable
+            :disabled="$appointment !== null"
             wire:model.live="selectedDoctor">
             @foreach($doctors as $doctor)
                 <x-ui.select.option value="{{ $doctor->id }}">
@@ -56,30 +41,52 @@
             @endforeach
         </x-ui.select>
     </x-ui.field>
-    @endif
 
     @if($selectedDoctor)
+    <x-ui.field class="mt-2">
+        <x-ui.label>Servicios</x-ui.label>
+        <x-ui.select
+            placeholder="Buscar servicio..."
+            icon="wallet"
+            searchable
+            multiple
+            clearable
+            :disabled="$appointment !== null"
+            wire:model.live="selectedServices">
+                @foreach($services as $service)
+                    <x-ui.select.option value="{{ $service->id }}">
+                        {{ $service->name }}
+                    </x-ui.select.option>
+                @endforeach
+        </x-ui.select>
+    </x-ui.field>
+    @endif
+
+    @if($servicesData)
     <div class="grid grid-cols-[5rem_auto_8rem] items-center p-4 mt-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-        <div class="p-3 bg-[#2D4356] rounded-xl text-white mr-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#FFFFFF" viewBox="0 0 256 256">
-                <path d="M220,160a12,12,0,1,1-12-12A12,12,0,0,1,220,160Zm-4.55,39.29A48.08,48.08,0,0,1,168,240H144a48.05,48.05,0,0,1-48-48V151.49A64,64,0,0,1,40,88V40a8,8,0,0,1,8-8H72a8,8,0,0,1,0,16H56V88a48,48,0,0,0,48.64,48c26.11-.34,47.36-22.25,47.36-48.83V48H136a8,8,0,0,1,0-16h24a8,8,0,0,1,8,8V87.17c0,32.84-24.53,60.29-56,64.31V192a32,32,0,0,0,32,32h24a32.06,32.06,0,0,0,31.22-25,40,40,0,1,1,16.23.27ZM232,160a24,24,0,1,0-24,24A24,24,0,0,0,232,160Z"></path>
-            </svg>
-        </div>
-        <div>
-            <x-ui.text class="text-lg">{{ $doctor->specialty->name }}</x-ui.text>
+        @foreach($servicesData as $service)
+            <div class="p-3 bg-[#2D4356] rounded-xl text-white mr-4 mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#FFFFFF" viewBox="0 0 256 256">
+                    <path d="M220,160a12,12,0,1,1-12-12A12,12,0,0,1,220,160Zm-4.55,39.29A48.08,48.08,0,0,1,168,240H144a48.05,48.05,0,0,1-48-48V151.49A64,64,0,0,1,40,88V40a8,8,0,0,1,8-8H72a8,8,0,0,1,0,16H56V88a48,48,0,0,0,48.64,48c26.11-.34,47.36-22.25,47.36-48.83V48H136a8,8,0,0,1,0-16h24a8,8,0,0,1,8,8V87.17c0,32.84-24.53,60.29-56,64.31V192a32,32,0,0,0,32,32h24a32.06,32.06,0,0,0,31.22-25,40,40,0,1,1,16.23.27ZM232,160a24,24,0,1,0-24,24A24,24,0,0,0,232,160Z"></path>
+                </svg>
+            </div>
 
-            @if($isIncluded)
-                <x-ui.text class="text-sm opacity-50">Consulta cubierta en su plan</x-ui.text>
+            <div>
+                <x-ui.text class="text-lg">{{ $service['name'] }}</x-ui.text>
+
+                @if($service['included'])
+                    <x-ui.text class="text-sm opacity-50">Servicio cubierto en su plan</x-ui.text>
+                @else
+                    <x-ui.text class="text-sm opacity-50">Servicio con precio preferencial</x-ui.text>
+                @endif
+            </div>
+
+            @if($service['included'])
+                <x-ui.badge class="ml-8" icon="check-circle" variant="outline" color="green" pill>Cubierta</x-ui.badge>
             @else
-                <x-ui.text class="text-sm opacity-50">Consulta con costo preferencial</x-ui.text>
+                <x-ui.badge class="ml-8" icon="exclamation-triangle" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
             @endif
-        </div>
-
-        @if($isIncluded)
-            <x-ui.badge class="ml-8" icon="check-circle" variant="outline" color="green" pill>Cubierta</x-ui.badge>
-        @else
-            <x-ui.badge class="ml-8" icon="exclamation-triangle" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
-        @endif
+        @endforeach
     </div>
     @endif
 

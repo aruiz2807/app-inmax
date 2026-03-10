@@ -4,6 +4,7 @@ namespace App\Livewire\Mobile\Doctor;
 
 use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
 use App\Models\Appointment;
+use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\PolicyService;
 use App\Models\Service;
@@ -16,14 +17,16 @@ class DRSchedulePage extends Component
     public $appointment;
     public $selectedDate;
     public $selectedTime;
-    public $selectedService;
+    public $selectedServices = [];
     public $selectedDoctor;
     public $availableDates = [];
     public $availableHours = [];
-    public $isIncluded;
+    public $isIncluded = 1;
     public $services;
     public $doctors;
     public $user;
+    public $doctor;
+    public $servicesData = [];
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -35,6 +38,7 @@ class DRSchedulePage extends Component
     {
         $this->appointment = Appointment::findOrFail($appointment);
         $this->services = Service::where('status', 'Active')->get();
+        $this->doctors = Doctor::where('status', 'Active')->get();
 
         $date = Carbon::now();
         $count = 0;
@@ -60,29 +64,42 @@ class DRSchedulePage extends Component
         $this->fetchAvailableSlots();
     }
 
-    public function updatedSelectedService($value)
-    {
-        $this->doctors = Doctor::where('specialty_id', $value)->get();
-    }
-
     public function updatedSelectedDoctor($value)
     {
-        $user = $this->appointment->user;
+        $this->selectedDoctor = $value;
+        $this->doctor = Doctor::find($value);
+        $this->services = $this->doctor->specialty->services;
+    }
 
-        if($user->policy->type === 'Member')
-        {
-            $policy_id  = $user->policy->parent_policy_id;
-        }
-        else
-        {
-            $policy_id  = $user->policy->id;
-        }
+    public function updatedSelectedServices($value)
+    {
+        $this->user = $this->appointment->user;
 
-        $this->isIncluded = PolicyService::query()
-            ->where('policy_id', $policy_id)
-            ->where('service_id', $this->selectedService)
+        $policyId = $this->user->policy->type === 'Member'
+            ? $this->user->policy->parent_policy_id
+            : $this->user->policy->id;
+
+        $includedServices = PolicyService::query()
+            ->where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
-            ->exists();
+            ->pluck('service_id')
+            ->toArray();
+
+        $services = Service::whereIn('id', $this->selectedServices)
+            ->get()
+            ->keyBy('id');
+
+        $this->servicesData = collect($this->selectedServices)->map(function ($serviceId) use ($services, $includedServices)
+        {
+            $service = $services->get($serviceId);
+
+            return [
+                'id' => $serviceId,
+                'name' => $service?->name,
+                'included' => in_array($serviceId, $includedServices),
+            ];
+
+        })->values()->toArray();
     }
 
     public function updatedSelectedDate($value)
@@ -131,6 +148,15 @@ class DRSchedulePage extends Component
             'time' => $this->selectedTime,
             'covered' => $this->isIncluded,
         ]);
+
+        foreach($this->servicesData as $service)
+        {
+            AppointmentService::create([
+                'appointment_id' => $appointment->id,
+                'service_id' => $service['id'],
+                'covered' => $service['included'],
+            ]);
+        }
 
         session()->flash('appointment_confirmation_id', $appointment->id);
 

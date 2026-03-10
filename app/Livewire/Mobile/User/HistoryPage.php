@@ -82,6 +82,11 @@ class HistoryPage extends Component
         return $this->redirectRoute('user.notes', ['appointment' => $id]);
     }
 
+    public function rating($id)
+    {
+        return $this->redirectRoute('user.rating', ['appointment' => $id]);
+    }
+
     public function print($id)
     {
         $note = Appointment::findOrFail($id)->note;

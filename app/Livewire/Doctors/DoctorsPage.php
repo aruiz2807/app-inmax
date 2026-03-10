@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Doctors;
 
+use App\Enums\DoctorType;
 use App\Livewire\Forms\DoctorsForm;
 use App\Models\Doctor;
 use App\Models\Specialty;
@@ -14,6 +15,7 @@ class DoctorsPage extends Component
     public DoctorsForm $form;
     public ?int $doctorId = null;
     public $specialties = [];
+    public $types = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -24,6 +26,7 @@ class DoctorsPage extends Component
     public function mount()
     {
         $this->specialties = Specialty::orderBy('name')->get();
+        $this->types = DoctorType::cases();
     }
 
     #[On('editDoctor')]
@@ -70,5 +73,11 @@ class DoctorsPage extends Component
     {
         $this->form->reset();
         $this->doctorId = null;
+        $this->resetValidation();
+    }
+
+    public function getDoctorRequiredProperty()
+    {
+        return $this->form->type === DoctorType::Doctor->value;
     }
 }
