@@ -11,9 +11,9 @@
     @endif
 
     <x-ui.field>
-        <x-ui.label>Asegurado</x-ui.label>
+        <x-ui.label>Miembro</x-ui.label>
         <x-ui.select
-            placeholder="Buscar asegurado..."
+            placeholder="Buscar miembro..."
             icon="wallet"
             searchable
             :disabled="$appointment !== null"
@@ -53,7 +53,7 @@
             clearable
             :disabled="$appointment !== null"
             wire:model.live="selectedServices">
-                @foreach($services as $service)
+                @foreach($doctor->specialty->services as $service)
                     <x-ui.select.option value="{{ $service->id }}">
                         {{ $service->name }}
                     </x-ui.select.option>
@@ -62,7 +62,7 @@
     </x-ui.field>
     @endif
 
-    @if($servicesData)
+    @if($this->servicesData)
     <div class="grid grid-cols-[5rem_auto_8rem] items-center p-4 mt-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
         @foreach($servicesData as $service)
             <div class="p-3 bg-[#2D4356] rounded-xl text-white mr-4 mt-2">
@@ -96,8 +96,8 @@
             <x-ui.text class="text-lg ml-2">Fechas disponibles</x-ui.text>
         </x-ui.heading>
 
-        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-            @foreach($availableDates as $date)
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4" wire:key="dates-{{ $selectedDate }}">
+            @foreach($this->availableDates as $date)
                 <label class="group relative cursor-pointer">
                     <input type="radio"
                         wire:model.live="selectedDate"
@@ -135,9 +135,8 @@
             </div>
         </x-ui.heading>
 
-
-        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-            @foreach($availableHours as $hour)
+        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4" wire:key="hours-{{ $selectedTime }}">
+            @foreach($this->availableHours as $hour)
                 <label class="group relative cursor-pointer">
                     <input type="radio"
                         wire:model.live="selectedTime"

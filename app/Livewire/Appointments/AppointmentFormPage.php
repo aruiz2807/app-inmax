@@ -16,17 +16,18 @@ use Livewire\Component;
 class AppointmentFormPage extends Component
 {
     public $appointment;
+
     public $selectedDate;
     public $selectedTime;
-    public $selectedServices = [];
+
     public $selectedUser;
     public $selectedDoctor;
-    public $availableDates = [];
-    public $availableHours = [];
-    public $isIncluded = 1;
-    public $services;
+    public $selectedServices = [];
+
     public $doctors;
     public $policies;
+    public $isIncluded = 1;
+
     public $user;
     public $doctor;
     public $servicesData = [];
@@ -39,54 +40,33 @@ class AppointmentFormPage extends Component
 
     public function mount($appointmentId)
     {
-        $this->services = Service::where('status', 'Active')->get();
         $this->policies = Policy::where('status', 'Active')->get();
         $this->doctors = Doctor::where('status', 'Active')->get();
 
-        $date = Carbon::now();
-        $count = 0;
-        $maxDays = 15;
-
-        while ($count < $maxDays)
+        if ($appointmentId)
         {
-            $date->addDay();
-
-            if (!$date->isSunday())
-            {
-                $this->availableDates[] = [
-                    'id'    => $date->format('Y-m-d'),
-                    'day'   => $date->isoFormat('ddd'),
-                    'num'   => $date->format('d'),
-                    'month' => $date->isoFormat('MMM'),
-                ];
-                $count++;
-            }
+            $this->set($appointmentId);
         }
-
-        $this->selectedDate = $this->availableDates[0]['id'];
-        $this->fetchAvailableSlots();
-        $this->set($appointmentId);
+        else
+        {
+            $this->selectedDate = now()->addDay()->format('Y-m-d');
+            $this->selectedTime = '09:00';
+        }
     }
 
     public function updatedSelectedUser($value)
     {
-        $this->selectedUser = $value;
         $this->user = User::find($value);
     }
 
     public function updatedSelectedDoctor($value)
     {
-        $this->selectedDoctor = $value;
         $this->doctor = Doctor::find($value);
-        $this->services = $this->doctor->specialty->services;
     }
 
     public function updatedSelectedServices($value)
     {
-        $policyId = $this->user->policy->type === 'Member'
-            ? $this->user->policy->parent_policy_id
-            : $this->user->policy->id;
-
+        $policyId = $this->user->policy->type === 'Member' ? $this->user->policy->parent_policy_id : $this->user->policy->id;
         $includedServices = PolicyService::query()
             ->where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
@@ -100,65 +80,23 @@ class AppointmentFormPage extends Component
         $this->servicesData = collect($this->selectedServices)->map(function ($serviceId) use ($services, $includedServices)
         {
             $service = $services->get($serviceId);
-
             return [
                 'id' => $serviceId,
                 'name' => $service?->name,
                 'included' => in_array($serviceId, $includedServices),
             ];
-
         })->values()->toArray();
-    }
-
-    public function updatedSelectedDate($value)
-    {
-        $this->selectedDate = $value;
-        $this->fetchAvailableSlots();
-    }
-
-    public function fetchAvailableSlots()
-    {
-        $this->availableHours = [];
-
-        $usedSlots = Appointment::whereDate('date', $this->selectedDate)
-            ->pluck('time')
-            ->mapWithKeys(fn ($time) => [
-                Carbon::parse($time)->format('H:i') => true
-            ])
-            ->toArray();
-
-        // Should check database
-        $availableSlots = [
-            '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM'
-        ];
-
-        foreach ($availableSlots as $slot)
-        {
-            $normalized = Carbon::createFromFormat('h:i A', $slot)->format('H:i');
-
-            if (!isset($usedSlots[$normalized]))
-            {
-                $this->availableHours[] = [
-                    'id'   => $normalized, // 14:00 (for DB usage later)
-                    'time' => $slot,       // 02:00 PM (for UI)
-                ];
-            }
-        }
-
-        $this->selectedTime = $this->availableHours[0]['id'];
     }
 
     public function clear()
     {
-        $this->user = null;
-        $this->doctor = null;
-        $this->selectedDate = $this->availableDates[0]['id'];
-        $this->selectedTime = $this->availableHours[0]['id'];
-        $this->selectedServices = null;
-        $this->selectedUser = null;
-        $this->selectedDoctor = null;
-        $this->isIncluded = 1;
-        $this->servicesData = [];
+        $this->reset([
+            'selectedUser',
+            'selectedDoctor',
+            'selectedServices',
+            'selectedDate',
+            'selectedTime',
+        ]);
     }
 
     public function schedule()
@@ -211,26 +149,118 @@ class AppointmentFormPage extends Component
     */
     public function set($appointmentId)
     {
-        if($appointmentId)
-        {
-            $this->appointment = Appointment::findOrFail($appointmentId);
-            $appointmentServices = AppointmentService::where('appointment_id', $this->appointment->id)->get();
+        $this->appointment = Appointment::findOrFail($appointmentId);
+        $appointmentServices = AppointmentService::where('appointment_id', $this->appointment->id)->get();
 
-            $this->selectedUser = (string) $this->appointment->user->id;
-            $this->user = User::find($this->selectedUser);
-            $this->selectedDoctor = (string) $this->appointment->doctor_id;
-            $this->doctor = Doctor::find($this->selectedDoctor);
-            $this->services = $this->doctor->specialty->services;
-            $this->selectedDate = $this->appointment->date->format('Y-m-d');
-            $this->selectedTime = $this->appointment->time->format('H:i');
-            $this->isIncluded = $this->appointment->covered;
+        $this->selectedUser = (string) $this->appointment->user->id;
+        $this->user = User::find($this->selectedUser);
 
-            $this->selectedServices = $appointmentServices->pluck('id')->toArray();
-            $this->servicesData = $appointmentServices->map(fn ($appointmentService) => [
-                'id' => $appointmentService->id,
-                'name' => $appointmentService->service->name,
-                'included' => $appointmentService->covered,
-            ])->values()->toArray();
+        $this->selectedDoctor = (string) $this->appointment->doctor_id;
+        $this->doctor = Doctor::find($this->selectedDoctor);
+
+        $this->selectedDate = $this->appointment->date->format('Y-m-d');
+        $this->selectedTime = $this->appointment->time->format('H:i');
+        $this->isIncluded = $this->appointment->covered;
+
+        $this->selectedServices = $appointmentServices->pluck('id')->toArray();
+        $this->servicesData = $appointmentServices->map(fn ($appointmentService) => [
+            'id' => $appointmentService->service_id,
+            'name' => $appointmentService->service->name,
+            'included' => $appointmentService->covered,
+        ])->values()->toArray();
+    }
+
+    public function getServicesProperty()
+    {
+        if (!$this->selectedDoctor) {
+            return collect();
         }
+
+        return Doctor::with('specialty.services')->find($this->selectedDoctor)?->specialty?->services ?? collect();
+    }
+
+    public function getServicesDataProperty()
+    {
+        if (!$this->selectedUser || !$this->selectedServices) {
+            return [];
+        }
+
+        $user = User::with('policy')->find($this->selectedUser);
+
+        $policyId = $user->policy->type === 'Member'
+            ? $user->policy->parent_policy_id
+            : $user->policy->id;
+
+        $included = PolicyService::where('policy_id', $policyId)
+            ->whereColumn('used', '<', 'included')
+            ->pluck('service_id')
+            ->toArray();
+
+        $services = Service::whereIn('id', $this->selectedServices)
+            ->get();
+
+        return $services->map(fn ($service) => [
+            'id' => $service->id,
+            'name' => $service->name,
+            'included' => in_array($service->id, $included)
+        ])->toArray();
+    }
+
+    public function getAvailableDatesProperty()
+    {
+        $dates = [];
+        $date = Carbon::now();
+
+        while (count($dates) < 15) {
+            $date->addDay();
+
+            if (!$date->isSunday()) {
+                $dates[] = [
+                    'id'    => $date->format('Y-m-d'),
+                    'day'   => $date->isoFormat('ddd'),
+                    'num'   => $date->format('d'),
+                    'month' => $date->isoFormat('MMM'),
+                ];
+            }
+        }
+
+        return $dates;
+    }
+
+    public function getAvailableHoursProperty()
+    {
+        if (!$this->selectedDate) {
+            return [];
+        }
+
+        $usedSlots = Appointment::whereDate('date', $this->selectedDate)
+            ->pluck('time')
+            ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
+            ->toArray();
+
+        $slots = [
+            '09:00 AM','10:00 AM','11:00 AM','12:00 PM',
+            '01:00 PM','02:00 PM','03:00 PM','04:00 PM',
+            '05:00 PM','06:00 PM','07:00 PM'
+        ];
+
+        return collect($slots)
+            ->map(function ($slot) use ($usedSlots) {
+
+                $normalized = Carbon::createFromFormat('h:i A', $slot)->format('H:i');
+
+                if (in_array($normalized, $usedSlots)) {
+                    return null;
+                }
+
+                return [
+                    'id' => $normalized,
+                    'time' => $slot,
+                ];
+
+            })
+            ->filter()
+            ->values()
+            ->toArray();
     }
 }

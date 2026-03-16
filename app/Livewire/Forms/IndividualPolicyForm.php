@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Forms;
 
+use App\Services\Auth\PinSetupTokenService;
+use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Models\User;
 use App\Models\Policy;
 use App\Models\PlanBenefit;
@@ -103,6 +105,9 @@ class IndividualPolicyForm extends Form
                 ]);
             }
         }
+
+        $whatsappService = new PinSetupTokenService(new WhatsAppCloudApiService());
+        $whatsappService->generateSetupLink($user);
     }
 
     /**
