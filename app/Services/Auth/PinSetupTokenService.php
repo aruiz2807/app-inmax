@@ -7,6 +7,7 @@ use App\Models\UserLegalAcceptance;
 use App\Models\UserPinSetupToken;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
+use App\Services\WhatsApp\WhatsAppDestinationResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +28,8 @@ class PinSetupTokenService
     public const STATUS_INVALID = 'invalid';
 
     public function __construct(
-        private readonly WhatsAppCloudApiService $whatsAppService
+        private readonly WhatsAppCloudApiService $whatsAppService,
+        private readonly WhatsAppDestinationResolver $destinationResolver
     ) {}
 
     /**
@@ -228,7 +230,10 @@ class PinSetupTokenService
         }
 
         $languageCode = $setting->default_language ?: 'es_MX';
-        $destinations = $this->resolveWhatsAppDestinations($user);
+        $destinations = $this->destinationResolver->resolve(
+            phone: (string) $user->phone,
+            countryCode: (string) ($user->phone_country_code ?? '52')
+        );
 
         if (empty($destinations)) {
             return [
@@ -279,57 +284,5 @@ class PinSetupTokenService
         } while (UserLegalAcceptance::query()->where('acceptance_code', $code)->exists());
 
         return $code;
-    }
-
-    /**
-     * Resolve destination phone(s) for WhatsApp delivery.
-     *
-     * For Mexico numbers, first try 521XXXXXXXXXX and fallback to 52XXXXXXXXXX.
-     *
-     * @return array<int, string>
-     */
-    private function resolveWhatsAppDestinations(User $user): array
-    {
-        $countryCode = $this->digits((string) ($user->phone_country_code ?? '52')) ?: '52';
-        $phone = $this->digits((string) $user->phone);
-
-        if ($phone === '') {
-            return [];
-        }
-
-        if ($countryCode !== '52') {
-            return [str_starts_with($phone, $countryCode) ? $phone : $countryCode.$phone];
-        }
-
-        if (strlen($phone) === 10) {
-            return [
-                '521'.$phone,
-                '52'.$phone,
-            ];
-        }
-
-        if (str_starts_with($phone, '521') && strlen($phone) === 13) {
-            return [
-                $phone,
-                '52'.substr($phone, 3),
-            ];
-        }
-
-        if (str_starts_with($phone, '52') && strlen($phone) === 12) {
-            return [
-                '521'.substr($phone, 2),
-                $phone,
-            ];
-        }
-
-        return [$phone];
-    }
-
-    /**
-     * Keep only digits from phone/code values.
-     */
-    private function digits(string $value): string
-    {
-        return preg_replace('/\D+/', '', $value) ?? '';
     }
 }

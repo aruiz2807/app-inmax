@@ -124,4 +124,16 @@ return [
         'ttl' => env('AUTH_PIN_SETUP_TTL', 30),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Policy Preregistration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for customer preregistration invitation links.
+    |
+    */
+    'policy_preregistration' => [
+        'ttl' => env('AUTH_POLICY_PREREGISTRATION_TTL', 10080),
+    ],
+
 ];
