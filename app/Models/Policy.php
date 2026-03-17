@@ -17,6 +17,7 @@ class Policy extends Model
         'sales_user_id',
         'plan_id',
         'parent_policy_id',
+        'policy_preregistration_id',
         'number',
         'type',
         'members',
@@ -89,6 +90,14 @@ class Policy extends Model
     public function parentPolicy()
     {
         return $this->belongsTo(Policy::class, 'parent_policy_id');
+    }
+
+    /**
+     * The preregistration that originated this policy.
+     */
+    public function preregistration(): BelongsTo
+    {
+        return $this->belongsTo(PolicyPreregistration::class, 'policy_preregistration_id');
     }
 
     // The policy could have many self-referencing child policies
