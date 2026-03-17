@@ -113,6 +113,7 @@ class PolicyPreregistrationPage extends Component
     private function resolveTokenMessage(string $status): string
     {
         return match ($status) {
+            PolicyPreregistrationService::STATUS_CANCELLED => 'Esta invitacion fue cancelada. Solicita una nueva al promotor.',
             PolicyPreregistrationService::STATUS_USED => 'Esta invitacion ya fue utilizada. Solicita una nueva al promotor.',
             PolicyPreregistrationService::STATUS_EXPIRED => 'Esta invitacion ya vencio. Solicita una nueva al promotor.',
             PolicyPreregistrationService::STATUS_ACTIVE => '',

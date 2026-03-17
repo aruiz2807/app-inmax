@@ -23,6 +23,8 @@ class PolicyPreregistrationService
 
     public const STATUS_EXPIRED = 'expired';
 
+    public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_INVALID = 'invalid';
 
     public function __construct(
@@ -47,16 +49,8 @@ class PolicyPreregistrationService
         ?int $parentPolicyId = null,
         bool $deliverWhatsApp = true
     ): array {
-        $normalizedPhone = preg_replace('/\D+/', '', $phone) ?? '';
-
-        if (strlen($normalizedPhone) !== 10) {
-            throw new InvalidArgumentException('El telefono debe contener 10 digitos.');
-        }
-
-        if (User::query()->where('phone', $normalizedPhone)->exists()) {
-            throw new InvalidArgumentException('Ya existe un usuario registrado con ese telefono.');
-        }
-
+        $normalizedPhone = $this->normalizePhone($phone);
+        $this->assertPhoneAvailable($normalizedPhone);
         $plan = $this->resolvePlan($planId);
         $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
         $token = $this->createToken(
@@ -65,28 +59,69 @@ class PolicyPreregistrationService
             parentPolicy: $parentPolicy,
             phone: $normalizedPhone
         );
-        $url = route('policy.preregistration', ['token' => $token['plain_text_token']]);
-        $whatsAppDelivery = $deliverWhatsApp
-            ? $this->sendWhatsAppTemplate($token['preregistration'], $token['plain_text_token'])
-            : ['attempted' => false, 'ok' => false, 'reason' => 'delivery_skipped'];
 
-        Log::info('WHATSAPP_POLICY_PREREGISTRATION', [
-            'policy_preregistration_id' => $token['preregistration']->id,
-            'sales_user_id' => $salesUser->id,
-            'phone' => $token['preregistration']->phone,
-            'plan_id' => $plan->id,
-            'parent_policy_id' => $parentPolicy?->id,
-            'url' => $url,
-            'expires_at' => $token['expires_at']->toDateTimeString(),
-            'whatsapp' => $whatsAppDelivery,
-        ]);
+        return $this->buildInvitationResponse(
+            token: $token,
+            actor: $salesUser,
+            plan: $plan,
+            parentPolicy: $parentPolicy,
+            deliverWhatsApp: $deliverWhatsApp,
+            logEvent: 'WHATSAPP_POLICY_PREREGISTRATION'
+        );
+    }
 
-        return [
-            'preregistration' => $token['preregistration'],
-            'url' => $url,
-            'expires_at' => $token['expires_at'],
-            'whatsapp' => $whatsAppDelivery,
-        ];
+    /**
+     * Update a preregistration and rotate its token/link.
+     *
+     * @return array{
+     *     preregistration: PolicyPreregistration,
+     *     url: string,
+     *     expires_at: Carbon,
+     *     whatsapp: array{attempted: bool, ok: bool, reason?: string, status?: int}
+     * }
+     */
+    public function updateInvitation(
+        PolicyPreregistration $preregistration,
+        User $actor,
+        string $phone,
+        int $planId,
+        ?int $parentPolicyId = null,
+        bool $deliverWhatsApp = true
+    ): array {
+        $this->assertCanManage($preregistration, 'editar');
+
+        $normalizedPhone = $this->normalizePhone($phone);
+        $this->assertPhoneAvailable($normalizedPhone);
+        $plan = $this->resolvePlan($planId);
+        $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
+        $token = $this->refreshToken(
+            preregistration: $preregistration,
+            plan: $plan,
+            parentPolicy: $parentPolicy,
+            phone: $normalizedPhone
+        );
+
+        return $this->buildInvitationResponse(
+            token: $token,
+            actor: $actor,
+            plan: $plan,
+            parentPolicy: $parentPolicy,
+            deliverWhatsApp: $deliverWhatsApp,
+            logEvent: 'WHATSAPP_POLICY_PREREGISTRATION_UPDATED'
+        );
+    }
+
+    /**
+     * Cancel an existing preregistration.
+     */
+    public function cancelInvitation(PolicyPreregistration $preregistration, User $actor): void
+    {
+        $this->assertCanManage($preregistration, 'cancelar');
+
+        $preregistration->forceFill([
+            'cancelled_by' => $actor->id,
+            'cancelled_at' => now(),
+        ])->save();
     }
 
     /**
@@ -117,6 +152,13 @@ class PolicyPreregistrationService
             return [
                 'preregistration' => null,
                 'status' => self::STATUS_INVALID,
+            ];
+        }
+
+        if ($preregistration->cancelled_at !== null) {
+            return [
+                'preregistration' => $preregistration,
+                'status' => self::STATUS_CANCELLED,
             ];
         }
 
@@ -178,6 +220,35 @@ class PolicyPreregistrationService
 
         return [
             'preregistration' => $preregistration,
+            'plain_text_token' => $plainTextToken,
+            'expires_at' => $expiresAt,
+        ];
+    }
+
+    /**
+     * Rotate the token and update data for an existing preregistration.
+     *
+     * @return array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}
+     */
+    private function refreshToken(
+        PolicyPreregistration $preregistration,
+        Plan $plan,
+        ?Policy $parentPolicy,
+        string $phone
+    ): array {
+        $expiresAt = now()->addMinutes((int) config('auth.policy_preregistration.ttl', 10080));
+        $plainTextToken = Str::random(64);
+
+        $preregistration->forceFill([
+            'plan_id' => $plan->id,
+            'parent_policy_id' => $parentPolicy?->id,
+            'phone' => $phone,
+            'token_hash' => hash('sha256', $plainTextToken),
+            'expires_at' => $expiresAt,
+        ])->save();
+
+        return [
+            'preregistration' => $preregistration->fresh(['plan', 'parentPolicy', 'salesUser']),
             'plain_text_token' => $plainTextToken,
             'expires_at' => $expiresAt,
         ];
@@ -287,5 +358,86 @@ class PolicyPreregistrationService
         }
 
         return $policy;
+    }
+
+    /**
+     * Normalize and validate a MX phone.
+     */
+    private function normalizePhone(string $phone): string
+    {
+        $normalizedPhone = preg_replace('/\D+/', '', $phone) ?? '';
+
+        if (strlen($normalizedPhone) !== 10) {
+            throw new InvalidArgumentException('El telefono debe contener 10 digitos.');
+        }
+
+        return $normalizedPhone;
+    }
+
+    /**
+     * Ensure there is no registered user for the phone.
+     */
+    private function assertPhoneAvailable(string $phone): void
+    {
+        if (User::query()->where('phone', $phone)->exists()) {
+            throw new InvalidArgumentException('Ya existe un usuario registrado con ese telefono.');
+        }
+    }
+
+    /**
+     * Ensure the preregistration can still be edited or cancelled.
+     */
+    private function assertCanManage(PolicyPreregistration $preregistration, string $action): void
+    {
+        if ($preregistration->cancelled_at !== null) {
+            throw new InvalidArgumentException("No es posible {$action} un preregistro cancelado.");
+        }
+
+        if ($preregistration->used_at !== null) {
+            throw new InvalidArgumentException("No es posible {$action} un preregistro utilizado.");
+        }
+    }
+
+    /**
+     * Build the response payload and optionally deliver WhatsApp.
+     *
+     * @param  array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}  $token
+     * @return array{
+     *     preregistration: PolicyPreregistration,
+     *     url: string,
+     *     expires_at: Carbon,
+     *     whatsapp: array{attempted: bool, ok: bool, reason?: string, status?: int}
+     * }
+     */
+    private function buildInvitationResponse(
+        array $token,
+        User $actor,
+        Plan $plan,
+        ?Policy $parentPolicy,
+        bool $deliverWhatsApp,
+        string $logEvent
+    ): array {
+        $url = route('policy.preregistration', ['token' => $token['plain_text_token']]);
+        $whatsAppDelivery = $deliverWhatsApp
+            ? $this->sendWhatsAppTemplate($token['preregistration'], $token['plain_text_token'])
+            : ['attempted' => false, 'ok' => false, 'reason' => 'delivery_skipped'];
+
+        Log::info($logEvent, [
+            'policy_preregistration_id' => $token['preregistration']->id,
+            'sales_user_id' => $actor->id,
+            'phone' => $token['preregistration']->phone,
+            'plan_id' => $plan->id,
+            'parent_policy_id' => $parentPolicy?->id,
+            'url' => $url,
+            'expires_at' => $token['expires_at']->toDateTimeString(),
+            'whatsapp' => $whatsAppDelivery,
+        ]);
+
+        return [
+            'preregistration' => $token['preregistration'],
+            'url' => $url,
+            'expires_at' => $token['expires_at'],
+            'whatsapp' => $whatsAppDelivery,
+        ];
     }
 }

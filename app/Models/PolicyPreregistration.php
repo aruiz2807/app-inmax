@@ -22,6 +22,8 @@ class PolicyPreregistration extends Model
         'token_hash',
         'expires_at',
         'used_at',
+        'cancelled_by',
+        'cancelled_at',
     ];
 
     /**
@@ -34,6 +36,7 @@ class PolicyPreregistration extends Model
         return [
             'expires_at' => 'datetime',
             'used_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -43,7 +46,42 @@ class PolicyPreregistration extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->whereNull('used_at')
+            ->whereNull('cancelled_at')
             ->where('expires_at', '>', now());
+    }
+
+    /**
+     * Human readable status label for the preregistration.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match (true) {
+            $this->cancelled_at !== null => 'Cancelado',
+            $this->used_at !== null => 'Usado',
+            $this->expires_at->isPast() => 'Vencido',
+            default => 'Activo',
+        };
+    }
+
+    /**
+     * Badge color for UI rendering.
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return match (true) {
+            $this->cancelled_at !== null => 'rose',
+            $this->used_at !== null => 'emerald',
+            $this->expires_at->isPast() => 'amber',
+            default => 'teal',
+        };
+    }
+
+    /**
+     * Determine if the preregistration can still be edited or cancelled.
+     */
+    public function canBeManaged(): bool
+    {
+        return $this->used_at === null && $this->cancelled_at === null;
     }
 
     /**
@@ -76,5 +114,13 @@ class PolicyPreregistration extends Model
     public function policy(): HasOne
     {
         return $this->hasOne(Policy::class, 'policy_preregistration_id');
+    }
+
+    /**
+     * The admin or sales user that cancelled the preregistration.
+     */
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 }
