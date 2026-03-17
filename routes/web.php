@@ -27,6 +27,7 @@ use App\Livewire\Mobile\User\SchedulePage;
 use App\Livewire\Appointments\AppointmentsPage;
 use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Plans\PlansPage;
+use App\Livewire\Policies\PolicyPreregistrationPage;
 use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Services\ServicesPage;
 use App\Livewire\Settings\LegalSettingsPage;
@@ -42,6 +43,7 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/pin/setup/{token}', PinSetupPage::class)->name('pin.setup');
+    Route::get('/policy-registration/{token}', PolicyPreregistrationPage::class)->name('policy.preregistration');
     Route::get('/forgot-pin', ForgotPinPage::class)->name('pin.forgot');
     Route::get('/admin/login', [AdminAuthenticatedSessionController::class, 'create'])->name('admin.login');
     Route::post('/admin/login', [AdminAuthenticatedSessionController::class, 'store'])

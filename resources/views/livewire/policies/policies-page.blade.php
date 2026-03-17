@@ -8,15 +8,46 @@
             <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
                 <span>Catalogo de polizas</span>
 
-                <x-ui.modal.trigger id="policy-modal" wire:click="resetForm">
-                    <x-ui.button color="teal" icon="plus-circle">
-                        Registrar poliza
-                    </x-ui.button>
-                </x-ui.modal.trigger>
+                <div class="flex gap-2">
+                    <x-ui.modal.trigger id="preregistration-modal" wire:click="resetPreregistrationForm">
+                        <x-ui.button color="gray" icon="paper-airplane">
+                            Preregistro
+                        </x-ui.button>
+                    </x-ui.modal.trigger>
+
+                    <x-ui.modal.trigger id="policy-modal" wire:click="resetForm">
+                        <x-ui.button color="teal" icon="plus-circle">
+                            Registrar poliza
+                        </x-ui.button>
+                    </x-ui.modal.trigger>
+                </div>
             </x-ui.heading>
             <p>Resgistre y administre las polizas de los clientes</p>
         </x-ui.card>
     </div>
+
+    @if ($lastPreregistrationUrl)
+        <div class="pt-2">
+            <x-ui.card size="full">
+                <x-ui.heading level="h3" size="sm">
+                    Ultima invitacion de preregistro
+                </x-ui.heading>
+
+                <p class="text-sm mt-2">
+                    Telefono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
+                    | Cobertura: <span class="font-semibold">{{ $lastPreregistrationPlanName }}</span>
+                </p>
+
+                <p class="text-sm mt-1 text-slate-600">
+                    Vigencia: {{ $lastPreregistrationExpiresAt }}
+                </p>
+
+                <a href="{{ $lastPreregistrationUrl }}" class="ui-link block mt-2 break-all" target="_blank" rel="noopener noreferrer">
+                    {{ $lastPreregistrationUrl }}
+                </a>
+            </x-ui.card>
+        </div>
+    @endif
 
     <div class="pt-2">
         <x-ui.card size="full">
@@ -77,6 +108,72 @@
                 </x-ui.button>
             </div>
         @endif
+    </x-ui.modal>
+
+    <x-ui.modal
+        id="preregistration-modal"
+        animation="fade"
+        width="2xl"
+        heading="Nuevo preregistro"
+        description="Captura el telefono y la cobertura para enviar la invitacion de registro"
+        x-on:close-preregistration-modal.window="$data.close()"
+    >
+        <form wire:submit="savePreregistration">
+            <x-ui.fieldset label="Datos del preregistro">
+                <x-ui.field required>
+                    <x-ui.label>Telefono</x-ui.label>
+                    <x-ui.input wire:model="preregistrationPhone" name="preregistrationPhone" placeholder="3310203040" />
+                    <x-ui.error name="preregistrationPhone" />
+                </x-ui.field>
+
+                <x-ui.field required>
+                    <x-ui.label>Cobertura</x-ui.label>
+                    <x-ui.select
+                        wire:model="preregistrationPlan"
+                        placeholder="Selecciona una cobertura"
+                        searchable
+                    >
+                        @foreach($preregistrationPlans as $plan)
+                            <x-ui.select.option value="{{ $plan->id }}">
+                                {{ $plan->name }}
+                            </x-ui.select.option>
+                        @endforeach
+                    </x-ui.select>
+                    <x-ui.error name="preregistrationPlan" />
+                </x-ui.field>
+
+                <x-ui.field>
+                    <x-ui.label>Poliza principal</x-ui.label>
+                    <x-ui.select
+                        wire:model="preregistrationParentPolicy"
+                        placeholder="Sin poliza principal"
+                        searchable
+                    >
+                        @foreach($preregistrationParentPolicies as $policy)
+                            <x-ui.select.option value="{{ $policy->id }}">
+                                {{ $policy->number }} - {{ $policy->user->name }} - {{ $policy->user->company?->name }}
+                            </x-ui.select.option>
+                        @endforeach
+                    </x-ui.select>
+                    <x-ui.error name="preregistrationParentPolicy" />
+                </x-ui.field>
+
+                <x-ui.field>
+                    <x-ui.label>Registrado por</x-ui.label>
+                    <x-ui.input :value="auth()->user()->name" readonly copyable="false" />
+                </x-ui.field>
+            </x-ui.fieldset>
+
+            <div class="w-full flex justify-end gap-3 pt-4">
+                <x-ui.button x-on:click="$data.close();" icon="x-mark" variant="outline">
+                    Cancel
+                </x-ui.button>
+
+                <x-ui.button type="submit" icon="paper-airplane" variant="primary" color="teal">
+                    Enviar invitacion
+                </x-ui.button>
+            </div>
+        </form>
     </x-ui.modal>
 
     @include('livewire.policies.activation-modal')

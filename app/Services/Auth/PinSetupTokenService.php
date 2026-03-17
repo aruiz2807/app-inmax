@@ -44,15 +44,18 @@ class PinSetupTokenService
     public function generateSetupLink(
         User $user,
         ?User $createdBy = null,
-        string $purpose = self::PURPOSE_ACTIVATION
+        string $purpose = self::PURPOSE_ACTIVATION,
+        bool $deliverWhatsApp = true
     ): array {
         $token = $this->createToken($user, $createdBy);
         $url = route('pin.setup', ['token' => $token['plain_text_token']]);
-        $whatsAppDelivery = $this->sendWhatsAppTemplate(
-            user: $user,
-            plainTextToken: $token['plain_text_token'],
-            purpose: $purpose
-        );
+        $whatsAppDelivery = $deliverWhatsApp
+            ? $this->sendWhatsAppTemplate(
+                user: $user,
+                plainTextToken: $token['plain_text_token'],
+                purpose: $purpose
+            )
+            : ['attempted' => false, 'ok' => false, 'reason' => 'delivery_skipped'];
 
         Log::info('WHATSAPP_SIM_PIN_SETUP', [
             'user_id' => $user->id,

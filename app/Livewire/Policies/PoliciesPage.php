@@ -3,10 +3,16 @@
 namespace App\Livewire\Policies;
 
 use App\Models\Policy;
+use App\Models\Plan;
+use App\Services\Auth\PolicyPreregistrationService;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use Carbon\Carbon;
+use InvalidArgumentException;
 
 class PoliciesPage extends Component
 {
@@ -16,11 +22,81 @@ class PoliciesPage extends Component
 
     public $policy_number = '';
     public $policy_user_name = '';
+    public string $preregistrationPhone = '';
+    public ?string $preregistrationPlan = null;
+    public ?string $preregistrationParentPolicy = null;
+    public ?string $lastPreregistrationUrl = null;
+    public ?string $lastPreregistrationPhone = null;
+    public ?string $lastPreregistrationPlanName = null;
+    public ?string $lastPreregistrationExpiresAt = null;
+    public Collection $preregistrationPlans;
+    public Collection $preregistrationParentPolicies;
+
+    public function mount(): void
+    {
+        $this->loadPreregistrationOptions();
+    }
 
     #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.policies.policies-page');
+    }
+
+    public function savePreregistration(PolicyPreregistrationService $service): void
+    {
+        $validated = $this->validate([
+            'preregistrationPhone' => ['required', 'digits:10', 'unique:users,phone'],
+            'preregistrationPlan' => ['required'],
+            'preregistrationParentPolicy' => ['nullable'],
+        ], [
+            'preregistrationPhone.unique' => 'Ya existe un usuario registrado con ese telefono.',
+        ]);
+
+        try {
+            $result = $service->createInvitation(
+                Auth::user(),
+                $validated['preregistrationPhone'],
+                (int) $validated['preregistrationPlan'],
+                filled($validated['preregistrationParentPolicy'])
+                    ? (int) $validated['preregistrationParentPolicy']
+                    : null
+            );
+        } catch (InvalidArgumentException $exception) {
+            $field = match (true) {
+                str_contains($exception->getMessage(), 'telefono') => 'preregistrationPhone',
+                str_contains($exception->getMessage(), 'principal') => 'preregistrationParentPolicy',
+                default => 'preregistrationPlan',
+            };
+
+            throw ValidationException::withMessages([
+                $field => $exception->getMessage(),
+            ]);
+        }
+
+        $plan = $this->preregistrationPlans
+            ->firstWhere('id', (int) $validated['preregistrationPlan']);
+
+        $this->lastPreregistrationUrl = $result['url'];
+        $this->lastPreregistrationPhone = $validated['preregistrationPhone'];
+        $this->lastPreregistrationPlanName = $plan?->name;
+        $this->lastPreregistrationExpiresAt = $result['expires_at']->format('d/m/Y H:i');
+
+        $content = match (true) {
+            ($result['whatsapp']['ok'] ?? false) => 'Preregistro creado y enlace enviado por WhatsApp.',
+            ($result['whatsapp']['attempted'] ?? false) => 'Preregistro creado. No se pudo enviar WhatsApp, enlace disponible para prueba.',
+            default => 'Preregistro creado. Falta configurar WhatsApp, enlace disponible para prueba.',
+        };
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: $content,
+            duration: 4000
+        );
+
+        $this->dispatch('close-preregistration-modal');
+        $this->resetPreregistrationForm();
     }
 
     #[On('editPolicy')]
@@ -166,10 +242,41 @@ class PoliciesPage extends Component
         $this->policyType = $type;
     }
 
+    public function resetPreregistrationForm(): void
+    {
+        $this->resetValidation([
+            'preregistrationPhone',
+            'preregistrationPlan',
+            'preregistrationParentPolicy',
+        ]);
+
+        $this->preregistrationPhone = '';
+        $this->preregistrationPlan = null;
+        $this->preregistrationParentPolicy = null;
+    }
+
     public function resetForm()
     {
         $this->policyId = null;
         $this->policyType = null;
         $this->newMember = false;
+    }
+
+    private function loadPreregistrationOptions(): void
+    {
+        $this->preregistrationPlans = Plan::query()
+            ->where('type', 'Individual')
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $this->preregistrationParentPolicies = Policy::query()
+            ->with(['user:id,name,company_id', 'user.company:id,name'])
+            ->whereNull('parent_policy_id')
+            ->whereHas('plan', function ($query) {
+                $query->where('type', 'Individual');
+            })
+            ->orderBy('number')
+            ->get();
     }
 }

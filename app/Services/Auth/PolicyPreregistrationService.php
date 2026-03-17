@@ -47,13 +47,23 @@ class PolicyPreregistrationService
         ?int $parentPolicyId = null,
         bool $deliverWhatsApp = true
     ): array {
+        $normalizedPhone = preg_replace('/\D+/', '', $phone) ?? '';
+
+        if (strlen($normalizedPhone) !== 10) {
+            throw new InvalidArgumentException('El telefono debe contener 10 digitos.');
+        }
+
+        if (User::query()->where('phone', $normalizedPhone)->exists()) {
+            throw new InvalidArgumentException('Ya existe un usuario registrado con ese telefono.');
+        }
+
         $plan = $this->resolvePlan($planId);
         $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
         $token = $this->createToken(
             salesUser: $salesUser,
             plan: $plan,
             parentPolicy: $parentPolicy,
-            phone: $phone
+            phone: $normalizedPhone
         );
         $url = route('policy.preregistration', ['token' => $token['plain_text_token']]);
         $whatsAppDelivery = $deliverWhatsApp
@@ -160,7 +170,7 @@ class PolicyPreregistrationService
                 'sales_user_id' => $salesUser->id,
                 'plan_id' => $plan->id,
                 'parent_policy_id' => $parentPolicy?->id,
-                'phone' => preg_replace('/\D+/', '', $phone) ?? '',
+                'phone' => $phone,
                 'token_hash' => hash('sha256', $plainTextToken),
                 'expires_at' => $expiresAt,
             ]);
