@@ -51,6 +51,12 @@
                     </x-ui.field>
 
                     <x-ui.field required>
+                        <x-ui.label>Plantilla preregistro poliza</x-ui.label>
+                        <x-ui.input wire:model="preregistrationTemplateName" placeholder="policy_preregistration_template" />
+                        <x-ui.error name="preregistrationTemplateName" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
                         <x-ui.label>Idioma por defecto</x-ui.label>
                         <x-ui.input wire:model="defaultLanguage" placeholder="es_MX" />
                         <x-ui.error name="defaultLanguage" />

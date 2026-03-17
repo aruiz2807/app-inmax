@@ -24,6 +24,7 @@ class WhatsAppSetting extends Model
         'access_token',
         'activation_template_name',
         'pin_reset_template_name',
+        'preregistration_template_name',
         'default_language',
     ];
 

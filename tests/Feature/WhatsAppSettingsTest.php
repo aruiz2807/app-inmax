@@ -56,6 +56,7 @@ class WhatsAppSettingsTest extends TestCase
             ->set('accessToken', 'meta_test_token_12345')
             ->set('activationTemplateName', 'activation_pin_template')
             ->set('pinResetTemplateName', 'reset_pin_template')
+            ->set('preregistrationTemplateName', 'policy_preregistration_template')
             ->set('defaultLanguage', 'es_MX')
             ->call('saveSettings')
             ->assertHasNoErrors();
@@ -65,6 +66,7 @@ class WhatsAppSettingsTest extends TestCase
             'phone_number_id' => '113206948334320',
             'activation_template_name' => 'activation_pin_template',
             'pin_reset_template_name' => 'reset_pin_template',
+            'preregistration_template_name' => 'policy_preregistration_template',
             'default_language' => 'es_MX',
         ]);
 
@@ -88,6 +90,7 @@ class WhatsAppSettingsTest extends TestCase
             'access_token' => 'meta_test_token_12345',
             'activation_template_name' => 'activation_pin_template',
             'pin_reset_template_name' => 'reset_pin_template',
+            'preregistration_template_name' => 'policy_preregistration_template',
             'default_language' => 'es_MX',
         ]);
 
