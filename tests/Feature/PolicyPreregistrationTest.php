@@ -82,6 +82,55 @@ class PolicyPreregistrationTest extends TestCase
         $response->assertSee('Plan Familiar');
     }
 
+    public function test_sales_user_can_edit_preregistration_and_rotate_link(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        $originalPlan = Plan::query()->create([
+            'name' => 'Plan Base',
+            'price' => 900.00,
+            'type' => 'Individual',
+            'status' => 'Active',
+        ]);
+
+        $updatedPlan = Plan::query()->create([
+            'name' => 'Plan Plus',
+            'price' => 1500.00,
+            'type' => 'Individual',
+            'status' => 'Active',
+        ]);
+
+        $preregistration = PolicyPreregistration::query()->create([
+            'sales_user_id' => $salesUser->id,
+            'plan_id' => $originalPlan->id,
+            'phone' => '3310000010',
+            'token_hash' => hash('sha256', 'old-prereg-token'),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $previousTokenHash = $preregistration->token_hash;
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PoliciesPage::class)
+            ->call('editPreregistration', $preregistration->id)
+            ->assertSet('preregistrationPhone', '3310000010')
+            ->set('preregistrationPhone', '3310000011')
+            ->set('preregistrationPlan', (string) $updatedPlan->id)
+            ->call('savePreregistration')
+            ->assertHasNoErrors()
+            ->assertSet('lastPreregistrationPhone', '3310000011')
+            ->assertSet('lastPreregistrationPlanName', 'Plan Plus');
+
+        $preregistration->refresh();
+
+        $this->assertSame('3310000011', $preregistration->phone);
+        $this->assertSame($updatedPlan->id, $preregistration->plan_id);
+        $this->assertNotSame($previousTokenHash, $preregistration->token_hash);
+    }
+
     public function test_preregistration_page_creates_user_policy_and_redirects_to_pin_setup(): void
     {
         Storage::fake('public');
@@ -152,5 +201,48 @@ class PolicyPreregistrationTest extends TestCase
             'user_id' => $user->id,
         ]);
         $this->assertSame(1, UserPinSetupToken::query()->where('user_id', $user->id)->count());
+    }
+
+    public function test_sales_user_can_cancel_preregistration_and_public_link_shows_cancelled_message(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        $plan = Plan::query()->create([
+            'name' => 'Plan Activo',
+            'price' => 1100.00,
+            'type' => 'Individual',
+            'status' => 'Active',
+        ]);
+
+        $token = 'cancel-prereg-token';
+
+        $preregistration = PolicyPreregistration::query()->create([
+            'sales_user_id' => $salesUser->id,
+            'plan_id' => $plan->id,
+            'phone' => '3310000012',
+            'token_hash' => hash('sha256', $token),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PoliciesPage::class)
+            ->call('promptPreregistrationCancellation', $preregistration->id)
+            ->call('cancelPreregistration')
+            ->assertHasNoErrors();
+
+        $preregistration->refresh();
+
+        $this->assertNotNull($preregistration->cancelled_at);
+        $this->assertSame($salesUser->id, $preregistration->cancelled_by);
+
+        auth()->logout();
+
+        $response = $this->get('/policy-registration/'.$token);
+
+        $response->assertStatus(200);
+        $response->assertSee('Esta invitacion fue cancelada. Solicita una nueva al promotor.');
     }
 }
