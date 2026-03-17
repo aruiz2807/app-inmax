@@ -2,17 +2,17 @@
 
 namespace App\Livewire\Policies;
 
-
-
 use App\Livewire\Forms\IndividualPolicyForm;
 use App\Models\Plan;
 use App\Models\Policy;
 use App\Models\User;
+use App\Services\Auth\PinSetupTokenService;
+use App\Services\Policies\IndividualPolicyRegistrationService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Carbon\Carbon;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class IndividualPolicyPage extends Component
@@ -76,21 +76,37 @@ class IndividualPolicyPage extends Component
             ->get();
     }
 
-    public function save()
+    public function save(
+        IndividualPolicyRegistrationService $registrationService,
+        PinSetupTokenService $tokenService
+    )
     {
         if($this->policyId and !$this->member)
         {
             $this->form->update($this->policyId);
+
+            $content = 'Poliza almacenada exitosamente!';
         }
         else
         {
-            $this->form->store();
+            $policy = $this->form->store($registrationService);
+            $result = $tokenService->generateSetupLink(
+                $policy->user,
+                Auth::user(),
+                PinSetupTokenService::PURPOSE_ACTIVATION
+            );
+
+            $content = match (true) {
+                ($result['whatsapp']['ok'] ?? false) => 'Poliza creada y enlace de PIN enviado por WhatsApp.',
+                ($result['whatsapp']['attempted'] ?? false) => 'Poliza creada. No se pudo enviar WhatsApp, enlace de PIN generado.',
+                default => 'Poliza creada. Falta configurar WhatsApp para enviar el enlace de PIN.',
+            };
         }
 
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Poliza almacenada exitosamente!',
+            content: $content,
             duration: 4000
         );
 

@@ -2,17 +2,11 @@
 
 namespace App\Livewire\Forms;
 
-use App\Services\Auth\PinSetupTokenService;
-use App\Services\WhatsApp\WhatsAppCloudApiService;
-use App\Models\User;
 use App\Models\Policy;
-use App\Models\PlanBenefit;
-use App\Models\PolicyService;
-use Illuminate\Support\Facades\Hash;
-
+use App\Models\User;
+use App\Services\Policies\IndividualPolicyRegistrationService;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
-use Carbon\Carbon;
 
 class IndividualPolicyForm extends Form
 {
@@ -58,13 +52,15 @@ class IndividualPolicyForm extends Form
     /**
     * Store the individual policy in the DB.
     */
-    public function store()
-    {
+    public function store(
+        IndividualPolicyRegistrationService $registrationService,
+        ?int $policyPreregistrationId = null
+    ): Policy {
         $this->validate();
 
         $path = $this->attachment->store('profile-photos', 'public');
 
-        $user = $this->createUser([
+        return $registrationService->create([
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
@@ -72,62 +68,12 @@ class IndividualPolicyForm extends Form
             'curp' => $this->curp,
             'passport' => $this->passport,
             'path' => $path,
-        ]);
-
-        if($this->addingMember)
-        {
-            $parent_policy = Policy::find($this->parent_policy);
-            $user->update([
-                'company_id' => $parent_policy->user->company_id,
-            ]);
-        }
-
-        $policy = Policy::create([
-            'user_id' => $user->id,
-            'sales_user_id' => $this->sales_user,
-            'plan_id' => $this->plan,
-            'parent_policy_id' => $this->parent_policy ?: null,
-            'number' => $this->getPolicyNumber(),
-            'type' => $this->addingMember ? 'Member' : 'Individual',
+            'plan_id' => (int) $this->plan,
+            'sales_user_id' => $this->sales_user ? (int) $this->sales_user : null,
+            'parent_policy_id' => $this->parent_policy ? (int) $this->parent_policy : null,
             'insurance' => $this->insurance,
-        ]);
-
-        if(!$this->addingMember)
-        {
-            $benefits = PlanBenefit::where('plan_id', $this->plan)->orderBy('service_id')->get();
-
-            foreach($benefits as $benefit)
-            {
-                PolicyService::create([
-                    'policy_id' => $policy->id,
-                    'service_id' => $benefit->service_id,
-                    'included' => $benefit->events
-                ]);
-            }
-        }
-
-        $whatsappService = new PinSetupTokenService(new WhatsAppCloudApiService());
-        $whatsappService->generateSetupLink($user);
-    }
-
-    /**
-     * Create the user's policy.
-     *
-     * @param  array<string, string>  $input
-     */
-    public function createUser(array $input): User
-    {
-        return User::create([
-            'name' => $input['name'],
-            'profile' => 'User',
-            'email' => $input['email'],
-            'phone' => $input['phone'],
-            'birth_date' => $input['birth'],
-            'curp' => $input['curp'],
-            'passport' => $input['passport'],
-            // for now, the phone number will be the user's password
-            'password' => Hash::make($input['phone']),
-            'profile_photo_path' => $input['path'],
+            'adding_member' => $this->addingMember,
+            'policy_preregistration_id' => $policyPreregistrationId,
         ]);
     }
 
@@ -187,26 +133,4 @@ class IndividualPolicyForm extends Form
         ]);
     }
 
-    /**
-     * Determines policy number.
-     */
-    public function getPolicyNumber(): String
-    {
-        if($this->parent_policy)
-        {
-            $parentNumber = Policy::where('id', $this->parent_policy)->value('number');
-            $next = Policy::where('parent_policy_id', $this->parent_policy)->count() + 1;
-            $suffix = str_pad($next, 2, '0', STR_PAD_LEFT);
-
-            return "{$parentNumber}-{$suffix}";
-        }
-
-        $year = Carbon::now()->year;
-        $shortYear = Carbon::now()->format('y');
-        $next = Policy::where('plan_id', $this->plan)->whereYear('created_at', $year)->count() + 1;
-        $number = str_pad($next, 5, '0', STR_PAD_LEFT);
-        $plan = str_pad($this->plan, 2, '0', STR_PAD_LEFT);
-
-        return "INX{$shortYear}IN{$plan}-{$number}";
-    }
 }
