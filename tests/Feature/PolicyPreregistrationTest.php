@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Policies\PolicyPreregistrationPage;
+use App\Livewire\Policies\PolicyPreregistrationsPage;
 use App\Models\Plan;
 use App\Models\PlanBenefit;
 use App\Models\Policy;
@@ -36,7 +36,7 @@ class PolicyPreregistrationTest extends TestCase
 
         $this->actingAs($salesUser);
 
-        Livewire::test(PoliciesPage::class)
+        Livewire::test(PolicyPreregistrationsPage::class)
             ->set('preregistrationPhone', '3310000001')
             ->set('preregistrationPlan', (string) $plan->id)
             ->call('savePreregistration')
@@ -114,7 +114,7 @@ class PolicyPreregistrationTest extends TestCase
 
         $this->actingAs($salesUser);
 
-        Livewire::test(PoliciesPage::class)
+        Livewire::test(PolicyPreregistrationsPage::class)
             ->call('editPreregistration', $preregistration->id)
             ->assertSet('preregistrationPhone', '3310000010')
             ->set('preregistrationPhone', '3310000011')
@@ -228,7 +228,7 @@ class PolicyPreregistrationTest extends TestCase
 
         $this->actingAs($salesUser);
 
-        Livewire::test(PoliciesPage::class)
+        Livewire::test(PolicyPreregistrationsPage::class)
             ->call('promptPreregistrationCancellation', $preregistration->id)
             ->call('cancelPreregistration')
             ->assertHasNoErrors();
