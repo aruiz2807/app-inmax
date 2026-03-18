@@ -28,6 +28,7 @@ use App\Livewire\Appointments\AppointmentsPage;
 use App\Livewire\Doctors\DoctorsPage;
 use App\Livewire\Plans\PlansPage;
 use App\Livewire\Policies\PolicyPreregistrationPage;
+use App\Livewire\Policies\PolicyPreregistrationsPage;
 use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Services\ServicesPage;
 use App\Livewire\Settings\LegalSettingsPage;
@@ -70,6 +71,8 @@ Route::middleware([
         Route::get('/doctors', DoctorsPage::class)->name('doctors');
 
         Route::get('/plans', PlansPage::class)->name('plans');
+
+        Route::get('/preregistrations', PolicyPreregistrationsPage::class)->name('preregistrations');
 
         Route::get('/policies', PoliciesPage::class)->name('policies');
 

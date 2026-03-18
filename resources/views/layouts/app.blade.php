@@ -43,6 +43,14 @@
                     />
 
                     <x-ui.navlist.item
+                        icon="paper-airplane"
+                        :label="__('app.preregistration')"
+                        href="{{ route('preregistrations') }}"
+                        :active="request()->routeIs('preregistrations')"
+                        x-on:click="closeSidebar()"
+                    />
+
+                    <x-ui.navlist.item
                         icon="identification"
                         :label="__('app.policies')"
                         href="{{ route('policies') }}"

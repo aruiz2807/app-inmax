@@ -3,6 +3,7 @@
 return [
     'home' => 'Home',
     'appointments' => 'Citas',
+    'preregistration' => 'Preregistros',
     'policies' => 'Membresias',
     'doctors' => 'Red',
     'users' => 'Usuarios',
