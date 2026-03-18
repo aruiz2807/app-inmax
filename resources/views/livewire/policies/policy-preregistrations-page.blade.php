@@ -69,9 +69,9 @@
                     <x-ui.label>Filtro estatus</x-ui.label>
                     <x-ui.select wire:model.live="filterPreregistrationStatus" placeholder="Todos">
                         <x-ui.select.option value="">Todos</x-ui.select.option>
-                        <x-ui.select.option value="active">Activo</x-ui.select.option>
-                        <x-ui.select.option value="expired">Vencido</x-ui.select.option>
-                        <x-ui.select.option value="used">Usado</x-ui.select.option>
+                        <x-ui.select.option value="active">Pendiente</x-ui.select.option>
+                        <x-ui.select.option value="expired">Expirado</x-ui.select.option>
+                        <x-ui.select.option value="used">Registrado</x-ui.select.option>
                         <x-ui.select.option value="cancelled">Cancelado</x-ui.select.option>
                     </x-ui.select>
                 </x-ui.field>

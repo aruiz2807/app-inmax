@@ -57,9 +57,9 @@ class PolicyPreregistration extends Model
     {
         return match (true) {
             $this->cancelled_at !== null => 'Cancelado',
-            $this->used_at !== null => 'Usado',
-            $this->expires_at->isPast() => 'Vencido',
-            default => 'Activo',
+            $this->used_at !== null => 'Registrado',
+            $this->expires_at->isPast() => 'Expirado',
+            default => 'Pendiente',
         };
     }
 
