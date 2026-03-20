@@ -14,7 +14,7 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_preregistration_template_sends_only_button_token_without_body_parameters(): void
+    public function test_preregistration_template_sends_promoter_name_in_body_and_token_in_button(): void
     {
         $salesUser = User::factory()->create([
             'profile' => 'Sales',
@@ -55,17 +55,19 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
 
         $token = (string) last(explode('/', $result['url']));
 
-        Http::assertSent(function ($request) use ($token) {
+        Http::assertSent(function ($request) use ($salesUser, $token) {
             $components = $request['template']['components'] ?? [];
 
             return str_contains($request->url(), '/v22.0/113206948334320/messages')
                 && $request['template']['name'] === 'policy_preregistration_template'
                 && $request['template']['language']['code'] === 'es_MX'
-                && count($components) === 1
-                && ($components[0]['type'] ?? null) === 'button'
-                && ($components[0]['sub_type'] ?? null) === 'url'
-                && ($components[0]['index'] ?? null) === '0'
-                && ($components[0]['parameters'][0]['text'] ?? null) === $token;
+                && count($components) === 2
+                && ($components[0]['type'] ?? null) === 'body'
+                && ($components[0]['parameters'][0]['text'] ?? null) === $salesUser->name
+                && ($components[1]['type'] ?? null) === 'button'
+                && ($components[1]['sub_type'] ?? null) === 'url'
+                && ($components[1]['index'] ?? null) === '0'
+                && ($components[1]['parameters'][0]['text'] ?? null) === $token;
         });
     }
 }
