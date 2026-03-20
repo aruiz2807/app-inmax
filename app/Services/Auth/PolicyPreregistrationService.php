@@ -291,6 +291,7 @@ class PolicyPreregistrationService
 
         $languageCode = $setting->default_language ?: 'es_MX';
         $lastResponse = null;
+        $promoterName = $preregistration->salesUser?->name ?: 'Inmax-Sure';
 
         foreach ($destinations as $destination) {
             $lastResponse = $this->whatsAppService->sendTemplateMessage(
@@ -298,7 +299,7 @@ class PolicyPreregistrationService
                 to: $destination,
                 templateName: $setting->preregistration_template_name,
                 languageCode: $languageCode,
-                parameters: [],
+                parameters: [$promoterName],
                 buttonUrlParameters: [$plainTextToken]
             );
 
