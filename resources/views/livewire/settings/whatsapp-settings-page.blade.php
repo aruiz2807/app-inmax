@@ -78,7 +78,7 @@
                 Envio de prueba
             </x-ui.heading>
             <p class="mt-2">
-                Realiza una prueba manual de envio de plantilla con telefono, nombre de plantilla, idioma y parametros.
+                Realiza una prueba manual de envio de plantilla con telefono, nombre de plantilla, idioma, parametros de body y parametros de boton URL.
             </p>
 
             <form wire:submit="sendTestMessage" class="pt-4">
@@ -102,9 +102,15 @@
                     </x-ui.field>
 
                     <x-ui.field>
-                        <x-ui.label>Parametros (uno por linea)</x-ui.label>
-                        <x-ui.textarea wire:model="testParameters" placeholder="Juan Perez&#10;1234&#10;https://app-inmax.test/pin/setup/token" />
+                        <x-ui.label>Parametros body (uno por linea)</x-ui.label>
+                        <x-ui.textarea wire:model="testParameters" placeholder="Juan Perez&#10;1234" />
                         <x-ui.error name="testParameters" />
+                    </x-ui.field>
+
+                    <x-ui.field>
+                        <x-ui.label>Parametros boton URL (uno por linea)</x-ui.label>
+                        <x-ui.textarea wire:model="testButtonUrlParameters" placeholder="abc123token" />
+                        <x-ui.error name="testButtonUrlParameters" />
                     </x-ui.field>
                 </x-ui.fieldset>
 

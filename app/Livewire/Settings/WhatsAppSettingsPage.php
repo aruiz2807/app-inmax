@@ -23,6 +23,7 @@ class WhatsAppSettingsPage extends Component
     public string $testTemplateName = '';
     public string $testLanguageCode = 'es_MX';
     public string $testParameters = '';
+    public string $testButtonUrlParameters = '';
     public ?string $lastTestMessageId = null;
     public ?string $lastTestResponse = null;
 
@@ -110,11 +111,13 @@ class WhatsAppSettingsPage extends Component
             'testTemplateName' => $this->testTemplateName,
             'testLanguageCode' => $this->testLanguageCode,
             'testParameters' => $this->testParameters,
+            'testButtonUrlParameters' => $this->testButtonUrlParameters,
         ], [
             'testPhone' => ['required', 'digits_between:8,20'],
             'testTemplateName' => ['required', 'string', 'max:255'],
             'testLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'testParameters' => ['nullable', 'string'],
+            'testButtonUrlParameters' => ['nullable', 'string'],
         ])->validate();
 
         $setting = WhatsAppSetting::query()->first();
@@ -125,13 +128,15 @@ class WhatsAppSettingsPage extends Component
         }
 
         $parameters = $this->extractParameters($this->testParameters);
+        $buttonUrlParameters = $this->extractParameters($this->testButtonUrlParameters);
 
         $result = $service->sendTemplateMessage(
             setting: $setting,
             to: $this->testPhone,
             templateName: $this->testTemplateName,
             languageCode: $this->testLanguageCode,
-            parameters: $parameters
+            parameters: $parameters,
+            buttonUrlParameters: $buttonUrlParameters
         );
 
         $this->lastTestMessageId = data_get($result['data'], 'messages.0.id');

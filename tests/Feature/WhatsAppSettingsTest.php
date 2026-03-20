@@ -108,16 +108,26 @@ class WhatsAppSettingsTest extends TestCase
             ->set('testPhone', '5213312345678')
             ->set('testTemplateName', 'activation_pin_template')
             ->set('testLanguageCode', 'es_MX')
-            ->set('testParameters', "Juan Perez\n1234\nhttps://app-inmax.test/pin/setup/abc")
+            ->set('testParameters', "Juan Perez\n1234")
+            ->set('testButtonUrlParameters', 'abc123token')
             ->call('sendTestMessage')
             ->assertHasNoErrors()
             ->assertSet('lastTestMessageId', 'wamid.TEST123');
 
         Http::assertSent(function ($request) {
+            $components = $request['template']['components'] ?? [];
+
             return str_contains($request->url(), '/v22.0/113206948334320/messages')
                 && $request['template']['name'] === 'activation_pin_template'
                 && $request['template']['language']['code'] === 'es_MX'
-                && $request['template']['components'][0]['parameters'][0]['text'] === 'Juan Perez';
+                && count($components) === 2
+                && ($components[0]['type'] ?? null) === 'body'
+                && ($components[0]['parameters'][0]['text'] ?? null) === 'Juan Perez'
+                && ($components[0]['parameters'][1]['text'] ?? null) === '1234'
+                && ($components[1]['type'] ?? null) === 'button'
+                && ($components[1]['sub_type'] ?? null) === 'url'
+                && ($components[1]['index'] ?? null) === '0'
+                && ($components[1]['parameters'][0]['text'] ?? null) === 'abc123token';
         });
     }
 }
