@@ -14,7 +14,7 @@
         <x-ui.card size="full">
             <x-ui.heading class="flex justify-center" level="h3" size="sm">
                 <x-ui.icon name="calendar" variant="solid" class="self-center" />
-                <x-ui.text class="text-lg ml-2">Consulta finalizada!</x-ui.text>
+                <x-ui.text class="text-lg ml-2">Cita finalizada!</x-ui.text>
             </x-ui.heading>
 
             <div class="flex justify-center mt-10 mb-10">

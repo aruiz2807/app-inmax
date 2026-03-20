@@ -9,17 +9,10 @@
     </div>
 
     <x-ui.card size="full" class="mx-auto">
-        <x-ui.heading class="flex" level="h3" size="sm">
+        <x-ui.heading class="flex mb-4" level="h3" size="sm">
             <x-ui.icon name="calendar" class="self-center" />
-            <x-ui.text class="text-lg ml-2">Consulta</x-ui.text>
+            <x-ui.text class="text-lg ml-2">{{$appointment->formatted_date}}</x-ui.text>
         </x-ui.heading>
-
-        <div class="grid grid-cols-[auto_6rem] justify-stretch items-center pt-2">
-            <x-ui.text class="text-base">{{$appointment->formatted_date}}</x-ui.text>
-            <x-ui.badge :icon="$appointment->covered_icon" variant="outline" :color="$appointment->covered_color" pill>
-                {{$appointment->covered_text}}
-            </x-ui.badge>
-        </div>
 
         <div class="flex mt-2">
             <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->user->photo_url" circle />
@@ -38,6 +31,30 @@
         </div>
     </x-ui.card>
 
+    <x-ui.card size="full" class="mx-auto mt-2">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="clipboard-document-list" class="self-center" />
+            <x-ui.text class="text-base ml-2">Servicios</x-ui.text>
+        </x-ui.heading>
+
+        <div class="flex flex-col w-full">
+        @foreach($services as $service)
+            <div class="flex items-center justify-between pb-2">
+                <x-ui.text class="text-base pr-1">{{$service->service->name}}</x-ui.text>
+                <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>{{$service->covered_text}}</x-ui.badge>
+                <x-ui.switch
+                    wire:model.live="form.services.{{ $service->id }}"
+                    label="Realizado"
+                    onClass="bg-teal"
+                    iconOff="x-mark"
+                    iconOn="check"
+                />
+            </div>
+        @endforeach
+        </div>
+    </x-ui.card>
+
+    @if($form->isDoctor)
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
             <x-ui.icon name="clipboard-document-list" class="self-center" />
@@ -77,6 +94,7 @@
         <x-ui.textarea wire:model="form.treatment" placeholder="Ingrese los medicamentos para el paciente"/>
         <x-ui.error name="form.treatment" />
     </x-ui.card>
+    @endif
 
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
@@ -84,10 +102,19 @@
             <x-ui.text class="text-base ml-2">Adjuntar archivo</x-ui.text>
         </x-ui.heading>
 
-        <input type="file" wire:model="form.attachment" placeholder="Seleccione un archivo para adjuntar" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
-        <x-ui.error name="form.attachment" />
-        <div wire:loading wire:target="form.attachment">
-            Subiendo archivo...
+        <div class="flex flex-col w-full">
+        @foreach($services as $service)
+            @if(!empty($form->services[$service->id]))
+            <div class="flex items-center justify-between pb-2">
+                <x-ui.text class="text-base pr-2">{{$service->service->name}}</x-ui.text>
+                <input type="file" wire:model="form.attachments.{{ $service->id }}" placeholder="Seleccione un archivo para adjuntar" class="pt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
+                <x-ui.error name="form.attachments.{{ $service->id }}" />
+                <div wire:loading wire:target="form.attachments.{{ $service->id }}">
+                    Subiendo archivo...
+                </div>
+            </div>
+            @endif
+        @endforeach
         </div>
     </x-ui.card>
 

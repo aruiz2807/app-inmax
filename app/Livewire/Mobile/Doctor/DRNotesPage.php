@@ -4,7 +4,9 @@ namespace App\Livewire\Mobile\Doctor;
 
 use App\Livewire\Forms\DoctorNotesForm;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
+use App\Enums\DoctorType;
 use App\Models\Appointment;
+use App\Models\AppointmentService;
 use App\Models\PolicyService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -17,6 +19,7 @@ class DRNotesPage extends Component
 
     public DoctorNotesForm $form;
     public $appointment;
+    public $services;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -27,6 +30,14 @@ class DRNotesPage extends Component
     public function mount($appointment)
     {
         $this->appointment = Appointment::findOrFail($appointment);
+        $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
+        $this->form->isDoctor = $this->appointment->doctor->type === DoctorType::Doctor;
+
+        foreach ($this->services as $service)
+        {
+            $this->form->services[$service->id] = false;
+            $this->form->attachments[$service->id] = null;
+        }
     }
 
     public function save()
@@ -60,25 +71,29 @@ class DRNotesPage extends Component
     public function redeem()
     {
         $policy = $this->appointment->user->policy;
-        $service = $this->appointment->doctor->specialty->service;
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
 
-        $benefit = PolicyService::where([
-            ['policy_id', $policyId],
-            ['service_id', $service->id],
-        ])->first();
+        foreach($this->services as $service)
+        {
+            // Skip if NOT marked as done
+            if (empty($this->form->services[$service->id])) {
+                continue;
+            }
 
-        if($this->appointment->covered)
-        {
-            $benefit->update([
-                'used' => $benefit->used + 1,
-            ]);
-        }
-        else
-        {
-            $benefit->update([
-                'extra' => $benefit->extra + 1,
-            ]);
+            $benefit = PolicyService::where([
+                ['policy_id', $policyId],
+                ['service_id', $service->service_id],
+            ])->first();
+
+            if($service->covered)
+            {
+                $benefit->increment('used');
+            }
+            else
+            {
+                $benefit->increment('extra');
+            }
+
         }
 
         $this->appointment->update([

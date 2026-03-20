@@ -3,7 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\AppointmentNote;
-use Livewire\Attributes\Validate;
+use App\Models\AppointmentService;
 use Livewire\Form;
 use Livewire\WithFileUploads;
 
@@ -11,37 +11,65 @@ class DoctorNotesForm extends Form
 {
     use WithFileUploads;
 
-    #[Validate('required|string')]
     public $symptoms;
-
-    #[Validate('required|string')]
     public $findings;
-
-    #[Validate('required|string')]
     public $diagnosis;
-
-    #[Validate('required|string')]
     public $treatment;
-
-    #[Validate('string')]
     public $notes = '';
+    public $attachments = [];
+    public $services = [];
+    public $isDoctor;
 
-    #[Validate('nullable|file|mimes:pdf,jpg,jpeg,png|max:2048')]
-    public $attachment;
 
     /**
-    * Store the doctor in the DB.
+     * Additional rules
+     */
+    protected function rules()
+    {
+        $required = $this->isDoctor ? 'required' : 'nullable';
+
+        return [
+            'symptoms' => [$required, 'string'],
+            'findings' => [$required, 'string'],
+            'diagnosis' => [$required, 'string'],
+            'treatment' => [$required, 'string'],
+            'notes' => ['nullable', 'string'],
+            'services' => ['nullable', 'array'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+        ];
+    }
+
+    /**
+    * Store the doctor notes in the DB.
     */
     public function store($appointmentId)
     {
         $this->validate();
 
-        $path = null;
-        $originalName = null;
+        $appointmentServices = AppointmentService::whereIn('id', array_keys($this->services))->get()->keyBy('id');
 
-        if ($this->attachment) {
-            $path = $this->attachment->store('attachments');
-            $originalName = $this->attachment->getClientOriginalName();
+        foreach ($this->services as $serviceId => $isDone)
+        {
+            if (!isset($appointmentServices[$serviceId])) {
+                continue;
+            }
+
+            $data = [
+                'status' => $isDone ? 'Completed' : 'Cancelled',
+            ];
+
+            if ($isDone && !empty($this->attachments[$serviceId]))
+            {
+                $file = $this->attachments[$serviceId];
+                $path = $file->store('attachments');
+                $originalName = $file->getClientOriginalName();
+
+                $data['attachment_path'] = $path;
+                $data['attachment_name'] = $originalName;
+            }
+
+            $appointmentServices[$serviceId]->update($data);
         }
 
         $note = AppointmentNote::create([
@@ -51,8 +79,6 @@ class DoctorNotesForm extends Form
             'diagnosis' => $this->diagnosis,
             'treatment' => $this->treatment,
             'notes' => $this->notes,
-            'attachment_path' => $path,
-            'attachment_name' => $originalName,
         ]);
 
         return $note->id;

@@ -21,7 +21,7 @@ class NotesConfirmationPage extends Component
     {
         $noteId = session('appointment_note_id');
 
-        abort_unless($noteId, 404);
+        // abort_unless($noteId, 404);
 
         $this->note = AppointmentNote::where('id', $noteId)->firstOrFail();
     }
