@@ -20,18 +20,14 @@
 
                     @if($upcomingAppointments->isEmpty())
                     <div class="flex justify-center p-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <x-ui.text class="text-base">No hay citas proximas</x-ui.text>
+                        <x-ui.text class="text-base">No hay citas agendadas</x-ui.text>
                     </div>
                     @endif
 
                     @foreach($upcomingAppointments as $upcoming)
-                    <div class="flex flex-col p-4 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="flex flex-col p-2 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
 
-                        <div class="flex justify-center">
-                            <x-ui.badge :icon="$upcoming->covered_icon" variant="outline" :color="$upcoming->covered_color" pill>{{$upcoming->covered_text}}</x-ui.badge>
-                        </div>
-
-                        <div class="flex mt-4">
+                        <div class="flex mx-auto w-fit">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#00D5BE" viewBox="0 0 256 256">
                                     <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"></path>
@@ -48,6 +44,19 @@
                             <div class="pl-4">
                                 <x-ui.text class="pt-1 text-xl">{{$upcoming->user->name}}</x-ui.text>
                                 <x-ui.text class="text-base opacity-75">{{$upcoming->user->policy->number}}</x-ui.text>
+                            </div>
+                        </div>
+
+                        <div class="flex mt-4">
+                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
+
+                            <div class="flex flex-col w-full">
+                            @foreach($upcoming->services as $service)
+                                <div class="flex items-center justify-between pl-4 pb-2">
+                                    <x-ui.text class="text-base pr-1">{{$service->service->name}}</x-ui.text>
+                                    <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>{{$service->covered_text}}</x-ui.badge>
+                                </div>
+                            @endforeach
                             </div>
                         </div>
 

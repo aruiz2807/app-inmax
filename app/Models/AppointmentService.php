@@ -16,6 +16,9 @@ class AppointmentService extends Model
         'appointment_id',
         'service_id',
         'covered',
+        'status',
+        'attachment_path',
+        'attachment_name',
     ];
 
     /**
@@ -32,5 +35,29 @@ class AppointmentService extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Get the service covered status icon
+     */
+    protected function getCoveredIconAttribute()
+    {
+        return $this->covered ? 'shield-check' : 'shield-exclamation';
+    }
+
+    /**
+     * Get the service covered status color
+     */
+    protected function getCoveredColorAttribute()
+    {
+        return $this->covered ? 'green' : 'yellow';
+    }
+
+    /**
+     * Get the service covered text
+     */
+    protected function getCoveredTextAttribute()
+    {
+        return $this->covered ? 'Cubierto' : 'Adicional';
     }
 }
