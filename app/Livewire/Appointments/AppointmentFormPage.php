@@ -30,6 +30,7 @@ class AppointmentFormPage extends Component
 
     public $user;
     public $doctor;
+    public $services;
     public $servicesData = [];
 
     #[Layout('layouts.app')]
@@ -62,6 +63,7 @@ class AppointmentFormPage extends Component
     public function updatedSelectedDoctor($value)
     {
         $this->doctor = Doctor::find($value);
+        $this->services = $this->doctor->specialty->services;
     }
 
     public function updatedSelectedServices($value)

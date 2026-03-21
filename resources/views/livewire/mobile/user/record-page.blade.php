@@ -18,10 +18,10 @@
 
         <x-ui.card size="full" class="mt-4">
             <x-ui.accordion>
-                <x-ui.accordion.item expanded trigger="Consultas">
+                <x-ui.accordion.item expanded trigger="Consultas / Estudios">
                     <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                         @if($appointments->isEmpty())
-                        <x-ui.text class="text-base">No hay consultas</x-ui.text>
+                        <x-ui.text class="text-base">No hay consultas / estudios</x-ui.text>
                         @endif
 
                         @foreach($appointments as $record)
@@ -29,7 +29,12 @@
                                 <x-ui.icon name="calendar" />
                                 <div class="flex flex-col justify-start ml-1" >
                                     <x-ui.text class="text-sm font-semibold">{{$record->date->format('d/m/Y')}}</x-ui.text>
-                                    <x-ui.text class="text-sm">{{$record->note->symptoms}}</x-ui.text>
+
+                                    @foreach($record->services as $service)
+                                        @if($service->status === 'Completed')
+                                        <x-ui.text class="text-sm">{{$service->service->name}}</x-ui.text>
+                                        @endif
+                                    @endforeach
                                 </div>
                             </div>
 
@@ -42,11 +47,11 @@
 
                 <x-ui.accordion.item trigger="Diagnosticos y tratamientos">
                     <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        @if($appointments->isEmpty())
+                        @if($doctorAppointments->isEmpty())
                         <x-ui.text class="text-base">No hay diagnosticos</x-ui.text>
                         @endif
 
-                        @foreach($appointments as $record)
+                        @foreach($doctorAppointments as $record)
                             <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
                                 <x-ui.icon name="clipboard-document-list" />
                                 <div class="flex flex-col justify-start ml-1" >
@@ -63,19 +68,19 @@
                     </div>
                 </x-ui.accordion.item>
 
-                <x-ui.accordion.item trigger="Imagenologia y examenes">
+                <x-ui.accordion.item trigger="Imagenologia y estudios">
                     <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                         @if($exams->isEmpty())
-                        <x-ui.text class="text-base">No hay diagnosticos</x-ui.text>
+                        <x-ui.text class="text-base">No hay estudios</x-ui.text>
                         @endif
 
                         @foreach($exams as $record)
                             <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
                                 <x-ui.icon name="paper-clip" />
                                 <div class="flex flex-col justify-start ml-1" >
-                                    <x-ui.text class="text-sm font-semibold">{{$record->date->format('d/m/Y')}}</x-ui.text>
-                                    <a href="{{ route('attachment.download', $record->note->id) }}">
-                                        <x-ui.text class="text-sm">{{$record->note->attachment_name}}</x-ui.text>
+                                    <x-ui.text class="text-sm font-semibold">{{$record->appointment->date->format('d/m/Y')}}</x-ui.text>
+                                    <a href="{{ route('attachment.download', $record->id) }}">
+                                        <x-ui.text class="text-sm">{{$record->attachment_name}}</x-ui.text>
                                     </a>
                                 </div>
                             </div>

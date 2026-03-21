@@ -82,6 +82,11 @@ class DRHistoryPage extends Component
         return $this->redirectRoute('doctor.record', ['user' => $id]);
     }
 
+    public function notes($id)
+    {
+        return $this->redirectRoute('history.notes', ['appointment' => $id]);
+    }
+
     public function schedule($id)
     {
         return $this->redirectRoute('doctor.schedule', ['appointment' => $id]);

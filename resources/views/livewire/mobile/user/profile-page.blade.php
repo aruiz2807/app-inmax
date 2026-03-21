@@ -56,10 +56,6 @@
                     </div>
                 </a>
 
-                <x-ui.button class="w-1/2 mt-4" wire:click="record({{ $user->id }})" variant="outline" color="sky" icon="clipboard">
-                    Historial medico
-                </x-ui.button>
-
                 <x-ui.button class="w-1/2 mt-4" wire:click="help" variant="outline" color="indigo" icon="question-mark-circle">
                     Necesitas ayuda?
                 </x-ui.button>

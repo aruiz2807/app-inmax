@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppointmentNote;
+use App\Models\AppointmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class AttachmentController extends Controller
 {
-    public function download($note_id)
+    public function download($service_id)
     {
-        $note = AppointmentNote::findOrFail($note_id);
+        $service = AppointmentService::findOrFail($service_id);
 
-        $path = $note->attachment_path;
-        $name = $note->attachment_name;
+        $path = $service->attachment_path;
+        $name = $service->attachment_name;
 
         if (!$path || !Storage::exists($path)) {
             abort(404);

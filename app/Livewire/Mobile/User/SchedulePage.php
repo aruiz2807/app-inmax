@@ -4,6 +4,7 @@ namespace App\Livewire\Mobile\User;
 
 use App\Livewire\Mobile\User\ScheduleConfirmationPage;
 use App\Models\Appointment;
+use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\PolicyService;
 use Illuminate\Support\Carbon;
@@ -121,6 +122,12 @@ class SchedulePage extends Component
             'doctor_id' => $doctor->id,
             'date' => $this->selectedDate,
             'time' => $this->selectedTime,
+            'covered' => $this->isIncluded,
+        ]);
+
+        AppointmentService::create([
+            'appointment_id' => $appointment->id,
+            'service_id' => 1, //revisar como no pasar hardcodeado
             'covered' => $this->isIncluded,
         ]);
 

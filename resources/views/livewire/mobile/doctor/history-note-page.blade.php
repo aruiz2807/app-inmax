@@ -15,10 +15,10 @@
         </x-ui.heading>
 
         <div class="flex mt-2">
-            <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->doctor->user->photo_url" circle />
+            <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->user->photo_url" circle />
             <div class="pl-4">
-                <x-ui.text class="pt-1 text-lg">{{$appointment->doctor->user->name}}</x-ui.text>
-                <x-ui.text class="text-sm opacity-75">{{$appointment->doctor->specialty->name}}</x-ui.text>
+                <x-ui.text class="pt-1 text-lg">{{$appointment->user->name}}</x-ui.text>
+                <x-ui.text class="text-sm opacity-75">{{$appointment->user->policy->number}}</x-ui.text>
             </div>
         </div>
     </x-ui.card>

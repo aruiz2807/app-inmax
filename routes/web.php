@@ -6,6 +6,7 @@ use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
 use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRHistoryPage;
+use App\Livewire\Mobile\Doctor\DRHistoryNotePage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
 use App\Livewire\Mobile\Doctor\DRRecordPage;
@@ -123,6 +124,8 @@ Route::middleware([
         Route::get('/schedule-confirmation', DRScheduleConfirmationPage::class)->name('doctor.schedule-confirmation');
 
         Route::get('/history', DRHistoryPage::class)->name('doctor.history');
+
+        Route::get('/history/note/{appointment}', DRHistoryNotePage::class)->name('history.notes');
 
         Route::get('/record/{user}', DRRecordPage::class)->name('doctor.record');
 

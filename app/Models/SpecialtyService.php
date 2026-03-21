@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SpecialtyService extends Model
 {
+    protected $table = 'specialty_services';
+
     /**
      * The attributes that are mass assignable.
      *

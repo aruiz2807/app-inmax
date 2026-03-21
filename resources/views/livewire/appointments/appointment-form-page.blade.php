@@ -53,7 +53,7 @@
             clearable
             :disabled="$appointment !== null"
             wire:model.live="selectedServices">
-                @foreach($doctor->specialty->services as $service)
+                @foreach($services as $service)
                     <x-ui.select.option value="{{ $service->id }}">
                         {{ $service->name }}
                     </x-ui.select.option>

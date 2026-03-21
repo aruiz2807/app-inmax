@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Mobile\User;
+namespace App\Livewire\Mobile\Doctor;
 
 use App\Enums\DoctorType;
 use App\Models\Appointment;
@@ -8,7 +8,8 @@ use App\Models\AppointmentService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-class NotesPage extends Component
+
+class DRHistoryNotePage extends Component
 {
     public $appointment;
     public $services;
@@ -17,7 +18,7 @@ class NotesPage extends Component
     #[Layout('layouts.mobile')]
     public function render()
     {
-        return view('livewire.mobile.user.notes-page');
+        return view('livewire.mobile.doctor.history-note-page');
     }
 
     public function mount($appointment)

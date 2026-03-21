@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Mobile\User;
 
+use App\Enums\DoctorType;
 use App\Models\Appointment;
+use App\Models\AppointmentService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -11,6 +13,7 @@ class RecordPage extends Component
 {
     public $appointments;
     public $exams;
+    public $doctorAppointments;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -27,13 +30,22 @@ class RecordPage extends Component
             ['status', 'Completed'],
         ])->get();
 
-        $this->exams = Appointment::where([
+        $this->doctorAppointments  = Appointment::where([
             ['user_id', $user->id],
             ['status', 'Completed'],
         ])
-        ->whereHas('note', function ($query) {
-            $query->whereNotNull('attachment_path');
+        ->whereHas('doctor', function ($query) {
+            $query->where('type', DoctorType::Doctor);
         })
         ->get();
+
+        $this->exams = AppointmentService::query()
+            ->with('appointment')
+            ->where('status', 'Completed')
+            ->whereHas('appointment', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->where('status', 'Completed');
+            })
+            ->get();
     }
 }
