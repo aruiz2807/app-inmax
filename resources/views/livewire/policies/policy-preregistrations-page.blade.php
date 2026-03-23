@@ -208,10 +208,28 @@
                     <x-ui.error name="preregistrationParentPolicy" />
                 </x-ui.field>
 
-                <x-ui.field>
-                    <x-ui.label>Registrado por</x-ui.label>
-                    <x-ui.input :value="auth()->user()->name" readonly copyable="false" />
-                </x-ui.field>
+                @if(auth()->user()?->profile === 'Sales')
+                    <x-ui.field>
+                        <x-ui.label>Promotor</x-ui.label>
+                        <x-ui.input :value="auth()->user()->name" readonly copyable="false" />
+                    </x-ui.field>
+                @else
+                    <x-ui.field required>
+                        <x-ui.label>Promotor</x-ui.label>
+                        <x-ui.select
+                            wire:model="preregistrationSalesUser"
+                            placeholder="Selecciona un promotor"
+                            searchable
+                        >
+                            @foreach($preregistrationSalesAgents as $agent)
+                                <x-ui.select.option value="{{ $agent->id }}">
+                                    {{ $agent->name }}
+                                </x-ui.select.option>
+                            @endforeach
+                        </x-ui.select>
+                        <x-ui.error name="preregistrationSalesUser" />
+                    </x-ui.field>
+                @endif
             </x-ui.fieldset>
 
             <div class="w-full flex justify-end gap-3 pt-4">

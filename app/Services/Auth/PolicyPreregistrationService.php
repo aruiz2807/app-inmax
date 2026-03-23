@@ -82,7 +82,7 @@ class PolicyPreregistrationService
      */
     public function updateInvitation(
         PolicyPreregistration $preregistration,
-        User $actor,
+        User $salesUser,
         string $phone,
         int $planId,
         ?int $parentPolicyId = null,
@@ -96,6 +96,7 @@ class PolicyPreregistrationService
         $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
         $token = $this->refreshToken(
             preregistration: $preregistration,
+            salesUser: $salesUser,
             plan: $plan,
             parentPolicy: $parentPolicy,
             phone: $normalizedPhone
@@ -103,7 +104,7 @@ class PolicyPreregistrationService
 
         return $this->buildInvitationResponse(
             token: $token,
-            actor: $actor,
+            actor: $salesUser,
             plan: $plan,
             parentPolicy: $parentPolicy,
             deliverWhatsApp: $deliverWhatsApp,
@@ -232,6 +233,7 @@ class PolicyPreregistrationService
      */
     private function refreshToken(
         PolicyPreregistration $preregistration,
+        User $salesUser,
         Plan $plan,
         ?Policy $parentPolicy,
         string $phone
@@ -240,6 +242,7 @@ class PolicyPreregistrationService
         $plainTextToken = Str::random(64);
 
         $preregistration->forceFill([
+            'sales_user_id' => $salesUser->id,
             'plan_id' => $plan->id,
             'parent_policy_id' => $parentPolicy?->id,
             'phone' => $phone,

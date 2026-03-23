@@ -5,6 +5,7 @@ namespace App\Livewire\Policies;
 use App\Models\Plan;
 use App\Models\Policy;
 use App\Models\PolicyPreregistration;
+use App\Models\User;
 use App\Services\Auth\PolicyPreregistrationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -24,6 +25,8 @@ class PolicyPreregistrationsPage extends Component
     public ?string $preregistrationPlan = null;
 
     public ?string $preregistrationParentPolicy = null;
+
+    public ?string $preregistrationSalesUser = null;
 
     public ?string $lastPreregistrationUrl = null;
 
@@ -51,6 +54,8 @@ class PolicyPreregistrationsPage extends Component
 
     public Collection $preregistrationParentPolicies;
 
+    public Collection $preregistrationSalesAgents;
+
     public function mount(): void
     {
         $this->loadPreregistrationOptions();
@@ -71,14 +76,17 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationPhone' => ['required', 'digits:10', 'unique:users,phone'],
             'preregistrationPlan' => ['required'],
             'preregistrationParentPolicy' => ['nullable'],
+            'preregistrationSalesUser' => ['required', 'exists:users,id'],
         ], [
             'preregistrationPhone.unique' => 'Ya existe un usuario registrado con ese telefono.',
         ]);
 
+        $salesUser = $this->resolveSalesUser((int) $validated['preregistrationSalesUser']);
+
         try {
             if (! $isEditing) {
                 $result = $service->createInvitation(
-                    Auth::user(),
+                    $salesUser,
                     $validated['preregistrationPhone'],
                     (int) $validated['preregistrationPlan'],
                     filled($validated['preregistrationParentPolicy'])
@@ -89,7 +97,7 @@ class PolicyPreregistrationsPage extends Component
                 $preregistration = $this->resolveManagedPreregistration($this->preregistrationId);
                 $result = $service->updateInvitation(
                     $preregistration,
-                    Auth::user(),
+                    $salesUser,
                     $validated['preregistrationPhone'],
                     (int) $validated['preregistrationPlan'],
                     filled($validated['preregistrationParentPolicy'])
@@ -163,6 +171,7 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationParentPolicy = $preregistration->parent_policy_id
             ? (string) $preregistration->parent_policy_id
             : null;
+        $this->preregistrationSalesUser = (string) $preregistration->sales_user_id;
 
         $this->resetErrorBag();
         $this->dispatch('open-preregistration-modal');
@@ -230,12 +239,16 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationPhone',
             'preregistrationPlan',
             'preregistrationParentPolicy',
+            'preregistrationSalesUser',
         ]);
 
         $this->preregistrationId = null;
         $this->preregistrationPhone = '';
         $this->preregistrationPlan = null;
         $this->preregistrationParentPolicy = null;
+        $this->preregistrationSalesUser = Auth::user()?->profile === 'Sales'
+            ? (string) Auth::id()
+            : null;
     }
 
     public function clearPreregistrationFilters(): void
@@ -287,6 +300,15 @@ class PolicyPreregistrationsPage extends Component
             })
             ->orderBy('number')
             ->get();
+
+        $this->preregistrationSalesAgents = User::query()
+            ->where('profile', 'Sales')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        if ($user?->profile === 'Sales') {
+            $this->preregistrationSalesUser = (string) $user->id;
+        }
     }
 
     private function preregistrationsQuery(): Builder
@@ -327,5 +349,18 @@ class PolicyPreregistrationsPage extends Component
                 $query->where('sales_user_id', Auth::id());
             })
             ->findOrFail($preregistrationId);
+    }
+
+    private function resolveSalesUser(int $salesUserId): User
+    {
+        $query = User::query()
+            ->whereKey($salesUserId)
+            ->where('profile', 'Sales');
+
+        if (Auth::user()?->profile === 'Sales') {
+            $query->whereKey(Auth::id());
+        }
+
+        return $query->firstOrFail();
     }
 }
