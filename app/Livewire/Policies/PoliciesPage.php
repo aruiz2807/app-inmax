@@ -94,6 +94,20 @@ class PoliciesPage extends Component
     public function confirmActivation(PinSetupTokenService $tokenService): void
     {
         $policy = Policy::query()->findOrFail($this->policyId);
+
+        if ($policy->status === 'Active') {
+            $this->dispatch(
+                'notify',
+                type: 'info',
+                content: 'La poliza ya estaba activa. No se envio un nuevo enlace de PIN.',
+                duration: 4000
+            );
+
+            $this->dispatch('close-activation-modal');
+
+            return;
+        }
+
         $start = Carbon::now()->addDays(5);
         $end = Carbon::now()->addDays(5)->addYear();
 

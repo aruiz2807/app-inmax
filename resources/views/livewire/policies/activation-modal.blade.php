@@ -20,7 +20,7 @@
             Cancelar
         </x-ui.button>
 
-        <x-ui.button color="teal" icon="check" wire:click="confirmActivation">
+        <x-ui.button color="teal" icon="check" wire:click="confirmActivation" wire:loading.attr="disabled" wire:target="confirmActivation">
             Confirmar
         </x-ui.button>
     </div>
