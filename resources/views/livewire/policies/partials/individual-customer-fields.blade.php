@@ -21,7 +21,11 @@
 
     <x-ui.field required>
         <x-ui.label>Celular</x-ui.label>
-        <x-ui.input wire:model="form.phone" name="phone" placeholder="3310203040" @readonly($phoneReadonly) />
+        @if($phoneReadonly)
+            <x-ui.input wire:model="form.phone" name="phone" placeholder="3310203040" readonly />
+        @else
+            <x-ui.input wire:model="form.phone" name="phone" placeholder="3310203040" />
+        @endif
         <x-ui.error name="form.phone" />
     </x-ui.field>
 
