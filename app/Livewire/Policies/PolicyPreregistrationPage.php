@@ -31,7 +31,7 @@ class PolicyPreregistrationPage extends Component
 
     public string $registeredMemberName = '';
 
-    public string $officeMapsUrl = 'https://www.google.com/maps/search/?api=1&query=Torre+M%C3%A9dica%2C+Av.+Plan+de+San+Luis+%231831%2C+Col.+San+Bernardo%2C+C.P.+44260';
+    public string $officeMapsUrl = 'https://maps.app.goo.gl/5TQTNEzeJ3FKCK6Z9';
 
     #[Layout('layouts.guest')]
     public function render()
