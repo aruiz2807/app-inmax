@@ -52,6 +52,8 @@ Route::middleware('guest')->group(function () {
         ->name('admin.login.store');
 });
 
+Route::get('/contact', ContactPage::class)->name('user.contact');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -63,8 +65,6 @@ Route::middleware([
     })->middleware('profile:Admin,Sales')->name('dashboard');
 
     Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
-
-    Route::get('/contact', ContactPage::class)->name('user.contact');
 
     Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
 
