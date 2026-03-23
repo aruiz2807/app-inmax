@@ -3,7 +3,9 @@
 namespace App\Livewire\Policies;
 
 use App\Models\Policy;
+use App\Services\Auth\PinSetupTokenService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -19,6 +21,12 @@ class PoliciesPage extends Component
     public string $policy_number = '';
 
     public string $policy_user_name = '';
+
+    public ?string $lastPinSetupUrl = null;
+
+    public ?string $lastPinSetupName = null;
+
+    public ?string $lastPinSetupPhone = null;
 
     #[Layout('layouts.app')]
     public function render()
@@ -83,7 +91,7 @@ class PoliciesPage extends Component
         $this->dispatch('open-cancel-modal');
     }
 
-    public function confirmActivation(): void
+    public function confirmActivation(PinSetupTokenService $tokenService): void
     {
         $policy = Policy::query()->findOrFail($this->policyId);
         $start = Carbon::now()->addDays(5);
@@ -95,10 +103,26 @@ class PoliciesPage extends Component
             'end_date' => $end,
         ]);
 
+        $purpose = $policy->user->pin_set_at
+            ? PinSetupTokenService::PURPOSE_RESET
+            : PinSetupTokenService::PURPOSE_ACTIVATION;
+
+        $result = $tokenService->generateSetupLink($policy->user, Auth::user(), $purpose);
+
+        $this->lastPinSetupUrl = $result['url'];
+        $this->lastPinSetupName = $policy->user->name;
+        $this->lastPinSetupPhone = $policy->user->phone;
+
+        $content = match (true) {
+            ($result['whatsapp']['ok'] ?? false) => 'Poliza activada y enlace de PIN enviado por WhatsApp.',
+            ($result['whatsapp']['attempted'] ?? false) => 'Poliza activada. No se pudo enviar WhatsApp, enlace disponible para prueba.',
+            default => 'Poliza activada. Falta configurar WhatsApp, enlace disponible para prueba.',
+        };
+
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Poliza activada exitosamente!',
+            content: $content,
             duration: 4000
         );
 

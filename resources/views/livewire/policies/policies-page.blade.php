@@ -18,6 +18,25 @@
         </x-ui.card>
     </div>
 
+    @if ($lastPinSetupUrl)
+        <div class="pt-2">
+            <x-ui.card size="full">
+                <x-ui.heading level="h3" size="sm">
+                    Ultimo enlace de activacion PIN
+                </x-ui.heading>
+
+                <p class="text-sm mt-2">
+                    Usuario: <span class="font-semibold">{{ $lastPinSetupName }}</span>
+                    ({{ $lastPinSetupPhone }})
+                </p>
+
+                <a href="{{ $lastPinSetupUrl }}" class="ui-link block mt-2 break-all" target="_blank" rel="noopener noreferrer">
+                    {{ $lastPinSetupUrl }}
+                </a>
+            </x-ui.card>
+        </div>
+    @endif
+
     <div class="pt-2">
         <x-ui.card size="full">
             <livewire:policies.policies-table />

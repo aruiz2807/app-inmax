@@ -169,7 +169,7 @@ final class PoliciesTable extends PowerGridComponent
             return [
 
                 Rule::button('activate')
-                    ->when(fn($model) => true)
+                    ->when(fn($model) => $model->status === 'Active' || $model->status === 'Cancelled')
                     ->hide(),
 
                 Rule::button('inactive')
