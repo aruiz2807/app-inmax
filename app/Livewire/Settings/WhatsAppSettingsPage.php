@@ -16,6 +16,7 @@ class WhatsAppSettingsPage extends Component
     public string $activationTemplateName = '';
     public string $pinResetTemplateName = '';
     public string $preregistrationTemplateName = '';
+    public string $appointmentRequestTemplateName = '';
     public string $defaultLanguage = 'es_MX';
     public bool $hasStoredAccessToken = false;
 
@@ -46,6 +47,7 @@ class WhatsAppSettingsPage extends Component
         $this->activationTemplateName = $setting->activation_template_name ?? '';
         $this->pinResetTemplateName = $setting->pin_reset_template_name ?? '';
         $this->preregistrationTemplateName = $setting->preregistration_template_name ?? '';
+        $this->appointmentRequestTemplateName = $setting->appointment_request_template_name ?? '';
         $this->defaultLanguage = $setting->default_language;
         $this->testLanguageCode = $setting->default_language;
         $this->hasStoredAccessToken = filled($setting->access_token);
@@ -59,6 +61,7 @@ class WhatsAppSettingsPage extends Component
             'activationTemplateName' => ['required', 'string', 'max:255'],
             'pinResetTemplateName' => ['required', 'string', 'max:255'],
             'preregistrationTemplateName' => ['required', 'string', 'max:255'],
+            'appointmentRequestTemplateName' => ['required', 'string', 'max:255'],
             'defaultLanguage' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
         ];
 
@@ -73,6 +76,7 @@ class WhatsAppSettingsPage extends Component
             'activationTemplateName' => $this->activationTemplateName,
             'pinResetTemplateName' => $this->pinResetTemplateName,
             'preregistrationTemplateName' => $this->preregistrationTemplateName,
+            'appointmentRequestTemplateName' => $this->appointmentRequestTemplateName,
             'defaultLanguage' => $this->defaultLanguage,
         ], $rules, [
             'apiVersion.regex' => 'El formato de version debe ser vNN.N (ej. v22.0).',
@@ -86,6 +90,7 @@ class WhatsAppSettingsPage extends Component
         $setting->activation_template_name = $this->activationTemplateName;
         $setting->pin_reset_template_name = $this->pinResetTemplateName;
         $setting->preregistration_template_name = $this->preregistrationTemplateName;
+        $setting->appointment_request_template_name = $this->appointmentRequestTemplateName;
         $setting->default_language = $this->defaultLanguage;
 
         if (filled($this->accessToken)) {

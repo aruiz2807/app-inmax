@@ -9,7 +9,7 @@
                 Configuracion Meta WhatsApp Cloud API
             </x-ui.heading>
             <p class="mt-2">
-                Configura la version del API, el ID de linea, token y las plantillas que se usaran para activacion y restablecimiento de PIN.
+                Configura la version del API, el ID de linea, token y las plantillas que se usaran para PIN, preregistros y notificaciones operativas.
             </p>
         </x-ui.card>
     </div>
@@ -54,6 +54,12 @@
                         <x-ui.label>Plantilla preregistro poliza</x-ui.label>
                         <x-ui.input wire:model="preregistrationTemplateName" placeholder="policy_preregistration_template" />
                         <x-ui.error name="preregistrationTemplateName" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
+                        <x-ui.label>Plantilla solicitud de cita</x-ui.label>
+                        <x-ui.input wire:model="appointmentRequestTemplateName" placeholder="appointment_request_template" />
+                        <x-ui.error name="appointmentRequestTemplateName" />
                     </x-ui.field>
 
                     <x-ui.field required>

@@ -57,6 +57,7 @@ class WhatsAppSettingsTest extends TestCase
             ->set('activationTemplateName', 'activation_pin_template')
             ->set('pinResetTemplateName', 'reset_pin_template')
             ->set('preregistrationTemplateName', 'policy_preregistration_template')
+            ->set('appointmentRequestTemplateName', 'appointment_request_template')
             ->set('defaultLanguage', 'es_MX')
             ->call('saveSettings')
             ->assertHasNoErrors();
@@ -67,6 +68,7 @@ class WhatsAppSettingsTest extends TestCase
             'activation_template_name' => 'activation_pin_template',
             'pin_reset_template_name' => 'reset_pin_template',
             'preregistration_template_name' => 'policy_preregistration_template',
+            'appointment_request_template_name' => 'appointment_request_template',
             'default_language' => 'es_MX',
         ]);
 
@@ -91,6 +93,7 @@ class WhatsAppSettingsTest extends TestCase
             'activation_template_name' => 'activation_pin_template',
             'pin_reset_template_name' => 'reset_pin_template',
             'preregistration_template_name' => 'policy_preregistration_template',
+            'appointment_request_template_name' => 'appointment_request_template',
             'default_language' => 'es_MX',
         ]);
 

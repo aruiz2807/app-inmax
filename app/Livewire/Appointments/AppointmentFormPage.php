@@ -9,6 +9,7 @@ use App\Models\Policy;
 use App\Models\Service;
 use App\Models\User;
 use App\Models\PolicyService;
+use App\Services\Appointments\AppointmentRequestNotificationService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -102,8 +103,10 @@ class AppointmentFormPage extends Component
         ]);
     }
 
-    public function schedule()
+    public function schedule(AppointmentRequestNotificationService $appointmentNotificationService)
     {
+        $notificationResult = null;
+
         if($this->appointment)
         {
             $this->appointment->update([
@@ -131,15 +134,24 @@ class AppointmentFormPage extends Component
                     'covered' => $service['included'],
                 ]);
             }
+
+            $notificationResult = $appointmentNotificationService->send($appointment);
         }
 
-        //Enviar Whatsapp aqui
-        //new WhatsAppCloudApiService()->sendTemplateMessage(WhatsAppSetting::findOrFail(1), 'to', 'template','lang',[],[]);
+        $successMessage = 'Cita almacenada exitosamente!';
+
+        if ($notificationResult !== null) {
+            $successMessage = match (true) {
+                $notificationResult['ok'] => 'Cita almacenada y notificacion enviada por WhatsApp.',
+                $notificationResult['attempted'] => 'Cita almacenada, pero no fue posible enviar la notificacion de WhatsApp.',
+                default => 'Cita almacenada. La notificacion de WhatsApp no esta configurada.',
+            };
+        }
 
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Cita almacenada exitosamente!',
+            content: $successMessage,
             duration: 4000
         );
 
