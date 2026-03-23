@@ -33,8 +33,14 @@ class DoctorsForm extends Form
     #[Validate('required_if:type,' . DoctorType::Doctor->value . '|string|max:100')]
     public $university = '';
 
+    #[Validate('required|max:100')]
+    public $office_name = '';
+
     #[Validate('required')]
     public $address = '';
+
+    #[Validate('required|max:2048')]
+    public $maps_url = '';
 
     #[Validate('integer|min:0|max:100')]
     public $discount = 0;
@@ -76,7 +82,9 @@ class DoctorsForm extends Form
             'type' => $this->type,
             'license' => $this->license,
             'university' => $this->university,
+            'office_name' => $this->office_name,
             'address' => $this->address,
+            'maps_url' => $this->maps_url,
             'discount' => $this->discount,
             'commission' => $this->commission,
         ]);
@@ -111,7 +119,9 @@ class DoctorsForm extends Form
         $this->specialty = (string) $doctor->specialty_id;
         $this->license = $doctor->license;
         $this->university = $doctor->university;
+        $this->office_name = $doctor->office_name;
         $this->address = $doctor->address;
+        $this->maps_url = $doctor->maps_url;
         $this->discount = $doctor->discount;
         $this->commission = $doctor->commission;
     }
@@ -137,7 +147,9 @@ class DoctorsForm extends Form
             'specialty_id' => $this->specialty,
             'license' => $this->license,
             'university' => $this->university,
+            'office_name' => $this->office_name,
             'address' => $this->address,
+            'maps_url' => $this->maps_url,
             'discount' => $this->discount,
             'commission' => $this->commission,
         ]);

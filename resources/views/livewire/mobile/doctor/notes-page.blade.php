@@ -52,6 +52,17 @@
             </div>
         @endforeach
         </div>
+
+        <div class="flex w-full mt-4">
+            <x-ui.field>
+                <x-ui.label>Subtotal adicionales</x-ui.label>
+                <x-ui.input wire:model="subtotal" name="subtotal" x-mask:dynamic="$money($input)" placeholder="0.00">
+                    <x-slot name="prefix">$</x-slot>
+                </x-ui.input>
+                <x-ui.error name="form.subtotal" />
+            </x-ui.field>
+        </div>
+
     </x-ui.card>
 
     @if($form->isDoctor)

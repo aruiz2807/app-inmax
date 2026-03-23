@@ -98,6 +98,7 @@ class AppointmentFormPage extends Component
             'selectedServices',
             'selectedDate',
             'selectedTime',
+            'servicesData',
         ]);
     }
 
@@ -131,6 +132,9 @@ class AppointmentFormPage extends Component
                 ]);
             }
         }
+
+        //Enviar Whatsapp aqui
+        //new WhatsAppCloudApiService()->sendTemplateMessage(WhatsAppSetting::findOrFail(1), 'to', 'template','lang',[],[]);
 
         // Show success toast
         $this->dispatch('notify',
@@ -170,6 +174,9 @@ class AppointmentFormPage extends Component
             'name' => $appointmentService->service->name,
             'included' => $appointmentService->covered,
         ])->values()->toArray();
+        $this->services = Service::whereIn('id', $this->selectedServices)
+            ->get()
+            ->keyBy('id');
     }
 
     public function getServicesProperty()

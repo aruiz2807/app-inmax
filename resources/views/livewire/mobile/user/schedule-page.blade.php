@@ -34,12 +34,44 @@
 
         <x-ui.card size="full" class="mt-4">
             <x-ui.heading class="flex justify-center" level="h3" size="sm">
+                <x-ui.icon name="building-office" variant="solid" class="self-center" />
+                <x-ui.text class="text-lg ml-2">Consultorio</x-ui.text>
+            </x-ui.heading>
+
+            <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 mt-4">
+                @foreach($this->offices as $office)
+                    <label class="group relative cursor-pointer">
+                        <input type="radio"
+                            wire:model.live="selectedOffice"
+                            value="{{ $office->id }}"
+                            class="sr-only peer"
+                        >
+                        <div class="flex flex-col items-center justify-center py-4 border-2 rounded-xl transition-all duration-200
+                                    bg-white border-slate-100
+                                    peer-checked:bg-sky-200 peer-checked:border-sky-200 peer-checked:shadow-lg peer-checked:shadow-blue-200
+                                    hover:border-sky-100">
+
+                            <span class="text-[10px] font-bold uppercase tracking-tighter mb-1 text-slate-400 peer-checked:text-blue-200">
+                                {{ $office->name }}
+                            </span>
+
+                            <span class="p-2 text-sm font-extrabold text-slate-700 peer-checked:text-white">
+                                {{ $office->address }}
+                            </span>
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+        </x-ui.card>
+
+        <x-ui.card size="full" class="mt-4">
+            <x-ui.heading class="flex justify-center" level="h3" size="sm">
                 <x-ui.icon name="calendar" variant="solid" class="self-center" />
                 <x-ui.text class="text-lg ml-2">Fechas disponibles</x-ui.text>
             </x-ui.heading>
 
             <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-                @foreach($availableDates as $date)
+                @foreach($this->availableDates as $date)
                     <label class="group relative cursor-pointer">
                         <input type="radio"
                             wire:model.live="selectedDate"
@@ -51,8 +83,7 @@
                                     peer-checked:bg-sky-200 peer-checked:border-sky-200 peer-checked:shadow-lg peer-checked:shadow-blue-200
                                     hover:border-sky-100">
 
-                            <span class="text-[10px] font-bold uppercase tracking-tighter mb-1
-                                        text-slate-400 peer-checked:text-blue-200">
+                            <span class="text-[10px] font-bold uppercase tracking-tighter mb-1 text-slate-400 peer-checked:text-blue-200">
                                 {{ $date['day'] }}
                             </span>
 
@@ -79,7 +110,7 @@
 
 
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-                @foreach($availableHours as $hour)
+                @foreach($this->availableHours as $hour)
                     <label class="group relative cursor-pointer">
                         <input type="radio"
                             wire:model.live="selectedTime"

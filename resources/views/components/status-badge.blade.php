@@ -6,6 +6,8 @@
         'Inactive' => 'text-gray-700 bg-gray-100',
         'Cancelled' => 'text-red-700 bg-red-100',
 
+        'Requested' => 'text-violet-700 bg-violet-100',
+        'Rejected' => 'text-red-700 bg-red-100',
         'Booked' => 'text-blue-700 bg-blue-100',
         'Cancelled' => 'text-red-700 bg-red-100',
         'No-show' => 'text-red-700 bg-red-100',
@@ -20,6 +22,8 @@
         'Inactive' => __('Inactiva'),
         'Cancelled' => __('Cancelada'),
 
+        'Requested' => __('Solicitada'),
+        'Rejected' => __('Rechazada'),
         'Booked' => __('Agendada'),
         'Cancelled' => __('Cancelada'),
         'No-show' => __('Falto'),

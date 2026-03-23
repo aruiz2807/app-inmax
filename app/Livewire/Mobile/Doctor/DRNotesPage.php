@@ -20,6 +20,7 @@ class DRNotesPage extends Component
     public DoctorNotesForm $form;
     public $appointment;
     public $services;
+    public $subtotal;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -93,10 +94,10 @@ class DRNotesPage extends Component
             {
                 $benefit->increment('extra');
             }
-
         }
 
         $this->appointment->update([
+            'subtotal' => $this->subtotal,
             'status' => 'Completed',
         ]);
     }

@@ -99,9 +99,21 @@
                 </x-ui.field>
 
                 <x-ui.field required>
+                    <x-ui.label>Consultorio</x-ui.label>
+                    <x-ui.input wire:model="form.office_name" name="office_name" />
+                    <x-ui.error name="form.office_name" />
+                </x-ui.field>
+
+                <x-ui.field required>
                     <x-ui.label>Dirección</x-ui.label>
                     <x-ui.textarea wire:model="form.address" name="address" />
                     <x-ui.error name="form.address" />
+                </x-ui.field>
+
+                <x-ui.field required>
+                    <x-ui.label>Google Maps URL</x-ui.label>
+                    <x-ui.textarea wire:model="form.maps_url" name="maps_url" />
+                    <x-ui.error name="form.maps_url" />
                 </x-ui.field>
 
                 <x-ui.field required>

@@ -6,6 +6,7 @@ use App\Livewire\Mobile\User\ScheduleConfirmationPage;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Doctor;
+use App\Models\Office;
 use App\Models\PolicyService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -14,11 +15,13 @@ use Livewire\Attributes\Layout;
 
 class SchedulePage extends Component
 {
+    public $selectedOffice;
     public $selectedDate;
     public $selectedTime;
-    public $availableDates = [];
-    public $availableHours = [];
+    public $availableOffices = [];
     public $isIncluded;
+    public $user;
+    public $offices;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -28,94 +31,109 @@ class SchedulePage extends Component
 
     public function mount()
     {
-        $user = Auth::user();
-        $count = 0;
-        $maxDays = 15;
+        $this->user = Auth::user();
+        $this->offices = Office::all();
 
-        if($user->policy->start_date->isBefore(today()))
+        if($this->user->policy->type === 'Member')
+        {
+            $policy_id  = $this->user->policy->parent_policy_id;
+        }
+        else
+        {
+            $policy_id  = $this->user->policy->id;
+        }
+
+        $this->isIncluded = PolicyService::query()
+            ->where('policy_id', $policy_id)
+            ->where('service_id', 1) //consulta medico general, revisar como no pasar hardcodeado
+            ->whereColumn('used', '<', 'included')
+            ->exists();
+
+        $this->selectedOffice = 1;
+        $this->selectedDate = now()->addDay()->format('Y-m-d');
+        $this->selectedTime = '09:00';
+    }
+
+    public function getAvailableOfficesProperty()
+    {
+        return Office::all()->map(function ($office) {
+            return [
+                'id'      => $office->id,
+                'name'    => $office->name,
+                'address' => $office->address,
+            ];
+        })->toArray();
+    }
+
+    public function getAvailableDatesProperty()
+    {
+        $dates = [];
+
+        if($this->user->policy->start_date->isBefore(today()))
         {
             $date = Carbon::now();
         }
         else
         {
-            $date = $user->policy->start_date;
+            $date = $this->user->policy->start_date;
         }
 
-        if($user->policy->type === 'Member')
-        {
-            $policy_id  = $user->policy->parent_policy_id;
-        }
-        else
-        {
-            $policy_id  = $user->policy->id;
-        }
-
-        $this->isIncluded = PolicyService::query()
-            ->where('policy_id', $policy_id)
-            ->where('service_id', 1) //revisar como no pasar hardcodeado
-            ->whereColumn('used', '<', 'included')
-            ->exists();
-
-        while ($count < $maxDays)
-        {
+        while (count($dates) < 15) {
             $date->addDay();
 
-            if (!$date->isSunday())
-            {
-                $this->availableDates[] = [
+            if (!$date->isSunday()) {
+                $dates[] = [
                     'id'    => $date->format('Y-m-d'),
                     'day'   => $date->isoFormat('ddd'),
                     'num'   => $date->format('d'),
                     'month' => $date->isoFormat('MMM'),
                 ];
-                $count++;
             }
         }
 
-        $this->selectedDate = $this->availableDates[0]['id'];
-        $this->fetchAvailableSlots();
+        return $dates;
     }
 
-    public function updatedSelectedDate($value)
+    public function getAvailableHoursProperty()
     {
-        $this->fetchAvailableSlots();
-    }
-
-    public function fetchAvailableSlots()
-    {
-        $this->availableHours = [];
+        if (!$this->selectedDate) {
+            return [];
+        }
 
         $usedSlots = Appointment::whereDate('date', $this->selectedDate)
             ->pluck('time')
-            ->mapWithKeys(fn ($time) => [
-                Carbon::parse($time)->format('H:i') => true
-            ])
+            ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
             ->toArray();
 
-        // Should check database
-        $availableSlots = [
-            '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM'
+        $slots = [
+            '09:00 AM','10:00 AM','11:00 AM','12:00 PM',
+            '01:00 PM','02:00 PM','03:00 PM','04:00 PM',
+            '05:00 PM','06:00 PM','07:00 PM'
         ];
 
-        foreach ($availableSlots as $slot)
-        {
-            $normalized = Carbon::createFromFormat('h:i A', $slot)->format('H:i');
+        return collect($slots)
+            ->map(function ($slot) use ($usedSlots) {
 
-            if (!isset($usedSlots[$normalized]))
-            {
-                $this->availableHours[] = [
-                    'id'   => $normalized, // 14:00 (for DB usage later)
-                    'time' => $slot,       // 02:00 PM (for UI)
+                $normalized = Carbon::createFromFormat('h:i A', $slot)->format('H:i');
+
+                if (in_array($normalized, $usedSlots)) {
+                    return null;
+                }
+
+                return [
+                    'id' => $normalized,
+                    'time' => $slot,
                 ];
-            }
-        }
 
-        $this->selectedTime = $this->availableHours[0]['id'];
+            })
+            ->filter()
+            ->values()
+            ->toArray();
     }
 
     public function schedule()
     {
-        $doctor = Doctor::where('specialty_id', '1')->inRandomOrder()->first(); //get random doctor
+        $doctor = Doctor::where('office_id', $this->selectedOffice)->inRandomOrder()->first(); //get random doctor
 
         $appointment = Appointment::create([
             'user_id' => Auth::user()->id,
@@ -123,6 +141,7 @@ class SchedulePage extends Component
             'date' => $this->selectedDate,
             'time' => $this->selectedTime,
             'covered' => $this->isIncluded,
+            'status' => 'Booked',
         ]);
 
         AppointmentService::create([

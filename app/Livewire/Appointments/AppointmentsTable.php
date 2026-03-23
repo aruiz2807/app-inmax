@@ -51,11 +51,9 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('doctor_id')
             ->add('doctor_name', fn ($model) => e($model->doctor->user->name))
             ->add('specialty', fn ($model) => e($model->doctor->specialty->name))
-            ->add('service', fn ($model) => e($model->doctor->specialty->service->name))
             ->add('date_formatted', fn ($model) => $model->date?->format('d/m/Y'))
             ->add('time')
             ->add('time_formatted', fn ($model) => $model->time?->format('H:i A'))
-            ->add('covered', fn ($model) => Blade::render('<x-status-badge status="' . $model->covered . '" />'))
             ->add('status', fn ($model) => Blade::render('<x-status-badge status="' . $model->status . '" />'))
             ->add('created_at');
     }
@@ -75,17 +73,10 @@ final class AppointmentsTable extends PowerGridComponent
                 ->sortable()
                 ->hidden(isHidden: true, isForceHidden: false),
 
-            Column::make('Servicio', 'service')
-                ->sortable(),
-
             Column::make('Fecha', 'date_formatted', 'date')
                 ->sortable(),
 
             Column::make('Hora', 'time_formatted', 'time')
-                ->sortable()
-                ->searchable(),
-
-            Column::make('Cubierta', 'covered')
                 ->sortable()
                 ->searchable(),
 

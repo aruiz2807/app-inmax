@@ -60,10 +60,17 @@
                             </div>
                         </div>
 
-                        <a href="#" class="flex mt-8">
+                        @if($upcoming->doctor->specialty_id === 1)
+                        <a href="{{$upcoming->doctor->office->maps_url}}" class="flex mt-8" target="_blank">
+                            <x-ui.icon name="map-pin" />
+                            <x-ui.text class="text-base">{{$upcoming->doctor->office->address}}</x-ui.text>
+                        </a>
+                        @else
+                        <a href="{{$upcoming->doctor->maps_url}}" class="flex mt-8" target="_blank">
                             <x-ui.icon name="map-pin" />
                             <x-ui.text class="text-base">{{$upcoming->doctor->address}}</x-ui.text>
                         </a>
+                        @endif
 
                         <x-ui.separator class="mt-2 mb-2"/>
 
@@ -142,10 +149,17 @@
                             </div>
                         </div>
 
-                        <a href="#" class="flex mt-8">
+                        @if($past->doctor->specialty_id === 1)
+                        <a href="{{$past->doctor->office->maps_url}}" class="flex mt-8" target="_blank">
+                            <x-ui.icon name="map-pin" />
+                            <x-ui.text class="text-base">{{$past->doctor->office->address}}</x-ui.text>
+                        </a>
+                        @else
+                        <a href="{{$past->doctor->maps_url}}" class="flex mt-8" target="_blank">
                             <x-ui.icon name="map-pin" />
                             <x-ui.text class="text-base">{{$past->doctor->address}}</x-ui.text>
                         </a>
+                        @endif
 
                         @if($past->status === 'Completed')
                         <x-ui.separator class="mt-2 mb-2"/>

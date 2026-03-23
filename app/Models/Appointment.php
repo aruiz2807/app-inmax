@@ -23,6 +23,7 @@ class Appointment extends Model
         'rating',
         'comments',
         'status',
+        'subtotal',
     ];
 
     protected $casts = [

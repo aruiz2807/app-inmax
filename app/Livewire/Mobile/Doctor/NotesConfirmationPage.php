@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mobile\Doctor;
 
+use App\Models\Appointment;
 use App\Models\AppointmentNote;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -19,7 +20,7 @@ class NotesConfirmationPage extends Component
 
     public function mount()
     {
-        $noteId = session('appointment_note_id');
+        $noteId = 3;//session('appointment_note_id');
 
         // abort_unless($noteId, 404);
 
@@ -36,5 +37,20 @@ class NotesConfirmationPage extends Component
             fn () => print($pdf->output()),
             "prescription-{$this->note->id}.pdf"
         );
+    }
+
+    public function getDiscountProperty()
+    {
+        return round($this->note->appointment->subtotal * ($this->note->appointment->doctor->discount / 100), 2);
+    }
+
+    public function getTotalProperty()
+    {
+        return round($this->note->appointment->subtotal - $this->getDiscountProperty(), 2);
+    }
+
+    public function getCommissionProperty()
+    {
+        return round($this->note->appointment->subtotal * ($this->note->appointment->doctor->commission / 100), 2);
     }
 }

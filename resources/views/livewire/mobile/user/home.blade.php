@@ -22,7 +22,7 @@
 
         <div class="px-6 pt-12 pb-8">
             <h1 class="text-2xl font-bold text-center text-[#1A3A5A] mb-8">
-                Hola! Bienvenido a tu INMAX!
+                Hola {{ auth()->user()->name }}! Bienvenido a tu INMAX!
             </h1>
 
             <div class="space-y-4">

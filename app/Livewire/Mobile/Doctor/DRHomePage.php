@@ -10,6 +10,7 @@ use Livewire\Attributes\Layout;
 class DRHomePage extends Component
 {
     public $todayAppointments = null;
+    public $user;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -24,6 +25,7 @@ class DRHomePage extends Component
 
     public function loadTodayAppointments()
     {
+        $this->user = Auth::user();
         $this->todayAppointments = Appointment::where([
                 ['status', 'Booked'],
                 ['doctor_id', Auth::user()->doctor->id],

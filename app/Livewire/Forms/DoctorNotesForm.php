@@ -20,7 +20,6 @@ class DoctorNotesForm extends Form
     public $services = [];
     public $isDoctor;
 
-
     /**
      * Additional rules
      */

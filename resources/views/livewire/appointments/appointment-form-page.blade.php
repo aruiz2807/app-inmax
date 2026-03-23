@@ -42,7 +42,7 @@
         </x-ui.select>
     </x-ui.field>
 
-    @if($selectedDoctor)
+    @if($selectedDoctor && !$appointment)
     <x-ui.field class="mt-2">
         <x-ui.label>Servicios</x-ui.label>
         <x-ui.select

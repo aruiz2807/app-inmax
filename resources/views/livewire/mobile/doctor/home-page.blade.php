@@ -22,7 +22,7 @@
 
         <div class="px-6 pt-12 pb-8">
             <h1 class="text-2xl font-bold text-center text-[#1A3A5A] mb-8">
-                Hola! Bienvenido a tu INMAX!
+                Hola {{$user->name}}! Bienvenido a tu INMAX!
             </h1>
 
             <div class="space-y-4">
@@ -54,6 +54,15 @@
                         </svg>
                     </div>
                     <span class="text-lg font-bold text-gray-800">Ver historial de consultas</span>
+                </a>
+
+                <a href="{{ route('doctor.requests') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="p-3 bg-[#F58A71] rounded-xl text-white mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <span class="text-lg font-bold text-gray-800">Solicitudes pendientes</span>
                 </a>
             </div>
         </div>

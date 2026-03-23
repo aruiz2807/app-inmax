@@ -21,7 +21,7 @@
                 <x-ui.icon name="check-circle" variant="solid" class="fill-teal-500 size-16"/>
             </div>
 
-            <a href="#" class="flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+            <div class="flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Paciente : </x-ui.text>
                     <x-ui.text class="font-semibold">{{ $note->appointment->user->name }}</x-ui.text>
@@ -47,7 +47,36 @@
                     <x-ui.text>Fecha : </x-ui.text>
                     <x-ui.text class="font-semibold">{{ $note->appointment->date->format('d/m/Y') }} {{ $note->appointment->time->format('h:i A') }}</x-ui.text>
                 </div>
-            </a>
+            </div>
+
+            <div class="mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
+                    <x-ui.text>Subtotal : </x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $note->appointment->subtotal }}</x-ui.text>
+                </div>
+
+                <x-ui.separator />
+
+                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
+                    <x-ui.text>Descuento : </x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $this->discount }}</x-ui.text>
+                </div>
+
+                <x-ui.separator />
+
+                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
+                    <x-ui.text>Total : </x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $this->total }}</x-ui.text>
+                </div>
+
+                <x-ui.separator />
+
+                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
+                    <x-ui.text>Comisión : </x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $this->commission }}</x-ui.text>
+                </div>
+            </div>
+
 
             <div class="flex justify-center mt-4">
                 <x-ui.button class="w-40 mr-1" wire:click="print" variant="outline" color="indigo" icon="document">

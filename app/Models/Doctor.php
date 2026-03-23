@@ -19,7 +19,9 @@ class Doctor extends Model
         'type',
         'license',
         'university',
+        'office_name',
         'address',
+        'maps_url',
         'discount',
         'commission',
     ];
@@ -90,5 +92,13 @@ class Doctor extends Model
     public function specialty(): BelongsTo
     {
         return $this->belongsTo(Specialty::class);
+    }
+
+    /**
+     * Each doctor can have one office
+     */
+    public function office()
+    {
+        return $this->belongsTo(Office::class);
     }
 }

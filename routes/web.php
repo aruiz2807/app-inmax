@@ -10,9 +10,12 @@ use App\Livewire\Mobile\Doctor\DRHistoryNotePage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
 use App\Livewire\Mobile\Doctor\DRRecordPage;
+use App\Livewire\Mobile\Doctor\DRRequestsPage;
 use App\Livewire\Mobile\Doctor\DRSchedulePage;
 use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
+use App\Livewire\Mobile\Doctor\AcceptConfirmationPage;
+use App\Livewire\Mobile\Doctor\RejectConfirmationPage;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Livewire\Mobile\ContactPage;
 use App\Livewire\Mobile\User\HistoryPage;
@@ -124,8 +127,9 @@ Route::middleware([
         Route::get('/schedule-confirmation', DRScheduleConfirmationPage::class)->name('doctor.schedule-confirmation');
 
         Route::get('/history', DRHistoryPage::class)->name('doctor.history');
-
         Route::get('/history/note/{appointment}', DRHistoryNotePage::class)->name('history.notes');
+
+        Route::get('/requests', DRRequestsPage::class)->name('doctor.requests');
 
         Route::get('/record/{user}', DRRecordPage::class)->name('doctor.record');
 
@@ -133,6 +137,8 @@ Route::middleware([
         Route::get('/notes-confirmation', NotesConfirmationPage::class)->name('doctor.notes-confirmation');
 
         Route::get('/noshow-confirmation', NoShowConfirmationPage::class)->name('doctor.noshow-confirmation');
+        Route::get('/accept-confirmation', AcceptConfirmationPage::class)->name('doctor.accept-confirmation');
+        Route::get('/reject-confirmation', RejectConfirmationPage::class)->name('doctor.reject-confirmation');
 
         Route::get('/my-profile', DRProfilePage::class)->name('doctor.my-profile');
     });

@@ -39,10 +39,8 @@ class DRHistoryPage extends Component
             ->orderBy('time')
             ->get();
 
-        $this->pastAppointments = Appointment::where([
-                ['status', '!=', 'Booked'],
-                ['doctor_id', $user->doctor->id],
-            ])
+        $this->pastAppointments = Appointment::where('doctor_id', $user->doctor->id)
+            ->whereIn('status', ['Completed', 'Cancelled', 'No-show'])
             ->orderBy('date')
             ->orderBy('time')
             ->get();
