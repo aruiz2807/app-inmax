@@ -122,11 +122,11 @@ final class AppointmentsTable extends PowerGridComponent
         return [
 
             Rule::button('edit')
-                ->when(fn($model) => $model->status === 'Completed' || $model->status === 'Cancelled' || $model->status === 'No-show')
+                ->when(fn($model) => $model->status === 'Completed' || $model->status === 'Cancelled' || $model->status === 'No-show' || $model->status === 'Rejected')
                 ->hide(),
 
             Rule::button('cancel')
-                ->when(fn($model) => $model->status === 'Completed' || $model->status === 'Cancelled' || $model->status === 'No-show')
+                ->when(fn($model) => $model->status === 'Completed' || $model->status === 'Cancelled' || $model->status === 'No-show' || $model->status === 'Rejected')
                 ->hide(),
 
         ];
