@@ -71,10 +71,8 @@
     $gradient = $gradientMap[$type] ?? $gradientMap['default'];
 @endphp
 
-<a href="{{ $finalHref }}" target="_blank" rel="noopener noreferrer" class="group w-full">
+<a href="{{ $finalHref }}" target="_blank" rel="noopener noreferrer" class="group w-full block mb-2">
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br {{ $borderGradient }} p-1 transform transition-all duration-300 hover:shadow-2xl hover:scale-105 active:shadow-2xl active:scale-105 focus-within:shadow-2xl focus-within:scale-105">
-        <!-- Background glow effect -->
-        <div class="absolute inset-0 bg-gradient-to-br {{ $borderGradient }} opacity-20 group-hover:opacity-100 active:opacity-100 blur-xl transition-opacity duration-300 ease-in-out animate-pulse"></div>
         
         <!-- Content container -->
         <div class="relative bg-white dark:bg-neutral-900 rounded-xl px-4 py-3 flex items-center gap-4 transition-all duration-300">

@@ -21,6 +21,8 @@ class ContactPage extends Component
 
     public function mount()
     {
-        $this->socialLinks = Parameter::where('type', 'RS')->orderBy('key')->get();
+        $this->socialLinks = Parameter::where('type', 'RS')
+            ->orderByRaw("FIELD(`key`, 'Phone', 'Email', 'Maps', 'WhatsApp', 'Instagram', 'Tiktok')")
+        ->get();
     }
 }
