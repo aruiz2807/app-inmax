@@ -38,5 +38,9 @@ class DatabaseSeeder extends Seeder
             'pin_set_at' => now(),
             'password' => Hash::make('ld19M7sY3FzE'),
         ])->save();
+
+        $this->call([
+            OfficesSeeder::class,
+        ]);
     }
 }
