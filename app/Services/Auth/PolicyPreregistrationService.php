@@ -91,7 +91,7 @@ class PolicyPreregistrationService
         $this->assertCanManage($preregistration, 'editar');
 
         $normalizedPhone = $this->normalizePhone($phone);
-        $this->assertPhoneAvailable($normalizedPhone);
+        $this->assertPhoneAvailable($normalizedPhone, $preregistration->id);
         $plan = $this->resolvePlan($planId);
         $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
         $token = $this->refreshToken(
@@ -381,10 +381,20 @@ class PolicyPreregistrationService
     /**
      * Ensure there is no registered user for the phone.
      */
-    private function assertPhoneAvailable(string $phone): void
+    private function assertPhoneAvailable(string $phone, ?int $ignorePreregistrationId = null): void
     {
         if (User::query()->where('phone', $phone)->exists()) {
             throw new InvalidArgumentException('Ya existe un usuario registrado con ese telefono.');
+        }
+
+        $query = PolicyPreregistration::query()->where('phone', $phone);
+
+        if ($ignorePreregistrationId !== null) {
+            $query->whereKeyNot($ignorePreregistrationId);
+        }
+
+        if ($query->exists()) {
+            throw new InvalidArgumentException('Ya existe un preregistro registrado con ese telefono.');
         }
     }
 

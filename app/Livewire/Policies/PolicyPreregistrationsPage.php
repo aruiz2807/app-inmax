@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -73,12 +74,19 @@ class PolicyPreregistrationsPage extends Component
     {
         $isEditing = $this->preregistrationId !== null;
         $validated = $this->validate([
-            'preregistrationPhone' => ['required', 'digits:10', 'unique:users,phone'],
+            'preregistrationPhone' => [
+                'required',
+                'digits:10',
+                Rule::unique('users', 'phone'),
+                Rule::unique('policy_preregistrations', 'phone')->ignore($this->preregistrationId),
+            ],
             'preregistrationPlan' => ['required'],
             'preregistrationParentPolicy' => ['nullable'],
             'preregistrationSalesUser' => ['required', 'exists:users,id'],
         ], [
-            'preregistrationPhone.unique' => 'Ya existe un usuario registrado con ese telefono.',
+            'preregistrationPhone.unique' => 'Ya existe un registro con ese telefono.',
+            'preregistrationPhone.required' => 'El telefono es obligatorio.',
+            'preregistrationPhone.digits' => 'El telefono debe contener 10 digitos.',
         ]);
 
         $salesUser = $this->resolveSalesUser((int) $validated['preregistrationSalesUser']);

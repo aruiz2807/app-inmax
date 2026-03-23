@@ -86,6 +86,36 @@ class PolicyPreregistrationTest extends TestCase
         ]);
     }
 
+    public function test_cannot_create_preregistration_with_existing_preregistration_phone(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        $plan = Plan::query()->create([
+            'name' => 'Plan Unico',
+            'price' => 999.00,
+            'type' => 'Individual',
+            'status' => 'Active',
+        ]);
+
+        PolicyPreregistration::query()->create([
+            'sales_user_id' => $salesUser->id,
+            'plan_id' => $plan->id,
+            'phone' => '3310000093',
+            'token_hash' => hash('sha256', 'existing-prereg-phone'),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PolicyPreregistrationsPage::class)
+            ->set('preregistrationPhone', '3310000093')
+            ->set('preregistrationPlan', (string) $plan->id)
+            ->call('savePreregistration')
+            ->assertHasErrors(['preregistrationPhone']);
+    }
+
     public function test_preregistration_page_can_be_rendered_with_a_valid_token(): void
     {
         $salesUser = User::factory()->create([
@@ -207,6 +237,54 @@ class PolicyPreregistrationTest extends TestCase
         $preregistration->refresh();
 
         $this->assertSame($salesUserTwo->id, $preregistration->sales_user_id);
+    }
+
+    public function test_cannot_edit_preregistration_to_use_existing_phone_from_another_preregistration(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+        ]);
+
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        $plan = Plan::query()->create([
+            'name' => 'Plan Sin Duplicados',
+            'price' => 950.00,
+            'type' => 'Individual',
+            'status' => 'Active',
+        ]);
+
+        $first = PolicyPreregistration::query()->create([
+            'sales_user_id' => $salesUser->id,
+            'plan_id' => $plan->id,
+            'phone' => '3310000094',
+            'token_hash' => hash('sha256', 'first-prereg'),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $second = PolicyPreregistration::query()->create([
+            'sales_user_id' => $salesUser->id,
+            'plan_id' => $plan->id,
+            'phone' => '3310000095',
+            'token_hash' => hash('sha256', 'second-prereg'),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(PolicyPreregistrationsPage::class)
+            ->call('editPreregistration', $second->id)
+            ->set('preregistrationPhone', '3310000094')
+            ->call('savePreregistration')
+            ->assertHasErrors(['preregistrationPhone']);
+
+        $first->refresh();
+        $second->refresh();
+
+        $this->assertSame('3310000094', $first->phone);
+        $this->assertSame('3310000095', $second->phone);
     }
 
     public function test_preregistration_page_creates_user_policy_and_shows_pending_activation_message(): void
