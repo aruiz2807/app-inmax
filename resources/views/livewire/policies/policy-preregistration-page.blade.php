@@ -12,9 +12,48 @@
 
         <x-validation-errors class="mb-4" />
 
-        @if ($this->canRegister())
+        @if ($registrationCompleted)
+            <div class="space-y-4">
+                <div class="rounded-xl border border-teal-200 bg-teal-50 px-4 py-4 text-sm text-teal-950">
+                    <p class="text-base font-semibold">
+                        Todo listo, {{ $registeredMemberName }}.
+                    </p>
+                    <p class="mt-3">
+                        Tus datos han sido registrados correctamente en el sistema de INMAX.
+                    </p>
+                    <p class="mt-3">
+                        Tu membresia esta a un paso de quedar activa. Para comenzar a disfrutar de tus beneficios y recibir tu kit de bienvenida, te esperamos en nuestra sucursal para realizar tu pago.
+                    </p>
+                    <p class="mt-3">
+                        Horarios de atencion (Caja): Lunes a Viernes: 9:00 AM - 6:00 PM. Sabados: 9:00 AM - 2:00 PM.
+                    </p>
+                    <p class="mt-3">
+                        Al llegar, solo menciona que ya completaste tu registro en linea. Te esperamos para activar tu Membresia INMAX.
+                    </p>
+                    <p class="mt-3">
+                        Ubicacion: Torre Medica, Av. Plan de San Luis #1831, Col. San Bernardo, C.P. 44260.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap justify-end gap-3">
+                    <x-ui.button
+                        href="{{ $officeMapsUrl }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        color="teal"
+                        icon="map"
+                    >
+                        Ver en Google Maps
+                    </x-ui.button>
+
+                    <x-ui.button href="/" color="teal" variant="outline" icon="arrow-left-end-on-rectangle">
+                        Ir al inicio
+                    </x-ui.button>
+                </div>
+            </div>
+        @elseif ($this->canRegister())
             <div class="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
-                Completa tus datos para terminar el registro de tu poliza. Al finalizar te pediremos definir tu PIN de acceso.
+                Completa tus datos para terminar el registro de tu poliza. Al finalizar te mostraremos los siguientes pasos para activar tu membresia.
             </div>
         @endif
 
@@ -39,7 +78,7 @@
             </div>
         @endif
 
-        @if ($this->canRegister())
+        @if ($this->canRegister() && ! $registrationCompleted)
             <form wire:submit="save">
                 @include('livewire.policies.partials.individual-customer-fields', ['phoneReadonly' => true])
 

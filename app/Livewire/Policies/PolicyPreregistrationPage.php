@@ -4,7 +4,6 @@ namespace App\Livewire\Policies;
 
 use App\Livewire\Forms\IndividualPolicyForm;
 use App\Models\PolicyPreregistration;
-use App\Services\Auth\PinSetupTokenService;
 use App\Services\Auth\PolicyPreregistrationService;
 use App\Services\Policies\IndividualPolicyRegistrationService;
 use Carbon\Carbon;
@@ -28,6 +27,12 @@ class PolicyPreregistrationPage extends Component
 
     public ?string $tokenMessage = null;
 
+    public bool $registrationCompleted = false;
+
+    public string $registeredMemberName = '';
+
+    public string $officeMapsUrl = 'https://www.google.com/maps/search/?api=1&query=Torre+M%C3%A9dica%2C+Av.+Plan+de+San+Luis+%231831%2C+Col.+San+Bernardo%2C+C.P.+44260';
+
     #[Layout('layouts.guest')]
     public function render()
     {
@@ -48,8 +53,7 @@ class PolicyPreregistrationPage extends Component
 
     public function save(
         PolicyPreregistrationService $preregistrationService,
-        IndividualPolicyRegistrationService $registrationService,
-        PinSetupTokenService $pinSetupTokenService
+        IndividualPolicyRegistrationService $registrationService
     ) {
         $resolved = $preregistrationService->resolveTokenStatus($this->token);
         $this->tokenStatus = $resolved['status'];
@@ -65,16 +69,18 @@ class PolicyPreregistrationPage extends Component
         $this->syncFormWithPreregistration($this->preregistration);
 
         $policy = $this->form->store($registrationService, $this->preregistration->id);
-        $pinSetup = $pinSetupTokenService->generateSetupLink(
-            $policy->user,
-            null,
-            PinSetupTokenService::PURPOSE_ACTIVATION,
-            false
-        );
-
         $preregistrationService->consumeToken($this->preregistration);
+        $this->registrationCompleted = true;
+        $this->registeredMemberName = $policy->user->name;
+        $this->tokenStatus = PolicyPreregistrationService::STATUS_USED;
+        $this->tokenMessage = null;
 
-        return redirect()->to($pinSetup['url']);
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: 'Tus datos fueron registrados correctamente. Tu membresia esta pendiente de activacion.',
+            duration: 5000
+        );
     }
 
     public function canRegister(): bool

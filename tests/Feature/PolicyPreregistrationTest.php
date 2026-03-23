@@ -131,7 +131,7 @@ class PolicyPreregistrationTest extends TestCase
         $this->assertNotSame($previousTokenHash, $preregistration->token_hash);
     }
 
-    public function test_preregistration_page_creates_user_policy_and_redirects_to_pin_setup(): void
+    public function test_preregistration_page_creates_user_policy_and_shows_pending_activation_message(): void
     {
         Storage::fake('public');
 
@@ -176,7 +176,10 @@ class PolicyPreregistrationTest extends TestCase
             ->set('form.insurance', ['imss'])
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect();
+            ->assertSet('registrationCompleted', true)
+            ->assertSet('registeredMemberName', 'Cliente Demo')
+            ->assertSee('Tus datos han sido registrados correctamente en el sistema de INMAX.')
+            ->assertSee('Ver en Google Maps');
 
         $user = User::query()->where('phone', '3310000003')->first();
 
@@ -197,10 +200,7 @@ class PolicyPreregistrationTest extends TestCase
         $preregistration->refresh();
 
         $this->assertNotNull($preregistration->used_at);
-        $this->assertDatabaseHas('user_pin_setup_tokens', [
-            'user_id' => $user->id,
-        ]);
-        $this->assertSame(1, UserPinSetupToken::query()->where('user_id', $user->id)->count());
+        $this->assertSame(0, UserPinSetupToken::query()->where('user_id', $user->id)->count());
     }
 
     public function test_sales_user_can_cancel_preregistration_and_public_link_shows_cancelled_message(): void
