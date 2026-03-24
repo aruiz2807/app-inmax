@@ -15,14 +15,19 @@ class ContactPage extends Component
     public function render()
     {
         return view('livewire.mobile.contact-page', [
-            'socialLinks' => $this->socialLinks,
+            'socialLinksIcons' => $this->socialLinksIcons,
+            'socialLinksList' => $this->socialLinksList,
         ]);
     }
 
     public function mount()
     {
-        $this->socialLinks = Parameter::where('type', 'RS')
-            ->orderByRaw("FIELD(`key`, 'Phone', 'Email', 'Maps', 'WhatsApp', 'Instagram', 'Tiktok')")
+        $listOfKeys = ['Page', 'Facebook', 'Instagram', 'Tiktok', 'WhatsApp', 'Maps'];
+
+        $this->socialLinksIcons = Parameter::where('type', 'RS')->get();
+
+        $this->socialLinksList = Parameter::where('type', 'RS')->whereIn('key', $listOfKeys)
+            ->orderByRaw("FIELD(`key`, 'Page', 'Facebook', 'Instagram', 'Tiktok', 'WhatsApp', 'Maps')")
         ->get();
     }
 }

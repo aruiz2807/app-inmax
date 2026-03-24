@@ -16,6 +16,8 @@
 
 @php
     $iconMap = [
+        'page' => "M2 12h4l2-4 4 8 2-4h8",
+        'facebook' => "M128 24C70.65 24 24 70.65 24 128c0 50.63 37.05 92.64 85.5 101.25v-71.63h-25.7v-29.62h25.7V104c0-25.36 15.1-39.37 38.22-39.37 11.07 0 22.66 1.98 22.66 1.98v24.91h-12.77c-12.58 0-16.5 7.81-16.5 15.82v19h28.08l-4.49 29.62h-23.59v71.63C194.95 220.64 232 178.63 232 128 232 70.65 185.35 24 128 24z",
         'phone' => 'M144.27,45.93a8,8,0,0,1,9.8-5.66,86.22,86.22,0,0,1,61.66,61.66,8,8,0,0,1-5.66,9.8A8.23,8.23,0,0,1,208,112a8,8,0,0,1-7.73-5.94,70.35,70.35,0,0,0-50.33-50.33A8,8,0,0,1,144.27,45.93Zm-2.33,41.8c13.79,3.68,22.65,12.54,26.33,26.33A8,8,0,0,0,176,120a8.23,8.23,0,0,0,2.07-.27,8,8,0,0,0,5.66-9.8c-5.12-19.16-18.5-32.54-37.66-37.66a8,8,0,1,0-4.13,15.46Zm81.94,95.35A56.26,56.26,0,0,1,168,232C88.6,232,24,167.4,24,88A56.26,56.26,0,0,1,72.92,32.12a16,16,0,0,1,16.62,9.52l21.12,47.15,0,.12A16,16,0,0,1,109.39,104c-.18.27-.37.52-.57.77L88,129.45c7.49,15.22,23.41,31,38.83,38.51l24.34-20.71a8.12,8.12,0,0,1,.75-.56,16,16,0,0,1,15.17-1.4l.13.06,47.11,21.11A16,16,0,0,1,223.88,183.08Zm-15.88-2s-.07,0-.11,0h0l-47-21.05-24.35,20.71a8.44,8.44,0,0,1-.74.56,16,16,0,0,1-15.75,1.14c-18.73-9.05-37.4-27.58-46.46-46.11a16,16,0,0,1,1-15.7,6.13,6.13,0,0,1,.57-.77L96,95.15l-21-47a.61.61,0,0,1,0-.12A40.2,40.2,0,0,0,40,88,128.14,128.14,0,0,0,168,216,40.21,40.21,0,0,0,208,181.07Z',
         'email' => 'M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z',
         'whatsapp' => 'M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32A8,8,0,0,0,104,64a40,40,0,0,0-40,40,88.1,88.1,0,0,0,88,88,40,40,0,0,0,40-40A8,8,0,0,0,187.58,144.84ZM152,176a72.08,72.08,0,0,1-72-72A24,24,0,0,1,99.29,80.46l11.48,23L101,118a8,8,0,0,0-.73,7.51,56.47,56.47,0,0,0,30.15,30.15A8,8,0,0,0,138,155l14.61-9.74,23,11.48A24,24,0,0,1,152,176ZM128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z',
@@ -25,6 +27,8 @@
     ];
 
     $gradientMap = [
+        'page' => 'from-emerald-500 to-green-600',
+        'facebook' => 'from-blue-500 to-blue-600',
         'phone' => 'from-blue-500 to-blue-600',
         'email' => 'from-red-500 to-red-600',
         'whatsapp' => 'from-green-500 to-green-600',
@@ -64,11 +68,15 @@
             case 'maps':
                 $finalHref = str_starts_with($value, 'http') ? $value : 'https://maps.google.com/?q=' . urlencode($value);
                 break;
+            case 'page':
+                $finalHref = str_starts_with($value, 'http') ? $value : 'https://'. urlencode($value);
+                break;
         }
     }
 
     $svgPath = $icon ?: ($iconMap[$type] ?? '');
     $gradient = $gradientMap[$type] ?? $gradientMap['default'];
+    $isStrokeIcon = in_array($type, ['page']);
 @endphp
 
 <a href="{{ $finalHref }}" target="_blank" rel="noopener noreferrer" class="group w-full block mb-2">
@@ -78,19 +86,30 @@
         <div class="relative bg-white dark:bg-neutral-900 rounded-xl px-4 py-3 flex items-center gap-4 transition-all duration-300">
             <!-- Icon -->
             @if ($svgPath)
-                @if (str_contains($svgPath, 'M16.708'))
-                    <div class="flex-shrink-0 p-2 rounded-xl bg-gradient-to-br {{ $gradient }} text-white transform transition-transform duration-300 group-hover:scale-110 active:scale-110 focus-within:scale-110">
+                <div class="flex-shrink-0 p-2 rounded-xl bg-gradient-to-br {{ $gradient }} text-white transform transition-transform duration-300 group-hover:scale-110 active:scale-110 focus-within:scale-110">
+                    
+                    @if ($isStrokeIcon)
+                        <!-- ICONO STROKE (heartbeat) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="{{ $svgPath }}" 
+                                stroke="currentColor" 
+                                stroke-width="2.5"
+                                stroke-linecap="round" 
+                                stroke-linejoin="round"/>
+                        </svg>
+                    @elseif ($type === 'tiktok')
+                        <!-- TikTok (otro viewBox) -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 34 34">
                             <path d="{{ $svgPath }}"></path>
                         </svg>
-                    </div>
-                @else
-                    <div class="flex-shrink-0 p-2 rounded-xl bg-gradient-to-br {{ $gradient }} text-white transform transition-transform duration-300 group-hover:scale-110 active:scale-110 focus-within:scale-110">
+                    @else
+                        <!-- ICONOS NORMALES -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
                             <path d="{{ $svgPath }}"></path>
                         </svg>
-                    </div>
-                @endif
+                    @endif
+
+                </div>
             @endif
             
             <!-- Text content -->

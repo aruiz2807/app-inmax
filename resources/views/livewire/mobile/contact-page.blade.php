@@ -35,11 +35,11 @@
             </div>
 
             <!-- Social -->
-            <x-ui.social-icons :links="$socialLinks" />
+            <x-ui.social-icons :links="$socialLinksIcons" />
 
             <!-- 🔥 GLASS CARD REAL -->
             <div class="bg-white/20 dark:bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/30 shadow-xl">
-                @forelse ($socialLinks as $link)
+                @forelse ($socialLinksList as $link)
                     <x-ui.contact-item
                         title="{{ $link->description }}"
                         value="{{ $link->value }}"
