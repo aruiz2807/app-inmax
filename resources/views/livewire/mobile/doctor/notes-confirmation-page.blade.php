@@ -49,33 +49,36 @@
                 </div>
             </div>
 
+
+            @if($note->appointment->subtotal > 0)
             <div class="mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Subtotal : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $note->appointment->subtotal }}</x-ui.text>
+                    <x-ui.text class="font-semibold">${{ $note->appointment->subtotal }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Descuento : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $this->discount }}</x-ui.text>
+                    <x-ui.text class="font-semibold">${{ $this->discount }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Total : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $this->total }}</x-ui.text>
+                    <x-ui.text>Costo paciente : </x-ui.text>
+                    <x-ui.text class="font-semibold">${{ $this->total }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Comisión : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $this->commission }}</x-ui.text>
+                    <x-ui.text class="font-semibold">${{ $this->commission }}</x-ui.text>
                 </div>
             </div>
+            @endif
 
 
             <div class="flex justify-center mt-4">

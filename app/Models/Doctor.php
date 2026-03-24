@@ -19,7 +19,7 @@ class Doctor extends Model
         'type',
         'license',
         'university',
-        'office_name',
+        'office_id',
         'address',
         'maps_url',
         'discount',

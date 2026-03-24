@@ -36,7 +36,7 @@
             wire:model.live="selectedDoctor">
             @foreach($doctors as $doctor)
                 <x-ui.select.option value="{{ $doctor->id }}">
-                    {{ $doctor->user->name }}
+                    {{ $doctor->user->name }} - {{ $doctor->specialty->name }}
                 </x-ui.select.option>
             @endforeach
         </x-ui.select>

@@ -42,7 +42,7 @@
                         placeholder="Buscar tipo..."
                         icon="wallet"
                         searchable
-                        wire:model="form.type">
+                        wire:model.live="form.type">
                             @foreach($types as $type)
                                 <x-ui.select.option :value="$type->value">
                                     {{ $type->label() }}
@@ -86,6 +86,7 @@
                     <x-ui.error name="form.specialty" />
                 </x-ui.field>
 
+                @if($this->form->type === 'Doctor')
                 <x-ui.field :required="$this->doctorRequired">
                     <x-ui.label>Cedula profesional</x-ui.label>
                     <x-ui.input wire:model="form.license" name="license" />
@@ -97,6 +98,7 @@
                     <x-ui.input wire:model="form.university" name="university" />
                     <x-ui.error name="form.university" />
                 </x-ui.field>
+                @endif
 
                 <x-ui.field required>
                     <x-ui.label>Consultorio</x-ui.label>

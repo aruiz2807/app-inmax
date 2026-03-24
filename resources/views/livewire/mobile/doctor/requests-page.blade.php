@@ -94,7 +94,7 @@
         animation="fade"
         width="md"
         heading="Rechazar cita"
-        description="Si se declina la cita, tendrá que ser reagendada"
+        description="Si se declina la cita, tendrá que ser reprogramada"
         x-on:open-reject-modal.window="$data.open()"
         x-on:close-reject-modal.window="$data.close()"
     >

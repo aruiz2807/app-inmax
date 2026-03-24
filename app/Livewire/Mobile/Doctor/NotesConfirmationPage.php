@@ -20,7 +20,7 @@ class NotesConfirmationPage extends Component
 
     public function mount()
     {
-        $noteId = 3;//session('appointment_note_id');
+        $noteId = 6; session('appointment_note_id');
 
         // abort_unless($noteId, 404);
 

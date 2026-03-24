@@ -86,15 +86,20 @@ class DRNotesPage extends Component
                 ['service_id', $service->service_id],
             ])->first();
 
-            if($service->covered)
+            if($benefit)
             {
-                $benefit->increment('used');
-            }
-            else
-            {
-                $benefit->increment('extra');
+                if($service->covered)
+                {
+                    $benefit->increment('used');
+                }
+                else
+                {
+                    $benefit->increment('extra');
+                }
             }
         }
+
+        $this->subtotal = str_replace(',', '', $this->subtotal);
 
         $this->appointment->update([
             'subtotal' => $this->subtotal,

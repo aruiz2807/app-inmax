@@ -68,7 +68,7 @@
                             </x-ui.button>
 
                             <x-ui.button class="w-40 ml-1" wire:click="noshow({{ $upcoming->id }})" variant="outline" color="red" icon="eye-slash">
-                                No-show
+                                No asistio
                             </x-ui.button>
                         </div>
 

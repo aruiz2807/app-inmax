@@ -26,7 +26,7 @@
         'Rejected' => __('Rechazada'),
         'Booked' => __('Agendada'),
         'Cancelled' => __('Cancelada'),
-        'No-show' => __('Falto'),
+        'No-show' => __('No Asistio'),
         'Completed' => __('Atendida'),
 
         '1' => __('Cubierta'),
