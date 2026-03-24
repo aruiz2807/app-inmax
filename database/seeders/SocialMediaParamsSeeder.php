@@ -55,6 +55,13 @@ class SocialMediaParamsSeeder extends Seeder
                 'description' => 'Ubicación',
                 'value' => 'https://maps.app.goo.gl/4u4jt7dhaLhGw3qS7?g_st=iw',
             ],
+            [
+                'id' => 7,
+                'type' => 'RS',
+                'key' => 'Page',
+                'description' => 'Página INMAX',
+                'value' => 'https://inmax-sure.com/',
+            ],
         ]);
     }
 }
