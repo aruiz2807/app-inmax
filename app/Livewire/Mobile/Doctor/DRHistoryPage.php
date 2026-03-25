@@ -90,6 +90,20 @@ class DRHistoryPage extends Component
         return $this->redirectRoute('doctor.schedule', ['appointment' => $id]);
     }
 
+    public function order($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        $pdf = Pdf::loadView('pdf.order', [
+            'appointment' => $appointment,
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "order-{$appointment->id}.pdf"
+        );
+    }
+
     public function print($id)
     {
         $note = Appointment::findOrFail($id)->note;

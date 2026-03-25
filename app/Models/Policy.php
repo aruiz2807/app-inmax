@@ -24,6 +24,10 @@ class Policy extends Model
         'start_date',
         'end_date',
         'insurance',
+        'payment_method',
+        'payment_reference',
+        'payment_file_path',
+        'payment_file_name',
         'status',
     ];
 
