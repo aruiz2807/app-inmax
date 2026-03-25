@@ -202,72 +202,79 @@
                 </x-ui.field>
 
                 @if($preregistrationType === 'group_member')
-                    <x-ui.field required>
-                        <x-ui.label>Poliza colectiva</x-ui.label>
-                        <x-ui.select
-                            wire:model.live="preregistrationParentPolicy"
-                            placeholder="Selecciona una poliza colectiva"
-                            searchable
-                        >
-                            @foreach($preregistrationGroupPolicies as $policy)
-                                <x-ui.select.option value="{{ $policy->id }}">
-                                    {{ $policy->number }} - {{ $policy->user->name }} - {{ $policy->user->company?->name }}
-                                </x-ui.select.option>
-                            @endforeach
-                        </x-ui.select>
-                        <x-ui.error name="preregistrationParentPolicy" />
-                    </x-ui.field>
+                    <div wire:key="preregistration-group-member-fields">
+                        <x-ui.field required>
+                            <x-ui.label>Poliza colectiva</x-ui.label>
+                            <x-ui.select
+                                wire:key="preregistration-group-policy-select"
+                                wire:model.live="preregistrationParentPolicy"
+                                placeholder="Selecciona una poliza colectiva"
+                                searchable
+                            >
+                                @foreach($preregistrationGroupPolicies as $policy)
+                                    <x-ui.select.option value="{{ $policy->id }}">
+                                        {{ $policy->number }} - {{ $policy->user->name }} - {{ $policy->user->company?->name }}
+                                    </x-ui.select.option>
+                                @endforeach
+                            </x-ui.select>
+                            <x-ui.error name="preregistrationParentPolicy" />
+                        </x-ui.field>
 
-                    <x-ui.field>
-                        <x-ui.label>Cobertura</x-ui.label>
-                        <x-ui.input :value="$this->selectedGroupPolicy?->plan?->name ?: 'Selecciona una poliza colectiva'" readonly copyable="false" />
-                    </x-ui.field>
+                        <x-ui.field>
+                            <x-ui.label>Cobertura</x-ui.label>
+                            <x-ui.input :value="$this->selectedGroupPolicy?->plan?->name ?: 'Selecciona una poliza colectiva'" readonly copyable="false" />
+                        </x-ui.field>
 
-                    @if($this->selectedGroupPolicyCapacity)
-                        <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
-                            <p class="font-semibold">
-                                Cupo de la poliza {{ $this->selectedGroupPolicy?->number }}
-                            </p>
-                            <p class="mt-2">
-                                Total: {{ $this->selectedGroupPolicyCapacity['total_slots'] }}
-                                | Registrados: {{ $this->selectedGroupPolicyCapacity['registered_members'] }}
-                                | Reservados: {{ $this->selectedGroupPolicyCapacity['pending_preregistrations'] }}
-                                | Disponibles: {{ $this->selectedGroupPolicyCapacity['available_slots'] }}
-                            </p>
-                        </div>
-                    @endif
+                        @if($this->selectedGroupPolicyCapacity)
+                            <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+                                <p class="font-semibold">
+                                    Cupo de la poliza {{ $this->selectedGroupPolicy?->number }}
+                                </p>
+                                <p class="mt-2">
+                                    Total: {{ $this->selectedGroupPolicyCapacity['total_slots'] }}
+                                    | Registrados: {{ $this->selectedGroupPolicyCapacity['registered_members'] }}
+                                    | Reservados: {{ $this->selectedGroupPolicyCapacity['pending_preregistrations'] }}
+                                    | Disponibles: {{ $this->selectedGroupPolicyCapacity['available_slots'] }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
                 @else
-                    <x-ui.field required>
-                        <x-ui.label>Cobertura</x-ui.label>
-                        <x-ui.select
-                            wire:model="preregistrationPlan"
-                            placeholder="Selecciona una cobertura"
-                            searchable
-                        >
-                            @foreach($preregistrationPlans as $plan)
-                                <x-ui.select.option value="{{ $plan->id }}">
-                                    {{ $plan->name }}
-                                </x-ui.select.option>
-                            @endforeach
-                        </x-ui.select>
-                        <x-ui.error name="preregistrationPlan" />
-                    </x-ui.field>
+                    <div wire:key="preregistration-individual-fields">
+                        <x-ui.field required>
+                            <x-ui.label>Cobertura</x-ui.label>
+                            <x-ui.select
+                                wire:key="preregistration-individual-plan-select"
+                                wire:model="preregistrationPlan"
+                                placeholder="Selecciona una cobertura"
+                                searchable
+                            >
+                                @foreach($preregistrationPlans as $plan)
+                                    <x-ui.select.option value="{{ $plan->id }}">
+                                        {{ $plan->name }}
+                                    </x-ui.select.option>
+                                @endforeach
+                            </x-ui.select>
+                            <x-ui.error name="preregistrationPlan" />
+                        </x-ui.field>
 
-                    <x-ui.field>
-                        <x-ui.label>Poliza principal</x-ui.label>
-                        <x-ui.select
-                            wire:model="preregistrationParentPolicy"
-                            placeholder="Sin poliza principal"
-                            searchable
-                        >
-                            @foreach($preregistrationParentPolicies as $policy)
-                                <x-ui.select.option value="{{ $policy->id }}">
-                                    {{ $policy->number }} - {{ $policy->user->name }} - {{ $policy->user->company?->name }}
-                                </x-ui.select.option>
-                            @endforeach
-                        </x-ui.select>
-                        <x-ui.error name="preregistrationParentPolicy" />
-                    </x-ui.field>
+                        <x-ui.field>
+                            <x-ui.label>Poliza principal</x-ui.label>
+                            <x-ui.select
+                                wire:key="preregistration-individual-parent-policy-select"
+                                wire:model="preregistrationParentPolicy"
+                                placeholder="Sin poliza principal"
+                                searchable
+                            >
+                                @foreach($preregistrationParentPolicies as $policy)
+                                    <x-ui.select.option value="{{ $policy->id }}">
+                                        {{ $policy->number }} - {{ $policy->user->name }} - {{ $policy->user->company?->name }}
+                                    </x-ui.select.option>
+                                @endforeach
+                            </x-ui.select>
+                            <x-ui.error name="preregistrationParentPolicy" />
+                        </x-ui.field>
+                    </div>
                 @endif
 
                 @if(auth()->user()?->profile === 'Sales')
