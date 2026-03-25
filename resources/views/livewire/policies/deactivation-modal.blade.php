@@ -3,12 +3,12 @@
     animation="fade"
     width="2xl"
     heading="Inactivar póliza"
-    description="Está seguro que desea inactivar esta póliza?"
+    description="Está seguro que desea inactivar esta membresía?"
     x-on:open-deactivation-modal.window="$data.open()"
     x-on:close-deactivation-modal.window="$data.close()"
 >
     <x-ui.text class="pl-10 m-2 font-semibold text-base">
-        Número de poliza: {{$policy_number}}
+        Número de membresía: {{$policy_number}}
     </x-ui.text>
 
     <x-ui.text class="pl-10 m-2 font-semibold text-base">

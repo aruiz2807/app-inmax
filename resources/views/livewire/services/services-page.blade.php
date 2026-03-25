@@ -48,7 +48,7 @@
                         icon="ticket"
                         value="Event"
                         label="Evento"
-                        description="Ocaciones en las que puede ser utilizado el servicio mientras la poliza este vigente"
+                        description="Ocaciones en las que puede ser utilizado el servicio mientras la membresía este vigente"
                         checked
                     />
                     <x-ui.radio.item

@@ -254,7 +254,7 @@ class AppointmentFormPage extends Component
             return [];
         }
 
-        $usedSlots = Appointment::whereDate('date', $this->selectedDate)
+        $usedSlots = Appointment::whereDate('date', $this->selectedDate)->where('status', 'Booked')
             ->pluck('time')
             ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
             ->toArray();

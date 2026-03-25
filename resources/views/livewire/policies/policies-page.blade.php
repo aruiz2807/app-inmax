@@ -6,15 +6,15 @@
     <div>
         <x-ui.card size="full">
             <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
-                <span>Catalogo de polizas</span>
+                <span>Catalogo de membresías</span>
 
                 <x-ui.modal.trigger id="policy-modal" wire:click="resetForm">
                     <x-ui.button color="teal" icon="plus-circle">
-                        Registrar poliza
+                        Registrar membresías
                     </x-ui.button>
                 </x-ui.modal.trigger>
             </x-ui.heading>
-            <p>Resgistre y administre las polizas de los clientes</p>
+            <p>Resgistre y administre las membresías de los clientes</p>
         </x-ui.card>
     </div>
 
@@ -47,8 +47,8 @@
         id="policy-modal"
         animation="fade"
         width="2xl"
-        heading="{{ $policyId ? 'Editar poliza' : 'Nueva poliza' }}"
-        description="Ingrese la siguiente informacion para registrar la poliza"
+        heading="{{ $policyId ? 'Editar membresía' : 'Nueva membresía' }}"
+        description="Ingrese la siguiente informacion para registrar la membresía"
         x-on:close-policy-modal.window="$data.close()"
         x-on:open-policy-modal.window="$data.open()"
     >

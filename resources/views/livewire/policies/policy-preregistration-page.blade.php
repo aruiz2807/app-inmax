@@ -53,7 +53,7 @@
             </div>
         @elseif ($this->canRegister())
             <div class="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
-                Completa tus datos para terminar el registro de tu poliza. Al finalizar te mostraremos los siguientes pasos para activar tu membresia.
+                Completa tus datos para terminar el registro de tu membresía. Al finalizar te mostraremos los siguientes pasos para activarla.
             </div>
         @endif
 
@@ -61,8 +61,8 @@
             <div class="mb-4 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700">
                 <p><span class="font-semibold">Telefono:</span> {{ $preregistration->phone }}</p>
                 <p><span class="font-semibold">Tipo:</span> {{ $preregistration->type_label }}</p>
-                <p><span class="font-semibold">Cobertura:</span> {{ $preregistration->plan?->name }}</p>
-                <p><span class="font-semibold">Poliza principal:</span> {{ $preregistration->parentPolicy?->number ?: 'Sin poliza principal' }}</p>
+                <p><span class="font-semibold">Plan:</span> {{ $preregistration->plan?->name }}</p>
+                <p><span class="font-semibold">Membresía principal:</span> {{ $preregistration->parentPolicy?->number ?: 'Sin membresía principal' }}</p>
                 <p><span class="font-semibold">Promotor:</span> {{ $preregistration->salesUser?->name }}</p>
             </div>
         @endif
@@ -83,15 +83,15 @@
             <form wire:submit="save">
                 @include('livewire.policies.partials.individual-customer-fields', ['phoneReadonly' => true])
 
-                <x-ui.fieldset label="Informacion de la poliza" class="mt-2">
+                <x-ui.fieldset label="Informacion de la membresía" class="mt-2">
                     <x-ui.field>
-                        <x-ui.label>Cobertura</x-ui.label>
+                        <x-ui.label>Plan</x-ui.label>
                         <x-ui.input :value="$preregistration?->plan?->name" readonly copyable="false" />
                     </x-ui.field>
 
                     <x-ui.field>
-                        <x-ui.label>Poliza principal</x-ui.label>
-                        <x-ui.input :value="$preregistration?->parentPolicy?->number ?: 'Sin poliza principal'" readonly copyable="false" />
+                        <x-ui.label>Membresía principal</x-ui.label>
+                        <x-ui.input :value="$preregistration?->parentPolicy?->number ?: 'Sin membresía principal'" readonly copyable="false" />
                     </x-ui.field>
 
                     <x-ui.field>

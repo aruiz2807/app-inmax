@@ -71,7 +71,7 @@
                     <x-ui.label>Filtro tipo</x-ui.label>
                     <x-ui.select wire:model.live="filterPreregistrationType" placeholder="Todos">
                         <x-ui.select.option value="">Todos</x-ui.select.option>
-                        <x-ui.select.option value="individual_policy">Poliza individual</x-ui.select.option>
+                        <x-ui.select.option value="individual_policy">Membresía individual</x-ui.select.option>
                         <x-ui.select.option value="group_member">Miembro colectiva</x-ui.select.option>
                     </x-ui.select>
                 </x-ui.field>
@@ -110,11 +110,11 @@
                             <th class="text-left px-3 py-2 font-semibold">Telefono</th>
                             <th class="text-left px-3 py-2 font-semibold">Tipo</th>
                             <th class="text-left px-3 py-2 font-semibold">Cobertura</th>
-                            <th class="text-left px-3 py-2 font-semibold">Poliza padre</th>
+                            <th class="text-left px-3 py-2 font-semibold">Membresía padre</th>
                             <th class="text-left px-3 py-2 font-semibold">Promotor</th>
                             <th class="text-left px-3 py-2 font-semibold">Estatus</th>
                             <th class="text-left px-3 py-2 font-semibold">Vigencia</th>
-                            <th class="text-left px-3 py-2 font-semibold">Poliza creada</th>
+                            <th class="text-left px-3 py-2 font-semibold">Membresía creada</th>
                             <th class="text-left px-3 py-2 font-semibold">Opciones</th>
                         </tr>
                     </thead>
@@ -189,8 +189,8 @@
                 <x-ui.field required>
                     <x-ui.label>Tipo de preregistro</x-ui.label>
                     <x-ui.select wire:model.live="preregistrationType">
-                        <x-ui.select.option value="individual_policy">Poliza individual</x-ui.select.option>
-                        <x-ui.select.option value="group_member">Miembro de poliza colectiva</x-ui.select.option>
+                        <x-ui.select.option value="individual_policy">Membresía individual</x-ui.select.option>
+                        <x-ui.select.option value="group_member">Miembro de membresía colectiva</x-ui.select.option>
                     </x-ui.select>
                     <x-ui.error name="preregistrationType" />
                 </x-ui.field>
@@ -204,11 +204,11 @@
                 @if($preregistrationType === 'group_member')
                     <div wire:key="preregistration-group-member-fields">
                         <x-ui.field required>
-                            <x-ui.label>Poliza colectiva</x-ui.label>
+                            <x-ui.label>Membresía colectiva</x-ui.label>
                             <x-ui.select
                                 wire:key="preregistration-group-policy-select"
                                 wire:model.live="preregistrationParentPolicy"
-                                placeholder="Selecciona una poliza colectiva"
+                                placeholder="Selecciona una membresía colectiva"
                                 searchable
                             >
                                 @foreach($preregistrationGroupPolicies as $policy)
@@ -222,13 +222,13 @@
 
                         <x-ui.field>
                             <x-ui.label>Cobertura</x-ui.label>
-                            <x-ui.input :value="$this->selectedGroupPolicy?->plan?->name ?: 'Selecciona una poliza colectiva'" readonly copyable="false" />
+                            <x-ui.input :value="$this->selectedGroupPolicy?->plan?->name ?: 'Selecciona una membresía colectiva'" readonly copyable="false" />
                         </x-ui.field>
 
                         @if($this->selectedGroupPolicyCapacity)
                             <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
                                 <p class="font-semibold">
-                                    Cupo de la poliza {{ $this->selectedGroupPolicy?->number }}
+                                    Cupo de la membresía {{ $this->selectedGroupPolicy?->number }}
                                 </p>
                                 <p class="mt-2">
                                     Total: {{ $this->selectedGroupPolicyCapacity['total_slots'] }}
@@ -259,11 +259,11 @@
                         </x-ui.field>
 
                         <x-ui.field>
-                            <x-ui.label>Poliza principal</x-ui.label>
+                            <x-ui.label>Membresía principal</x-ui.label>
                             <x-ui.select
                                 wire:key="preregistration-individual-parent-policy-select"
                                 wire:model="preregistrationParentPolicy"
-                                placeholder="Sin poliza principal"
+                                placeholder="Sin membresía principal"
                                 searchable
                             >
                                 @foreach($preregistrationParentPolicies as $policy)

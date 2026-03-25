@@ -94,11 +94,11 @@
             </x-ui.field>
         </x-ui.fieldset>
 
-        <x-ui.fieldset label="Información de la poliza" class="mt-2">
+        <x-ui.fieldset label="Información de la membresía" class="mt-2">
             <x-ui.field required>
-                <x-ui.label>Cobertura</x-ui.label>
+                <x-ui.label>Plan</x-ui.label>
                 <x-ui.select
-                    placeholder="Buscar cobertura..."
+                    placeholder="Buscar plan..."
                     icon="wallet"
                     searchable
                     wire:model="form.plan">
@@ -112,7 +112,7 @@
             </x-ui.field>
 
             <x-ui.field required>
-                <x-ui.label>Cantidad de asegurados</x-ui.label>
+                <x-ui.label>Cantidad de miembros</x-ui.label>
                 <x-ui.input wire:model="form.members" name="members" type="number" max="99" min="10" />
                 <x-ui.error name="form.members" />
             </x-ui.field>

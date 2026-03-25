@@ -2,11 +2,11 @@
     <form wire:submit="save">
         @include('livewire.policies.partials.individual-customer-fields')
 
-        <x-ui.fieldset label="Información de la poliza" class="mt-2">
+        <x-ui.fieldset label="Información de la membresía" class="mt-2">
             <x-ui.field required>
-                <x-ui.label>Cobertura</x-ui.label>
+                <x-ui.label>Plan</x-ui.label>
                 <x-ui.select
-                    placeholder="Buscar cobertura..."
+                    placeholder="Buscar plan..."
                     icon="wallet"
                     :class="$form->addingMember ? 'pointer-events-none opacity-50' : ''"
                     searchable
@@ -21,9 +21,9 @@
             </x-ui.field>
 
             <x-ui.field>
-                <x-ui.label>Poliza principal</x-ui.label>
+                <x-ui.label>Membresía principal</x-ui.label>
                 <x-ui.select
-                    placeholder="Buscar poliza..."
+                    placeholder="Buscar membresía..."
                     icon="wallet"
                     :class="$form->addingMember ? 'pointer-events-none opacity-50' : ''"
                     searchable

@@ -12,7 +12,7 @@
     </x-ui.text>
 
     <x-ui.text class="mb-4 font-semibold text-base">
-        Número de poliza: {{$policy_number}}
+        Número de membresía: {{$policy_number}}
     </x-ui.text>
 
     @if(!$reactivation)
