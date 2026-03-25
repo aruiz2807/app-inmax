@@ -9,9 +9,12 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PoliciesPage extends Component
 {
+    use WithFileUploads;
+
     public ?int $policyId = null;
 
     public ?string $policyType = null;
@@ -27,6 +30,11 @@ class PoliciesPage extends Component
     public ?string $lastPinSetupName = null;
 
     public ?string $lastPinSetupPhone = null;
+
+    public $payment_method = null;
+    public $payment_reference = null;
+    public $payment_attachment = null;
+    public $reactivation = false;
 
     #[Layout('layouts.app')]
     public function render()
@@ -63,6 +71,12 @@ class PoliciesPage extends Component
         $this->policyId = $policyId;
         $this->policy_number = $policy->number;
         $this->policy_user_name = $policy->user->name;
+        $this->payment_method = $policy->payment_method;
+        $this->payment_reference = $policy->payment_reference;
+
+        if($policy->payment_method){
+            $this->reactivation = true;
+        }
 
         $this->dispatch('open-activation-modal');
     }
@@ -108,30 +122,49 @@ class PoliciesPage extends Component
             return;
         }
 
-        $start = Carbon::now()->addDays(5);
-        $end = Carbon::now()->addDays(5)->addYear();
+        if(!$this->reactivation)
+        {
+            $start = Carbon::now()->addDays(5);
+            $end = Carbon::now()->addDays(5)->addYear();
 
-        $policy->update([
-            'status' => 'Active',
-            'start_date' => $start,
-            'end_date' => $end,
-        ]);
+            $file = $this->payment_attachment;
+            $path = $file->store('attachments');
+            $originalName = $file->getClientOriginalName();
 
-        $purpose = $policy->user->pin_set_at
-            ? PinSetupTokenService::PURPOSE_RESET
-            : PinSetupTokenService::PURPOSE_ACTIVATION;
+            $policy->update([
+                'status' => 'Active',
+                'start_date' => $start,
+                'end_date' => $end,
+                'payment_method' => $this->payment_method,
+                'payment_reference' => $this->payment_reference,
+                'payment_file_path' => $path,
+                'payment_file_name' => $originalName,
+            ]);
 
-        $result = $tokenService->generateSetupLink($policy->user, Auth::user(), $purpose);
+            $purpose = $policy->user->pin_set_at
+                ? PinSetupTokenService::PURPOSE_RESET
+                : PinSetupTokenService::PURPOSE_ACTIVATION;
 
-        $this->lastPinSetupUrl = $result['url'];
-        $this->lastPinSetupName = $policy->user->name;
-        $this->lastPinSetupPhone = $policy->user->phone;
+            $result = $tokenService->generateSetupLink($policy->user, Auth::user(), $purpose);
 
-        $content = match (true) {
-            ($result['whatsapp']['ok'] ?? false) => 'Poliza activada y enlace de PIN enviado por WhatsApp.',
-            ($result['whatsapp']['attempted'] ?? false) => 'Poliza activada. No se pudo enviar WhatsApp, enlace disponible para prueba.',
-            default => 'Poliza activada. Falta configurar WhatsApp, enlace disponible para prueba.',
-        };
+            $this->lastPinSetupUrl = $result['url'];
+            $this->lastPinSetupName = $policy->user->name;
+            $this->lastPinSetupPhone = $policy->user->phone;
+
+            $content = match (true) {
+                ($result['whatsapp']['ok'] ?? false) => 'Poliza activada y enlace de PIN enviado por WhatsApp.',
+                ($result['whatsapp']['attempted'] ?? false) => 'Poliza activada. No se pudo enviar WhatsApp, enlace disponible para prueba.',
+                default => 'Poliza activada. Falta configurar WhatsApp, enlace disponible para prueba.',
+            };
+        }
+        else
+        {
+            $policy->update([
+                'status' => 'Active',
+            ]);
+
+            $content = 'Poliza reactivada exitosamente!';
+        }
 
         $this->dispatch(
             'notify',
@@ -139,6 +172,10 @@ class PoliciesPage extends Component
             content: $content,
             duration: 4000
         );
+
+        $this->payment_method = null;
+        $this->payment_reference = null;
+        $this->payment_attachment = null;
 
         $this->dispatch('close-activation-modal');
         $this->dispatch('pg:eventRefresh-policiesTable');
