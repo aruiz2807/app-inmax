@@ -88,6 +88,14 @@
                             :collapsable="true"
                         >
                             <x-ui.navlist.item
+                                icon="building-office"
+                                :label="__('app.offices')"
+                                href="{{ route('offices') }}"
+                                :active="request()->routeIs('offices')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
                                 icon="wallet"
                                 :label="__('app.services')"
                                 href="{{ route('services') }}"

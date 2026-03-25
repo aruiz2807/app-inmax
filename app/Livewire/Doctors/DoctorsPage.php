@@ -6,6 +6,7 @@ use App\Enums\DoctorType;
 use App\Livewire\Forms\DoctorsForm;
 use App\Models\Doctor;
 use App\Models\Specialty;
+use App\Models\Office;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -15,6 +16,7 @@ class DoctorsPage extends Component
     public DoctorsForm $form;
     public ?int $doctorId = null;
     public $specialties = [];
+    public $offices = [];
     public $types = [];
 
     #[Layout('layouts.app')]
@@ -26,6 +28,7 @@ class DoctorsPage extends Component
     public function mount()
     {
         $this->specialties = Specialty::orderBy('name')->get();
+        $this->offices = Office::orderBy('name')->get();
         $this->types = DoctorType::cases();
     }
 
