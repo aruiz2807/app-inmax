@@ -29,7 +29,7 @@
 
                 <p class="text-sm mt-2">
                     Telefono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
-                    | Cobertura: <span class="font-semibold">{{ $lastPreregistrationPlanName }}</span>
+                    | Plan: <span class="font-semibold">{{ $lastPreregistrationPlanName }}</span>
                 </p>
 
                 <p class="text-sm mt-1 text-slate-600">
@@ -56,7 +56,7 @@
                 </x-ui.field>
 
                 <x-ui.field>
-                    <x-ui.label>Filtro cobertura</x-ui.label>
+                    <x-ui.label>Filtro plan</x-ui.label>
                     <x-ui.select wire:model.live="filterPreregistrationPlan" placeholder="Todas">
                         <x-ui.select.option value="">Todas</x-ui.select.option>
                         @foreach($preregistrationFilterPlans as $plan)
@@ -109,7 +109,7 @@
                         <tr>
                             <th class="text-left px-3 py-2 font-semibold">Telefono</th>
                             <th class="text-left px-3 py-2 font-semibold">Tipo</th>
-                            <th class="text-left px-3 py-2 font-semibold">Cobertura</th>
+                            <th class="text-left px-3 py-2 font-semibold">Plan</th>
                             <th class="text-left px-3 py-2 font-semibold">Membresía padre</th>
                             <th class="text-left px-3 py-2 font-semibold">Promotor</th>
                             <th class="text-left px-3 py-2 font-semibold">Estatus</th>
@@ -180,7 +180,7 @@
         animation="fade"
         width="2xl"
         heading="{{ $preregistrationId ? 'Editar preregistro' : 'Nuevo preregistro' }}"
-        description="Captura el telefono y la cobertura para enviar la invitacion de registro"
+        description="Captura el telefono y el plan para enviar la invitacion de registro"
         x-on:close-preregistration-modal.window="$data.close()"
         x-on:open-preregistration-modal.window="$data.open()"
     >
@@ -221,7 +221,7 @@
                         </x-ui.field>
 
                         <x-ui.field>
-                            <x-ui.label>Cobertura</x-ui.label>
+                            <x-ui.label>Plan</x-ui.label>
                             <x-ui.input :value="$this->selectedGroupPolicy?->plan?->name ?: 'Selecciona una membresía colectiva'" readonly copyable="false" />
                         </x-ui.field>
 
@@ -242,11 +242,11 @@
                 @else
                     <div wire:key="preregistration-individual-fields">
                         <x-ui.field required>
-                            <x-ui.label>Cobertura</x-ui.label>
+                            <x-ui.label>Plan</x-ui.label>
                             <x-ui.select
                                 wire:key="preregistration-individual-plan-select"
                                 wire:model="preregistrationPlan"
-                                placeholder="Selecciona una cobertura"
+                                placeholder="Selecciona un plan"
                                 searchable
                             >
                                 @foreach($preregistrationPlans as $plan)

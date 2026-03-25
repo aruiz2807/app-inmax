@@ -4,7 +4,7 @@
     animation="fade"
     width="2xl"
     heading="Incluir beneficios"
-    description="Seleccione los beneficios que incluira la cobertura"
+    description="Seleccione los beneficios que incluira el plan"
     x-on:close-plan-benefits-modal.window="$data.close()"
     x-on:open-plan-benefits-modal.window="$data.open()"
     >

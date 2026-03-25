@@ -14,7 +14,7 @@
                     </x-ui.button>
                 </x-ui.modal.trigger>
             </x-ui.heading>
-            <p>Administre los servicios que pueden ser incluidos en las coberturas</p>
+            <p>Administre los servicios que pueden ser incluidos en los planes</p>
         </x-ui.card>
     </div>
 
