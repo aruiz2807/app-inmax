@@ -233,7 +233,7 @@
                                 <p class="mt-2">
                                     Total: {{ $this->selectedGroupPolicyCapacity['total_slots'] }}
                                     | Registrados: {{ $this->selectedGroupPolicyCapacity['registered_members'] }}
-                                    | Reservados: {{ $this->selectedGroupPolicyCapacity['pending_preregistrations'] }}
+                                    | Preregistros: {{ $this->selectedGroupPolicyCapacity['pending_preregistrations'] }}
                                     | Disponibles: {{ $this->selectedGroupPolicyCapacity['available_slots'] }}
                                 </p>
                             </div>
