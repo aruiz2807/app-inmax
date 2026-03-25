@@ -77,8 +77,10 @@
                             element: option
                         }));
 
-                    // Initialize state from x-model or wire:model binding
-                    this.state = this.$root?._x_model?.get();
+                    // Only initialize from Alpine x-model when there is no Livewire wire:model binding.
+                    if (!@js($model) && this.$root?._x_model?.get) {
+                        this.state = this.$root._x_model.get();
+                    }
                 });
 
                 this.$watch('state', (value) => {
