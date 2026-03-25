@@ -35,6 +35,7 @@ use App\Livewire\Policies\PolicyPreregistrationPage;
 use App\Livewire\Policies\PolicyPreregistrationsPage;
 use App\Livewire\Policies\PoliciesPage;
 use App\Livewire\Services\ServicesPage;
+use App\Livewire\Offices\OfficesPage;
 use App\Livewire\Settings\LegalSettingsPage;
 use App\Livewire\Settings\ParametersPage;
 use App\Livewire\Settings\WhatsAppSettingsPage;
@@ -82,6 +83,8 @@ Route::middleware([
 
         Route::get('/appointments', AppointmentsPage::class)->name('appointments');
 
+        Route::get('/offices', OfficesPage::class)->name('offices');
+        
         Route::get('/services', ServicesPage::class)->name('services');
 
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');

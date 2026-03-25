@@ -34,7 +34,7 @@ class DoctorsForm extends Form
     public $university = '';
 
     #[Validate('required')]
-    public $office_id = 1;
+    public $office = '';
 
     #[Validate('required')]
     public $address = '';
@@ -82,7 +82,7 @@ class DoctorsForm extends Form
             'type' => $this->type,
             'license' => $this->license,
             'university' => $this->university,
-            'office_id' => 1,
+            'office_id' => $this->office,
             'address' => $this->address,
             'maps_url' => $this->maps_url,
             'discount' => $this->discount,
@@ -119,7 +119,7 @@ class DoctorsForm extends Form
         $this->specialty = (string) $doctor->specialty_id;
         $this->license = $doctor->license;
         $this->university = $doctor->university;
-        $this->office_id = $doctor->office_id;
+        $this->office = (string) $doctor->office_id;
         $this->address = $doctor->address;
         $this->maps_url = $doctor->maps_url;
         $this->discount = $doctor->discount;
@@ -147,7 +147,7 @@ class DoctorsForm extends Form
             'specialty_id' => $this->specialty,
             'license' => $this->license,
             'university' => $this->university,
-            'office_id' => $this->office_id,
+            'office_id' => $this->office,
             'address' => $this->address,
             'maps_url' => $this->maps_url,
             'discount' => $this->discount,

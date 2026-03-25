@@ -102,8 +102,18 @@
 
                 <x-ui.field required>
                     <x-ui.label>Consultorio</x-ui.label>
-                    <x-ui.input wire:model="form.office_name" name="office_name" />
-                    <x-ui.error name="form.office_name" />
+                    <x-ui.select
+                        placeholder="Buscar consultorio..."
+                        icon="building-office"
+                        searchable
+                        wire:model="form.office">
+                            @foreach($offices as $office)
+                                <x-ui.select.option value="{{ $office->id }}">
+                                    {{ $office->name }}
+                                </x-ui.select.option>
+                            @endforeach
+                    </x-ui.select>
+                    <x-ui.error name="form.office" />
                 </x-ui.field>
 
                 <x-ui.field required>

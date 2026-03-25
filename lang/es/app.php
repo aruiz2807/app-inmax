@@ -12,12 +12,12 @@ return [
     'user' => 'Miembro',
 
 
-
     'settings' => 'Configuraciones',
     'services' => 'Servicios',
     'specialties' => 'Especialidades',
     'plans' => 'Planes',
     'parameters' => 'Parametros',
+    'offices' => 'Consultorios',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',
