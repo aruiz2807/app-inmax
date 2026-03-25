@@ -168,7 +168,8 @@
                             <x-ui.button class="w-40 mr-1" wire:click="notes({{ $past->id }})" variant="outline" color="blue" icon="clipboard">
                                 Nota medica
                             </x-ui.button>
-                            @if($past->doctor->type === 'Doctor')
+
+                            @if($past->doctor->type === \App\Enums\DoctorType::Doctor)
                             <x-ui.button class="w-40 ml-1" wire:click="print({{ $past->id }})" variant="outline" color="indigo" icon="document">
                                 Receta digital
                             </x-ui.button>

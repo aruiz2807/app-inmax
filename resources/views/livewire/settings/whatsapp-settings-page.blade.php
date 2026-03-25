@@ -63,6 +63,12 @@
                     </x-ui.field>
 
                     <x-ui.field required>
+                        <x-ui.label>Plantilla finalizacion cita</x-ui.label>
+                        <x-ui.input wire:model="appointmentCompletedTemplateName" placeholder="appointment_completed_template" />
+                        <x-ui.error name="appointmentCompletedTemplateName" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
                         <x-ui.label>Idioma por defecto</x-ui.label>
                         <x-ui.input wire:model="defaultLanguage" placeholder="es_MX" />
                         <x-ui.error name="defaultLanguage" />

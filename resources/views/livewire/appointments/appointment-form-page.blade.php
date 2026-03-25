@@ -75,7 +75,7 @@
                 <x-ui.text class="text-lg">{{ $service['name'] }}</x-ui.text>
 
                 @if($service['included'])
-                    <x-ui.text class="text-sm opacity-50">Servicio cubierto en su plan</x-ui.text>
+                    <x-ui.text class="text-sm opacity-50">Servicio incluido en su plan</x-ui.text>
                 @else
                     <x-ui.text class="text-sm opacity-50">Servicio con precio preferencial</x-ui.text>
                 @endif

@@ -29,7 +29,7 @@
         'No-show' => __('No Asistio'),
         'Completed' => __('Atendida'),
 
-        '1' => __('Cubierta'),
+        '1' => __('Incluido'),
         '0' => __('Adicional'),
     ];
 @endphp

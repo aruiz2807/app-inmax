@@ -21,7 +21,7 @@
 
                 <a href="#" class="w-5/6 mt-8 mb-6 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                        <x-ui.text>Poliza : </x-ui.text>
+                        <x-ui.text>Membresía : </x-ui.text>
                         <x-ui.text class="font-semibold">{{$user->policy->number}}</x-ui.text>
                     </div>
 

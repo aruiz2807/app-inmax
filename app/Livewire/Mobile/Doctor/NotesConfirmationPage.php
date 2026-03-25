@@ -20,9 +20,9 @@ class NotesConfirmationPage extends Component
 
     public function mount()
     {
-        $noteId = 6; session('appointment_note_id');
+        $noteId = session('appointment_note_id');
 
-        // abort_unless($noteId, 404);
+        abort_unless($noteId, 404);
 
         $this->note = AppointmentNote::where('id', $noteId)->firstOrFail();
     }

@@ -30,7 +30,7 @@
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Poliza : </x-ui.text>
+                    <x-ui.text>Membresía : </x-ui.text>
                     <x-ui.text class="font-semibold">{{ $note->appointment->user->policy->number }}</x-ui.text>
                 </div>
 

@@ -12,7 +12,7 @@
         <x-ui.card size="full">
             <x-ui.heading class="flex justify-center" level="h3" size="sm">
                 <x-ui.icon name="shield-check" class="self-center" />
-                <x-ui.text class="text-lg ml-2">Uso de la poliza</x-ui.text>
+                <x-ui.text class="text-lg ml-2">Uso de la Membresía</x-ui.text>
             </x-ui.heading>
 
             <div class="flex justify-center pt-2">

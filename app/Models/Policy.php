@@ -55,7 +55,7 @@ class Policy extends Model
      */
     protected function getStatusTextAttribute()
     {
-        return $this->status === 'Active' ? 'Cobertura activa' : 'Cobertura inactiva';
+        return $this->status === 'Active' ? 'Membresía activa' : 'Membresía inactiva';
     }
 
     /**

@@ -65,7 +65,7 @@
                             <x-ui.text class="text-lg">{{ $service['name'] }}</x-ui.text>
 
                             @if($service['included'])
-                                <x-ui.text class="text-sm opacity-50">Servicio cubierto</x-ui.text>
+                                <x-ui.text class="text-sm opacity-50">Servicio incluido</x-ui.text>
                             @else
                                 <x-ui.text class="text-sm opacity-50">Servicio adicional</x-ui.text>
                             @endif

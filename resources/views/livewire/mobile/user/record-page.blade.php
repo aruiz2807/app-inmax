@@ -5,7 +5,7 @@
 
     <div class="grid grid-cols-[2rem_auto] justify-stretch items-center pt-4 pb-4">
         <x-ui.icon name="arrow-left" class="w-5 h-5 cursor-pointer" x-on:click="window.history.back()" />
-        <x-ui.text class="text-2xl">Expediente medico</x-ui.text>
+        <x-ui.text class="text-2xl">Historial medico</x-ui.text>
     </div>
 
     <div class="relative w-full">
@@ -68,7 +68,7 @@
                     </div>
                 </x-ui.accordion.item>
 
-                <x-ui.accordion.item trigger="Imagenologia y estudios">
+                <x-ui.accordion.item trigger="Imagenología y estudios">
                     <div class="flex flex-col justify-center p-3 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                         @if($exams->isEmpty())
                         <x-ui.text class="text-base">No hay estudios</x-ui.text>

@@ -58,6 +58,6 @@ class AppointmentService extends Model
      */
     protected function getCoveredTextAttribute()
     {
-        return $this->covered ? 'Cubierto' : 'Adicional';
+        return $this->covered ? 'Incluido' : 'Adicional';
     }
 }
