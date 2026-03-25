@@ -108,6 +108,7 @@ class PolicyPreregistrationPage extends Component
             return;
         }
 
+        $this->form->addingMember = $preregistration->isGroupMember();
         $this->form->phone = $preregistration->phone;
         $this->form->plan = (string) $preregistration->plan_id;
         $this->form->parent_policy = $preregistration->parent_policy_id

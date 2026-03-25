@@ -7,9 +7,12 @@ use App\Models\Plan;
 use App\Models\Policy;
 use App\Models\User;
 use App\Services\Auth\PinSetupTokenService;
+use App\Services\Policies\GroupPolicyCapacityService;
 use App\Services\Policies\IndividualPolicyRegistrationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -78,7 +81,8 @@ class IndividualPolicyPage extends Component
 
     public function save(
         IndividualPolicyRegistrationService $registrationService,
-        PinSetupTokenService $tokenService
+        PinSetupTokenService $tokenService,
+        GroupPolicyCapacityService $groupPolicyCapacityService
     )
     {
         if($this->policyId and !$this->member)
@@ -89,6 +93,16 @@ class IndividualPolicyPage extends Component
         }
         else
         {
+            if ($this->member && $this->form->parent_policy) {
+                try {
+                    $groupPolicyCapacityService->assertHasAvailableSlot((int) $this->form->parent_policy);
+                } catch (InvalidArgumentException $exception) {
+                    throw ValidationException::withMessages([
+                        'form.parent_policy' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
             $policy = $this->form->store($registrationService);
             $result = $tokenService->generateSetupLink(
                 $policy->user,
@@ -141,6 +155,7 @@ class IndividualPolicyPage extends Component
     public function resetForm()
     {
         $this->form->reset();
+        $this->form->addingMember = false;
         $this->member = false;
         $this->policyId = null;
     }

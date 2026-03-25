@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PolicyPreregistration extends Model
 {
+    public const TYPE_INDIVIDUAL_POLICY = 'individual_policy';
+
+    public const TYPE_GROUP_MEMBER = 'group_member';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -18,6 +22,7 @@ class PolicyPreregistration extends Model
         'sales_user_id',
         'plan_id',
         'parent_policy_id',
+        'preregistration_type',
         'phone',
         'token_hash',
         'expires_at',
@@ -82,6 +87,24 @@ class PolicyPreregistration extends Model
     public function canBeManaged(): bool
     {
         return $this->used_at === null && $this->cancelled_at === null;
+    }
+
+    /**
+     * Human readable preregistration type.
+     */
+    public function getTypeLabelAttribute(): string
+    {
+        return $this->isGroupMember()
+            ? 'Miembro colectiva'
+            : 'Poliza individual';
+    }
+
+    /**
+     * Determine whether the preregistration reserves a collective member slot.
+     */
+    public function isGroupMember(): bool
+    {
+        return $this->preregistration_type === self::TYPE_GROUP_MEMBER;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\Policy;
 use App\Models\PolicyPreregistration;
 use App\Models\User;
 use App\Models\WhatsAppSetting;
+use App\Services\Policies\GroupPolicyCapacityService;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Services\WhatsApp\WhatsAppDestinationResolver;
 use Illuminate\Support\Carbon;
@@ -29,7 +30,8 @@ class PolicyPreregistrationService
 
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService,
-        private readonly WhatsAppDestinationResolver $destinationResolver
+        private readonly WhatsAppDestinationResolver $destinationResolver,
+        private readonly GroupPolicyCapacityService $groupPolicyCapacityService
     ) {}
 
     /**
@@ -47,17 +49,17 @@ class PolicyPreregistrationService
         string $phone,
         int $planId,
         ?int $parentPolicyId = null,
+        string $preregistrationType = PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
         bool $deliverWhatsApp = true
     ): array {
         $normalizedPhone = $this->normalizePhone($phone);
         $this->assertPhoneAvailable($normalizedPhone);
-        $plan = $this->resolvePlan($planId);
-        $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
-        $token = $this->createToken(
+        [$plan, $parentPolicy, $token] = $this->prepareInvitationCreation(
             salesUser: $salesUser,
-            plan: $plan,
-            parentPolicy: $parentPolicy,
-            phone: $normalizedPhone
+            phone: $normalizedPhone,
+            planId: $planId,
+            parentPolicyId: $parentPolicyId,
+            preregistrationType: $preregistrationType,
         );
 
         return $this->buildInvitationResponse(
@@ -86,20 +88,20 @@ class PolicyPreregistrationService
         string $phone,
         int $planId,
         ?int $parentPolicyId = null,
+        string $preregistrationType = PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
         bool $deliverWhatsApp = true
     ): array {
         $this->assertCanManage($preregistration, 'editar');
 
         $normalizedPhone = $this->normalizePhone($phone);
         $this->assertPhoneAvailable($normalizedPhone, $preregistration->id);
-        $plan = $this->resolvePlan($planId);
-        $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
-        $token = $this->refreshToken(
+        [$plan, $parentPolicy, $token] = $this->prepareInvitationUpdate(
             preregistration: $preregistration,
             salesUser: $salesUser,
-            plan: $plan,
-            parentPolicy: $parentPolicy,
-            phone: $normalizedPhone
+            phone: $normalizedPhone,
+            planId: $planId,
+            parentPolicyId: $parentPolicyId,
+            preregistrationType: $preregistrationType,
         );
 
         return $this->buildInvitationResponse(
@@ -202,17 +204,24 @@ class PolicyPreregistrationService
      *
      * @return array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}
      */
-    private function createToken(User $salesUser, Plan $plan, ?Policy $parentPolicy, string $phone): array
+    private function createToken(
+        User $salesUser,
+        Plan $plan,
+        ?Policy $parentPolicy,
+        string $phone,
+        string $preregistrationType
+    ): array
     {
         $now = now();
         $expiresAt = $now->copy()->addMinutes((int) config('auth.policy_preregistration.ttl', 10080));
         $plainTextToken = Str::random(64);
 
-        $preregistration = DB::transaction(function () use ($salesUser, $plan, $parentPolicy, $phone, $expiresAt, $plainTextToken) {
+        $preregistration = DB::transaction(function () use ($salesUser, $plan, $parentPolicy, $phone, $expiresAt, $plainTextToken, $preregistrationType) {
             return PolicyPreregistration::query()->create([
                 'sales_user_id' => $salesUser->id,
                 'plan_id' => $plan->id,
                 'parent_policy_id' => $parentPolicy?->id,
+                'preregistration_type' => $preregistrationType,
                 'phone' => $phone,
                 'token_hash' => hash('sha256', $plainTextToken),
                 'expires_at' => $expiresAt,
@@ -236,7 +245,8 @@ class PolicyPreregistrationService
         User $salesUser,
         Plan $plan,
         ?Policy $parentPolicy,
-        string $phone
+        string $phone,
+        string $preregistrationType
     ): array {
         $expiresAt = now()->addMinutes((int) config('auth.policy_preregistration.ttl', 10080));
         $plainTextToken = Str::random(64);
@@ -245,6 +255,7 @@ class PolicyPreregistrationService
             'sales_user_id' => $salesUser->id,
             'plan_id' => $plan->id,
             'parent_policy_id' => $parentPolicy?->id,
+            'preregistration_type' => $preregistrationType,
             'phone' => $phone,
             'token_hash' => hash('sha256', $plainTextToken),
             'expires_at' => $expiresAt,
@@ -344,6 +355,23 @@ class PolicyPreregistrationService
     }
 
     /**
+     * Resolve a group-member preregistration target and validate its capacity.
+     *
+     * @return array{0: Plan, 1: Policy}
+     */
+    private function resolveGroupMemberTarget(?int $parentPolicyId, ?int $ignorePreregistrationId = null): array
+    {
+        if (! $parentPolicyId) {
+            throw new InvalidArgumentException('Selecciona la poliza colectiva a la que pertenece el miembro.');
+        }
+
+        $groupPolicy = $this->groupPolicyCapacityService->resolveGroupPolicy($parentPolicyId, true);
+        $this->groupPolicyCapacityService->assertHasAvailableSlot($groupPolicy, $ignorePreregistrationId);
+
+        return [$groupPolicy->plan, $groupPolicy];
+    }
+
+    /**
      * Validate the selected parent policy when present.
      */
     private function resolveParentPolicy(?int $parentPolicyId): ?Policy
@@ -362,6 +390,101 @@ class PolicyPreregistrationService
         }
 
         return $policy;
+    }
+
+    /**
+     * Prepare individual or collective preregistration creation.
+     *
+     * @return array{0: Plan, 1: Policy|null, 2: array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}}
+     */
+    private function prepareInvitationCreation(
+        User $salesUser,
+        string $phone,
+        int $planId,
+        ?int $parentPolicyId,
+        string $preregistrationType
+    ): array {
+        if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_MEMBER) {
+            return DB::transaction(function () use ($salesUser, $phone, $parentPolicyId, $preregistrationType) {
+                [$plan, $parentPolicy] = $this->resolveGroupMemberTarget($parentPolicyId);
+
+                return [
+                    $plan,
+                    $parentPolicy,
+                    $this->createToken(
+                        salesUser: $salesUser,
+                        plan: $plan,
+                        parentPolicy: $parentPolicy,
+                        phone: $phone,
+                        preregistrationType: $preregistrationType
+                    ),
+                ];
+            });
+        }
+
+        $plan = $this->resolvePlan($planId);
+        $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
+
+        return [
+            $plan,
+            $parentPolicy,
+            $this->createToken(
+                salesUser: $salesUser,
+                plan: $plan,
+                parentPolicy: $parentPolicy,
+                phone: $phone,
+                preregistrationType: $preregistrationType
+            ),
+        ];
+    }
+
+    /**
+     * Prepare individual or collective preregistration update.
+     *
+     * @return array{0: Plan, 1: Policy|null, 2: array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}}
+     */
+    private function prepareInvitationUpdate(
+        PolicyPreregistration $preregistration,
+        User $salesUser,
+        string $phone,
+        int $planId,
+        ?int $parentPolicyId,
+        string $preregistrationType
+    ): array {
+        if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_MEMBER) {
+            return DB::transaction(function () use ($preregistration, $salesUser, $phone, $parentPolicyId, $preregistrationType) {
+                [$plan, $parentPolicy] = $this->resolveGroupMemberTarget($parentPolicyId, $preregistration->id);
+
+                return [
+                    $plan,
+                    $parentPolicy,
+                    $this->refreshToken(
+                        preregistration: $preregistration,
+                        salesUser: $salesUser,
+                        plan: $plan,
+                        parentPolicy: $parentPolicy,
+                        phone: $phone,
+                        preregistrationType: $preregistrationType
+                    ),
+                ];
+            });
+        }
+
+        $plan = $this->resolvePlan($planId);
+        $parentPolicy = $this->resolveParentPolicy($parentPolicyId);
+
+        return [
+            $plan,
+            $parentPolicy,
+            $this->refreshToken(
+                preregistration: $preregistration,
+                salesUser: $salesUser,
+                plan: $plan,
+                parentPolicy: $parentPolicy,
+                phone: $phone,
+                preregistrationType: $preregistrationType
+            ),
+        ];
     }
 
     /**

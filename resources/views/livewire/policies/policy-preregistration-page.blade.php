@@ -60,6 +60,7 @@
         @if ($preregistration)
             <div class="mb-4 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700">
                 <p><span class="font-semibold">Telefono:</span> {{ $preregistration->phone }}</p>
+                <p><span class="font-semibold">Tipo:</span> {{ $preregistration->type_label }}</p>
                 <p><span class="font-semibold">Cobertura:</span> {{ $preregistration->plan?->name }}</p>
                 <p><span class="font-semibold">Poliza principal:</span> {{ $preregistration->parentPolicy?->number ?: 'Sin poliza principal' }}</p>
                 <p><span class="font-semibold">Promotor:</span> {{ $preregistration->salesUser?->name }}</p>

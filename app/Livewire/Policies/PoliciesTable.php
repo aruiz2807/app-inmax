@@ -3,6 +3,7 @@
 namespace App\Livewire\Policies;
 
 use App\Models\Policy;
+use App\Models\PolicyPreregistration;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -158,6 +159,16 @@ final class PoliciesTable extends PowerGridComponent
                 ->id()
                 ->class('w-24 bg-teal-600 text-white px-3 py-1 rounded')
                 ->dispatch('addMember', ['policyId' => $row->id]),
+
+            Button::add('group_preregistration')
+                ->slot('Preregistro')
+                ->id()
+                ->class('w-24 bg-sky-600 text-white px-3 py-1 rounded')
+                ->route('preregistrations', [
+                    'type' => PolicyPreregistration::TYPE_GROUP_MEMBER,
+                    'parent_policy' => $row->id,
+                    'open' => 1,
+                ]),
         ];
     }
 
@@ -184,6 +195,10 @@ final class PoliciesTable extends PowerGridComponent
                     ->when(fn($model) => $model->type !== 'Group' || $model->parent_policy_id)
                     ->hide(),
 
+                Rule::button('group_preregistration')
+                    ->when(fn($model) => $model->type !== 'Group' || $model->parent_policy_id || $model->status === 'Cancelled')
+                    ->hide(),
+
             ];
         }
 
@@ -203,6 +218,10 @@ final class PoliciesTable extends PowerGridComponent
 
             Rule::button('members')
                 ->when(fn($model) => $model->type !== 'Group' || $model->parent_policy_id)
+                ->hide(),
+
+            Rule::button('group_preregistration')
+                ->when(fn($model) => $model->type !== 'Group' || $model->parent_policy_id || $model->status === 'Cancelled')
                 ->hide(),
 
         ];
