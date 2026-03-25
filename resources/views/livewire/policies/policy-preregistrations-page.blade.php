@@ -176,6 +176,7 @@
 
     <x-ui.modal
         id="preregistration-modal"
+        wire:ignore.self
         animation="fade"
         width="2xl"
         heading="{{ $preregistrationId ? 'Editar preregistro' : 'Nuevo preregistro' }}"
