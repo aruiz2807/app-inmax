@@ -506,6 +506,35 @@ class PolicyPreregistrationTest extends TestCase
         ]);
     }
 
+    public function test_inactive_group_members_do_not_consume_collective_capacity(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+
+        $inactiveMember = $this->createGroupMemberPolicy($groupPolicy, $groupPlan, '3310000058');
+        $inactiveMember->update([
+            'status' => 'Inactive',
+        ]);
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PolicyPreregistrationsPage::class)
+            ->set('preregistrationType', PolicyPreregistration::TYPE_GROUP_MEMBER)
+            ->set('preregistrationPhone', '3310000059')
+            ->set('preregistrationParentPolicy', (string) $groupPolicy->id)
+            ->call('savePreregistration')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('policy_preregistrations', [
+            'parent_policy_id' => $groupPolicy->id,
+            'phone' => '3310000059',
+            'preregistration_type' => PolicyPreregistration::TYPE_GROUP_MEMBER,
+        ]);
+    }
+
     public function test_group_member_preregistration_page_creates_member_policy_under_collective_parent(): void
     {
         Storage::fake('public');

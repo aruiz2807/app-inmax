@@ -51,7 +51,7 @@ class GroupPolicyCapacityService
 
         $registeredMembers = Policy::query()
             ->where('parent_policy_id', $policy->id)
-            ->where('status', '!=', 'Cancelled')
+            ->where('status', 'Active')
             ->count();
 
         $pendingPreregistrations = PolicyPreregistration::query()
