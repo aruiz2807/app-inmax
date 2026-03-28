@@ -13,16 +13,20 @@ class OfficesSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('offices')->insert([
-            'name' => 'Centro del Riñón',
-            'address' => 'Av. Plan de San Luis 1776, Lomas del Country',
-            'maps_url' => 'https://maps.app.goo.gl/5TQTNEzeJ3FKCK6Z9',
-        ]);
+        DB::table('offices')->updateOrInsert(
+            ['name' => 'Inmax Country'], // unique key
+            [
+                'address' => 'Av. Plan de San Luis 1831, Col. San Bernardo',
+                'maps_url' => 'https://maps.app.goo.gl/QmgmumzpiJKdupBu7',
+            ]
+        );
 
-        DB::table('offices')->insert([
-            'name' => 'Consultorio Av. Mexico',
-            'address' => 'Av. Mexico 2446, Ladron de Guevara',
-            'maps_url' => 'https://maps.app.goo.gl/jSBVhZ1nxYkcjCdg8',
-        ]);
+        DB::table('offices')->updateOrInsert(
+            ['name' => 'Inmax Providencia'],
+            [
+                'address' => 'Calle José Enrique Rodo 2844, Prados Providencia',
+                'maps_url' => 'https://maps.app.goo.gl/zkXeA5nJcCgDD52y6',
+            ]
+        );
     }
 }
