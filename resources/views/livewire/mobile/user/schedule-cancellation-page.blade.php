@@ -30,8 +30,12 @@
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Doctor : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $appointment->doctor->user->name }}</x-ui.text>
+                    <x-ui.text>Servicios : </x-ui.text>
+                    <div>
+                    @foreach($appointment->services as $service)
+                        <x-ui.text class="font-semibold">{{ $service->service->name }}<br></x-ui.text>
+                    @endforeach
+                    </div>
                 </div>
 
                 <x-ui.separator />
@@ -39,13 +43,6 @@
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Fecha : </x-ui.text>
                     <x-ui.text class="font-semibold">{{ $appointment->date->format('d/m/Y') }} {{ $appointment->time->format('h:i A') }}</x-ui.text>
-                </div>
-
-                <x-ui.separator />
-
-                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Ubicación : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $appointment->doctor->address }}</x-ui.text>
                 </div>
             </a>
 

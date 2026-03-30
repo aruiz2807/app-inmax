@@ -17,9 +17,10 @@ class Appointment extends Model
     protected $fillable = [
         'user_id',
         'doctor_id',
+        'office_id',
+        'requested_by_user_id',
         'date',
         'time',
-        'covered',
         'rating',
         'comments',
         'status',
@@ -151,11 +152,27 @@ class Appointment extends Model
     }
 
     /**
-     * Each appointment is assigned to one doctor.
+     * Each appointment could be assigned to one doctor.
      */
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(Doctor::class);
+    }
+
+    /**
+     * Each appointment could be requested by one user.
+     */
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by_user_id');
+    }
+
+    /**
+     * Each appointment is assigned to one office.
+     */
+    public function office(): BelongsTo
+    {
+        return $this->belongsTo(Office::class);
     }
 
     /**

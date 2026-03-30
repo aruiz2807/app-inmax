@@ -38,14 +38,14 @@
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Consultorio : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $appointment->doctor->office->name }}</x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $appointment->office->name }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Ubicación : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $appointment->doctor->office->address }}</x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $appointment->office->address }}</x-ui.text>
                 </div>
             </a>
 

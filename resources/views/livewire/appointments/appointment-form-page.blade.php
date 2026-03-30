@@ -42,10 +42,29 @@
         </x-ui.select>
     </x-ui.field>
 
+    @if($selectedDoctor && $offices->count())
+    <x-ui.field class="mt-2">
+        <x-ui.label>Consultorio</x-ui.label>
+        <x-ui.select
+            placeholder="Buscar consultorio..."
+            icon="wallet"
+            searchable
+            :disabled="$appointment !== null"
+            wire:model.live="selectedOffice">
+                @foreach($offices as $office)
+                    <x-ui.select.option value="{{ $office->id }}">
+                        {{ $office->name }}
+                    </x-ui.select.option>
+                @endforeach
+        </x-ui.select>
+    </x-ui.field>
+    @endif
+
     @if($selectedDoctor && !$appointment)
     <x-ui.field class="mt-2">
         <x-ui.label>Servicios</x-ui.label>
         <x-ui.select
+            wire:key="services-select-{{ $selectedDoctor }}"
             placeholder="Buscar servicio..."
             icon="wallet"
             searchable

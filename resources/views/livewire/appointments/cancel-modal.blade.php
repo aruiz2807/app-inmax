@@ -8,16 +8,18 @@
     x-on:close-cancel-appointment-modal.window="$data.close()"
 >
     <x-ui.text class="pl-10 m-2 font-semibold text-base">
-        Asegurado: {{$appointment?->user->name}}
+        Miembro: {{$appointment?->user->name}}
     </x-ui.text>
 
+    @if($appointment?->doctor)
     <x-ui.text class="pl-10 m-2 font-semibold text-base">
-        Medico: {{$appointment?->doctor->user->name}}
+        Medico: {{$appointment->doctor->user->name}}
     </x-ui.text>
-
+    @elseif($appointment?->office)
     <x-ui.text class="pl-10 m-2 font-semibold text-base">
-        Motivo: {{$appointment?->doctor->specialty->service->name}}
+        Consultorio: {{$appointment->office->name}}
     </x-ui.text>
+    @endif
 
     <x-ui.text class="pl-10 m-2 font-semibold text-base">
         Fecha: {{$appointment?->date->format('d/m/Y')}} {{$appointment?->time->format('H:i A')}}

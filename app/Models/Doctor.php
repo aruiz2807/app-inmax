@@ -19,7 +19,6 @@ class Doctor extends Model
         'type',
         'license',
         'university',
-        'office_id',
         'address',
         'maps_url',
         'discount',
@@ -95,10 +94,10 @@ class Doctor extends Model
     }
 
     /**
-     * Each doctor can have one office
+     * Each doctor can have multiple offices
      */
-    public function office()
+    public function offices()
     {
-        return $this->belongsTo(Office::class);
+        return $this->belongsToMany(Office::class, 'office_doctors');
     }
 }

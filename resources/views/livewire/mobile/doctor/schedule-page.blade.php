@@ -27,16 +27,34 @@
                     wire:model.live="selectedDoctor">
                     @foreach($doctors as $doctor)
                         <x-ui.select.option value="{{ $doctor->id }}">
-                            {{ $doctor->user->name }}
+                            {{ $doctor->user->name }} - {{ $doctor->specialty->name }}
                         </x-ui.select.option>
                     @endforeach
                 </x-ui.select>
             </x-ui.field>
 
+            @if($selectedDoctor && $offices->count())
+            <x-ui.field class="mt-2">
+                <x-ui.label>Consultorio</x-ui.label>
+                <x-ui.select
+                    placeholder="Buscar consultorio..."
+                    icon="wallet"
+                    searchable
+                    wire:model.live="selectedOffice">
+                        @foreach($offices as $office)
+                            <x-ui.select.option value="{{ $office->id }}">
+                                {{ $office->name }}
+                            </x-ui.select.option>
+                        @endforeach
+                </x-ui.select>
+            </x-ui.field>
+            @endif
+
             @if($selectedDoctor)
             <x-ui.field class="mt-2">
                 <x-ui.label>Servicios</x-ui.label>
                 <x-ui.select
+                    wire:key="services-select-{{ $selectedDoctor }}"
                     placeholder="Buscar servicio..."
                     icon="wallet"
                     searchable
@@ -88,8 +106,8 @@
                 <x-ui.text class="text-lg ml-2">Fechas disponibles</x-ui.text>
             </x-ui.heading>
 
-            <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-                @foreach($availableDates as $date)
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4" wire:key="dates-{{ $selectedDate }}">
+                @foreach($this->availableDates as $date)
                     <label class="group relative cursor-pointer">
                         <input type="radio"
                             wire:model.live="selectedDate"
@@ -127,9 +145,8 @@
                 </div>
             </x-ui.heading>
 
-
-            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-                @foreach($availableHours as $hour)
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4" wire:key="hours-{{ $selectedTime }}">
+                @foreach($this->availableHours as $hour)
                     <label class="group relative cursor-pointer">
                         <input type="radio"
                             wire:model.live="selectedTime"

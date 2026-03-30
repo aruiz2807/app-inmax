@@ -23,10 +23,10 @@
         </div>
 
         <div class="flex mt-2">
-            <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->doctor->user->photo_url" circle />
+            <x-ui.avatar size="lg" icon="user" color="teal" :src="$user->photo_url" circle />
             <div class="pl-4">
-                <x-ui.text class="pt-1 text-lg">{{$appointment->doctor->user->name}}</x-ui.text>
-                <x-ui.text class="text-sm opacity-75">{{$appointment->doctor->specialty->name}}</x-ui.text>
+                <x-ui.text class="pt-1 text-lg">{{$user->name}}</x-ui.text>
+                <x-ui.text class="text-sm opacity-75">{{$user->doctor->specialty->name}}</x-ui.text>
             </div>
         </div>
     </x-ui.card>
@@ -52,17 +52,6 @@
             </div>
         @endforeach
         </div>
-
-        <div class="flex w-full mt-4">
-            <x-ui.field>
-                <x-ui.label>Subtotal adicionales</x-ui.label>
-                <x-ui.input wire:model="subtotal" name="subtotal" x-mask:dynamic="$money($input)" placeholder="0.00">
-                    <x-slot name="prefix">$</x-slot>
-                </x-ui.input>
-                <x-ui.error name="form.subtotal" />
-            </x-ui.field>
-        </div>
-
     </x-ui.card>
 
     @if($form->isDoctor)
@@ -137,6 +126,45 @@
 
         <x-ui.textarea wire:model="form.notes" placeholder="Ingrese las recomendaciones para el paciente"/>
         <x-ui.error name="form.notes" />
+    </x-ui.card>
+
+    <x-ui.card size="full" class="mx-auto mt-2">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="banknotes" class="self-center" />
+            <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
+        </x-ui.heading>
+
+        <x-ui.field>
+            <x-ui.label>Monto total de la cuenta</x-ui.label>
+            <x-ui.input
+                wire:model.live="subtotal"
+                name="subtotal" x-mask:dynamic="$money($input)"
+                placeholder="0.00"
+            >
+                <x-slot name="prefix">$</x-slot>
+            </x-ui.input>
+        </x-ui.field>
+
+        <x-ui.field class="mt-2">
+            <x-ui.label>Pago miembro</x-ui.label>
+            <x-ui.alerts variant="info" icon="currency-dollar">
+                <x-ui.alerts.description>{{$user_payment}}</x-ui.alerts.description>
+            </x-ui.alerts>
+        </x-ui.field>
+
+        <x-ui.field class="mt-2">
+            <x-ui.label>Comision Inmax</x-ui.label>
+            <x-ui.alerts variant="info" icon="currency-dollar">
+                <x-ui.alerts.description>{{$commision}}</x-ui.alerts.description>
+            </x-ui.alerts>
+        </x-ui.field>
+
+        <x-ui.field class="mt-2">
+            <x-ui.label>Total</x-ui.label>
+            <x-ui.alerts variant="success" icon="currency-dollar">
+                <x-ui.alerts.heading>{{$total}}</x-ui.alerts.heading>
+            </x-ui.alerts>
+        </x-ui.field>
     </x-ui.card>
 
     <div class="flex justify-center mt-4">

@@ -27,7 +27,7 @@
                     @foreach($upcomingAppointments as $upcoming)
                     <div class="flex flex-col p-2 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
 
-                        <div class="flex mx-auto w-fit">
+                        <div class="flex mt-4 mb-4 mx-auto w-fit">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#00D5BE" viewBox="0 0 256 256">
                                     <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"></path>
@@ -36,14 +36,6 @@
                             <div>
                                 <x-ui.text class="text-lg">{{$upcoming->formatted_date}}</x-ui.text>
                                 <x-ui.text class="text-sm opacity-50">{{$upcoming->formatted_time}}</x-ui.text>
-                            </div>
-                        </div>
-
-                        <div class="flex mt-8">
-                            <x-ui.avatar size="xl" icon="user" color="teal" :src="$upcoming->doctor->user->photo_url" circle />
-                            <div class="pl-4">
-                                <x-ui.text class="pt-1 text-xl">{{$upcoming->doctor->user->name}}</x-ui.text>
-                                <x-ui.text class="text-base opacity-75">{{$upcoming->doctor->specialty->name}}</x-ui.text>
                             </div>
                         </div>
 
@@ -60,15 +52,15 @@
                             </div>
                         </div>
 
-                        @if($upcoming->doctor->specialty_id === 1)
-                        <a href="{{$upcoming->doctor->office->maps_url}}" class="flex mt-8" target="_blank">
-                            <x-ui.icon name="map-pin" />
-                            <x-ui.text class="text-base">{{$upcoming->doctor->office->address}}</x-ui.text>
-                        </a>
-                        @else
+                        @if($upcoming->doctor_id)
                         <a href="{{$upcoming->doctor->maps_url}}" class="flex mt-8" target="_blank">
                             <x-ui.icon name="map-pin" />
                             <x-ui.text class="text-base">{{$upcoming->doctor->address}}</x-ui.text>
+                        </a>
+                        @else
+                        <a href="{{$upcoming->office->maps_url}}" class="flex mt-8" target="_blank">
+                            <x-ui.icon name="map-pin" />
+                            <x-ui.text class="text-base">{{$upcoming->office->address}}</x-ui.text>
                         </a>
                         @endif
 
@@ -106,7 +98,7 @@
                         </div>
                         @endif
 
-                        <div class="flex mt-4 mx-auto w-fit">
+                        <div class="flex mt-4 mb-4 mx-auto w-fit">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#00D5BE" viewBox="0 0 256 256">
                                     <path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"></path>
@@ -118,13 +110,15 @@
                             </div>
                         </div>
 
-                        <div class="flex mt-8">
+                        @if($past->doctor_id)
+                        <div class="flex mt-4">
                             <x-ui.avatar size="xl" icon="user" color="teal" :src="$past->doctor->user->photo_url" circle />
                             <div class="pl-4">
                                 <x-ui.text class="pt-1 text-xl">{{$past->doctor->user->name}}</x-ui.text>
                                 <x-ui.text class="text-base opacity-75">{{$past->doctor->specialty->name}}</x-ui.text>
                             </div>
                         </div>
+                        @endif
 
                         <div class="flex mt-4">
                             <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
@@ -149,32 +143,32 @@
                             </div>
                         </div>
 
-                        @if($past->doctor->specialty_id === 1)
-                        <a href="{{$past->doctor->office->maps_url}}" class="flex mt-8" target="_blank">
-                            <x-ui.icon name="map-pin" />
-                            <x-ui.text class="text-base">{{$past->doctor->office->address}}</x-ui.text>
-                        </a>
-                        @else
+                        @if($past->doctor_id)
                         <a href="{{$past->doctor->maps_url}}" class="flex mt-8" target="_blank">
                             <x-ui.icon name="map-pin" />
                             <x-ui.text class="text-base">{{$past->doctor->address}}</x-ui.text>
+                        </a>
+                        @else
+                        <a href="{{$past->office->maps_url}}" class="flex mt-8" target="_blank">
+                            <x-ui.icon name="map-pin" />
+                            <x-ui.text class="text-base">{{$past->office->address}}</x-ui.text>
                         </a>
                         @endif
 
                         @if($past->status === 'Completed')
                         <x-ui.separator class="mt-2 mb-2"/>
 
-                        <div class="flex justify-center">
-                            <x-ui.button class="w-40 mr-1" wire:click="notes({{ $past->id }})" variant="outline" color="blue" icon="clipboard">
-                                Nota medica
-                            </x-ui.button>
+                            <div class="flex justify-center">
+                                <x-ui.button class="w-40 mr-1" wire:click="notes({{ $past->id }})" variant="outline" color="blue" icon="clipboard">
+                                    Nota medica
+                                </x-ui.button>
 
-                            @if($past->doctor->type === \App\Enums\DoctorType::Doctor)
-                            <x-ui.button class="w-40 ml-1" wire:click="print({{ $past->id }})" variant="outline" color="indigo" icon="document">
-                                Receta digital
-                            </x-ui.button>
-                            @endif
-                        </div>
+                                @if($past->doctor->type === \App\Enums\DoctorType::Doctor)
+                                <x-ui.button class="w-40 ml-1" wire:click="print({{ $past->id }})" variant="outline" color="indigo" icon="document">
+                                    Receta digital
+                                </x-ui.button>
+                                @endif
+                            </div>
 
                             @if($past->rating === null)
                             <div class="flex justify-center mt-2">

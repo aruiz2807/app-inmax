@@ -49,8 +49,8 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('user_id')
             ->add('user_name', fn ($model) => e($model->user->name))
             ->add('doctor_id')
-            ->add('doctor_name', fn ($model) => e($model->doctor->user->name))
-            ->add('specialty', fn ($model) => e($model->doctor->specialty->name))
+            ->add('doctor_office', fn ($model) => e($model->doctor ? $model->doctor->user->name : $model->office->name))
+            ->add('specialty', fn ($model) => e($model->doctor ? $model->doctor->specialty->name : ''))
             ->add('date_formatted', fn ($model) => $model->date?->format('d/m/Y'))
             ->add('time')
             ->add('time_formatted', fn ($model) => $model->time?->format('H:i A'))
@@ -63,10 +63,10 @@ final class AppointmentsTable extends PowerGridComponent
         return [
             Column::make('Id', 'id'),
 
-            Column::make('Asegurado', 'user_name')
+            Column::make('Miembro', 'user_name')
                 ->sortable(),
 
-            Column::make('Medico', 'doctor_name')
+            Column::make('Medico/Consultorio', 'doctor_office')
                 ->sortable(),
 
             Column::make('Especialidad', 'specialty')

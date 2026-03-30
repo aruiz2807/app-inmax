@@ -16,7 +16,6 @@ class DoctorsPage extends Component
     public DoctorsForm $form;
     public ?int $doctorId = null;
     public $specialties = [];
-    public $offices = [];
     public $types = [];
 
     #[Layout('layouts.app')]
@@ -28,7 +27,6 @@ class DoctorsPage extends Component
     public function mount()
     {
         $this->specialties = Specialty::orderBy('name')->get();
-        $this->offices = Office::orderBy('name')->get();
         $this->types = DoctorType::cases();
     }
 

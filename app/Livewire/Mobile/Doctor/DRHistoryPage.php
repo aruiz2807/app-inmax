@@ -29,11 +29,13 @@ class DRHistoryPage extends Component
     public function loadAppointments()
     {
         $user = Auth::user();
+        $offices = $user->doctor->offices()->pluck('offices.id');
 
-        $this->upcomingAppointments = Appointment::where([
-                ['status', 'Booked'],
-                ['doctor_id', $user->doctor->id],
-            ])
+        $this->upcomingAppointments = Appointment::where(function ($query) use ($user, $offices) {
+                $query->where('doctor_id', $user->doctor->id)
+                ->orWhereIn('office_id', $offices);
+            })
+            ->where('status', 'Booked')
             ->whereDate('date', '>=', today())
             ->orderBy('date')
             ->orderBy('time')

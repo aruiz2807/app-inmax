@@ -12,6 +12,7 @@ use App\Models\PolicyService;
 use App\Services\Appointments\AppointmentRequestNotificationService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class AppointmentFormPage extends Component
@@ -23,14 +24,15 @@ class AppointmentFormPage extends Component
 
     public $selectedUser;
     public $selectedDoctor;
+    public $selectedOffice;
     public $selectedServices = [];
-
-    public $doctors;
-    public $policies;
-    public $isIncluded = 1;
 
     public $user;
     public $doctor;
+
+    public $doctors;
+    public $policies;
+    public $offices;
     public $services;
     public $servicesData = [];
 
@@ -51,8 +53,8 @@ class AppointmentFormPage extends Component
         }
         else
         {
-            $this->selectedDate = now()->addDay()->format('Y-m-d');
-            $this->selectedTime = '09:00';
+            $this->selectedDate = $this->availableDates[0]['id'];
+            $this->selectedTime = $this->availableHours[0]['id'];
         }
     }
 
@@ -63,7 +65,14 @@ class AppointmentFormPage extends Component
 
     public function updatedSelectedDoctor($value)
     {
+        $this->reset([
+            'services',
+            'selectedServices',
+            'servicesData',
+        ]);
+
         $this->doctor = Doctor::find($value);
+        $this->offices = $this->doctor->offices;
         $this->services = $this->doctor->specialty->services;
     }
 
@@ -83,6 +92,7 @@ class AppointmentFormPage extends Component
         $this->servicesData = collect($this->selectedServices)->map(function ($serviceId) use ($services, $includedServices)
         {
             $service = $services->get($serviceId);
+
             return [
                 'id' => $serviceId,
                 'name' => $service?->name,
@@ -96,11 +106,16 @@ class AppointmentFormPage extends Component
         $this->reset([
             'selectedUser',
             'selectedDoctor',
+            'selectedOffice',
             'selectedServices',
             'selectedDate',
             'selectedTime',
             'servicesData',
+            'offices',
         ]);
+
+        $this->selectedDate = $this->availableDates[0]['id'];
+        $this->selectedTime = $this->availableHours[0]['id'];
     }
 
     public function schedule(AppointmentRequestNotificationService $appointmentNotificationService)
@@ -110,20 +125,21 @@ class AppointmentFormPage extends Component
         if($this->appointment)
         {
             $this->appointment->update([
-                'doctor_id' => $this->selectedDoctor,
                 'date' => $this->selectedDate,
                 'time' => $this->selectedTime,
-                'covered' => $this->isIncluded,
             ]);
         }
         else
         {
+            $doctor = Doctor::find($this->selectedDoctor);
             $appointment = Appointment::create([
                 'user_id' => $this->selectedUser,
                 'doctor_id' => $this->selectedDoctor,
+                'office_id' => $this->selectedOffice,
+                'requested_by_user_id' => Auth::user()->id,
                 'date' => $this->selectedDate,
                 'time' => $this->selectedTime,
-                'covered' => $this->isIncluded,
+                'status' => $doctor->specialty->id == 1 ? 'Booked' : 'Requested',
             ]);
 
             foreach($this->servicesData as $service)
@@ -176,9 +192,10 @@ class AppointmentFormPage extends Component
         $this->selectedDoctor = (string) $this->appointment->doctor_id;
         $this->doctor = Doctor::find($this->selectedDoctor);
 
+        $this->offices = $this->doctor->offices;
+        $this->selectedOffice = $this->appointment->office->id;
         $this->selectedDate = $this->appointment->date->format('Y-m-d');
         $this->selectedTime = $this->appointment->time->format('H:i');
-        $this->isIncluded = $this->appointment->covered;
 
         $this->selectedServices = $appointmentServices->pluck('id')->toArray();
         $this->servicesData = $appointmentServices->map(fn ($appointmentService) => [
@@ -197,7 +214,8 @@ class AppointmentFormPage extends Component
             return collect();
         }
 
-        return Doctor::with('specialty.services')->find($this->selectedDoctor)?->specialty?->services ?? collect();
+        return Doctor::with('specialty.services')
+            ->find($this->selectedDoctor)?->specialty?->services ?? collect();
     }
 
     public function getServicesDataProperty()

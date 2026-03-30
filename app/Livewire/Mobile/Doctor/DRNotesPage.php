@@ -8,6 +8,7 @@ use App\Enums\DoctorType;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\PolicyService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -23,6 +24,10 @@ class DRNotesPage extends Component
     public $appointment;
     public $services;
     public $subtotal;
+    public $user_payment;
+    public $commision;
+    public $total;
+    public $user;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -32,9 +37,10 @@ class DRNotesPage extends Component
 
     public function mount($appointment)
     {
+        $this->user = Auth::user();
         $this->appointment = Appointment::findOrFail($appointment);
         $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
-        $this->form->isDoctor = $this->appointment->doctor->type === DoctorType::Doctor;
+        $this->form->isDoctor = $this->user->doctor->type === DoctorType::Doctor;
 
         foreach ($this->services as $service)
         {
@@ -47,6 +53,15 @@ class DRNotesPage extends Component
     {
         //open modal
         $this->dispatch('open-notes-modal');
+    }
+
+    public function updatedSubtotal($value)
+    {
+        $subtotal = floatval(str_replace(',', '', $value));
+        $discount = round($subtotal * ($this->appointment->doctor->discount/100), 2);
+        $this->user_payment = number_format($subtotal - $discount, 2);
+        $this->commision = number_format($subtotal * ($this->appointment->doctor->commission / 100), 2);
+        $this->total = number_format($subtotal - $discount - floatval(str_replace(',', '', $this->commision)), 2);
     }
 
     public function confirmNotes()
@@ -104,7 +119,8 @@ class DRNotesPage extends Component
         $this->subtotal = str_replace(',', '', $this->subtotal);
 
         $this->appointment->update([
-            'subtotal' => $this->subtotal ?: '0.00' ,
+            'subtotal' => $this->subtotal ?: '0.00',
+            'doctor_id' => $this->user->doctor->id,
             'status' => 'Completed',
         ]);
 

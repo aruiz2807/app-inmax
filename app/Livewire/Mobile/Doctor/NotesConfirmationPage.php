@@ -20,7 +20,7 @@ class NotesConfirmationPage extends Component
 
     public function mount()
     {
-        $noteId = session('appointment_note_id');
+        $noteId = 2;//session('appointment_note_id');
 
         abort_unless($noteId, 404);
 
@@ -39,18 +39,28 @@ class NotesConfirmationPage extends Component
         );
     }
 
+    public function getSubtotalProperty()
+    {
+        return number_format($this->note->appointment->subtotal, 2);
+    }
+
     public function getDiscountProperty()
     {
-        return round($this->note->appointment->subtotal * ($this->note->appointment->doctor->discount / 100), 2);
+        return number_format($this->note->appointment->subtotal * ($this->note->appointment->doctor->discount / 100), 2);
+    }
+
+    public function getPaymentProperty()
+    {
+        return number_format($this->note->appointment->subtotal - floatval(str_replace(',', '', $this->getDiscountProperty())), 2);
     }
 
     public function getTotalProperty()
     {
-        return round($this->note->appointment->subtotal - $this->getDiscountProperty(), 2);
+        return number_format(floatval(str_replace(',', '', $this->getSubtotalProperty())) - floatval(str_replace(',', '', $this->getDiscountProperty())) - floatval(str_replace(',', '', floatval(str_replace(',', '', $this->getCommissionProperty())))), 2);
     }
 
     public function getCommissionProperty()
     {
-        return round($this->note->appointment->subtotal * ($this->note->appointment->doctor->commission / 100), 2);
+        return number_format($this->note->appointment->subtotal * ($this->note->appointment->doctor->commission / 100), 2);
     }
 }

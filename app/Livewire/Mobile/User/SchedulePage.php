@@ -50,8 +50,8 @@ class SchedulePage extends Component
             ->exists();
 
         $this->selectedOffice = 1;
-        $this->selectedDate = now()->addDay()->format('Y-m-d');
-        $this->selectedTime = '09:00';
+        $this->selectedDate = $this->availableDates[0]['id'];
+        $this->selectedTime = $this->availableHours[0]['id'];
     }
 
     public function getAvailableOfficesProperty()
@@ -134,14 +134,11 @@ class SchedulePage extends Component
 
     public function schedule()
     {
-        $doctor = Doctor::where('office_id', $this->selectedOffice)->inRandomOrder()->first(); //get random doctor
-
         $appointment = Appointment::create([
             'user_id' => Auth::user()->id,
-            'doctor_id' => $doctor->id,
+            'office_id' => $this->selectedOffice,
             'date' => $this->selectedDate,
             'time' => $this->selectedTime,
-            'covered' => $this->isIncluded,
             'status' => 'Booked',
         ]);
 

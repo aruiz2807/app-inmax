@@ -192,13 +192,13 @@
                     <img class="logo" src="{{ public_path('/img/LogoINMAXSUP.png') }}" alt="Logo">
                 </td>
                 <td class="header-center">
-                    <div class="doctor-name">{{$appointment->doctor->user->name}}</div>
-                    <div class="doctor-sub">{{$appointment->doctor->specialty->name}}</div>
-                    <div class="doctor-sub">CEDULA PROFESIONAL: {{$appointment->doctor->license}}</div>
-                    <div class="doctor-text">{{$appointment->doctor->university}}</div>
+                    <div class="doctor-name">{{$appointment->requester->name}}</div>
+                    <div class="doctor-sub">{{$appointment->requester->doctor?->specialty->name}}</div>
+                    <div class="doctor-sub">CEDULA PROFESIONAL: {{$appointment->requester->doctor?->license}}</div>
+                    <div class="doctor-text">{{$appointment->requester->doctor?->university}}</div>
                     <div class="doctor-sub space-10"></div>
-                    <div class="doctor-text">{{$appointment->doctor->address}}</div>
-                    <div class="doctor-sub">TEL. {{$appointment->doctor->user->phone}}</div>
+                    <div class="doctor-text">{{$appointment->requester->doctor?->address}}</div>
+                    <div class="doctor-sub">TEL. {{$appointment->requester->doctor?->user->phone}}</div>
                 </td>
                 <td class="header-right"></td>
             </tr>
@@ -214,6 +214,11 @@
                 <td><span class="label">Edad:</span> <br>{{$appointment->user->age}}</td>
             </tr>
         </table>
+
+        <div class="space-16">
+            <div class="block-title">Para:</div>
+            <div class="product-row">{{ $appointment->doctor->user->name}} </div>
+        </div>
 
         <div class="space-16">
             <div class="block-title">Servicios:</div>
