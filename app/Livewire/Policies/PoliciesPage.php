@@ -66,6 +66,8 @@ class PoliciesPage extends Component
     #[On('activatePolicy')]
     public function activate(int $policyId): void
     {
+        abort_unless(Auth::user()?->profile === 'Admin', 403);
+
         $policy = Policy::query()->findOrFail($policyId);
 
         $this->policyId = $policyId;
@@ -107,6 +109,8 @@ class PoliciesPage extends Component
 
     public function confirmActivation(PinSetupTokenService $tokenService): void
     {
+        abort_unless(Auth::user()?->profile === 'Admin', 403);
+
         $policy = Policy::query()->findOrFail($this->policyId);
 
         if ($policy->status === 'Active') {
