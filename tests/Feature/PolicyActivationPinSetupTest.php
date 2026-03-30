@@ -17,10 +17,10 @@ class PolicyActivationPinSetupTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_activate_membership_and_generate_pin_setup_link(): void
+    public function test_sales_user_can_activate_membership_and_generate_pin_setup_link(): void
     {
-        $admin = User::factory()->create([
-            'profile' => 'Admin',
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
         ]);
 
         $member = User::factory()->create([
@@ -37,14 +37,14 @@ class PolicyActivationPinSetupTest extends TestCase
 
         $policy = Policy::query()->create([
             'user_id' => $member->id,
-            'sales_user_id' => $admin->id,
+            'sales_user_id' => $salesUser->id,
             'plan_id' => $plan->id,
             'number' => 'POL-1001',
             'type' => 'Individual',
             'status' => 'Inactive',
         ]);
 
-        $this->actingAs($admin);
+        $this->actingAs($salesUser);
 
         $component = Livewire::test(PoliciesPage::class)
             ->set('policyId', $policy->id)
@@ -65,8 +65,8 @@ class PolicyActivationPinSetupTest extends TestCase
 
     public function test_activation_does_not_resend_pin_when_policy_is_already_active(): void
     {
-        $admin = User::factory()->create([
-            'profile' => 'Admin',
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
         ]);
 
         $member = User::factory()->create([
@@ -83,7 +83,7 @@ class PolicyActivationPinSetupTest extends TestCase
 
         $policy = Policy::query()->create([
             'user_id' => $member->id,
-            'sales_user_id' => $admin->id,
+            'sales_user_id' => $salesUser->id,
             'plan_id' => $plan->id,
             'number' => 'POL-1002',
             'type' => 'Individual',
@@ -106,7 +106,7 @@ class PolicyActivationPinSetupTest extends TestCase
             ], 200),
         ]);
 
-        $this->actingAs($admin);
+        $this->actingAs($salesUser);
 
         Livewire::test(PoliciesPage::class)
             ->set('policyId', $policy->id)
@@ -116,45 +116,5 @@ class PolicyActivationPinSetupTest extends TestCase
 
         Http::assertSentCount(1);
         $this->assertSame(1, UserPinSetupToken::query()->where('user_id', $member->id)->count());
-    }
-
-    public function test_sales_user_cannot_activate_membership(): void
-    {
-        $salesUser = User::factory()->create([
-            'profile' => 'Sales',
-        ]);
-
-        $member = User::factory()->create([
-            'profile' => 'User',
-            'phone' => '3310000077',
-        ]);
-
-        $plan = Plan::query()->create([
-            'name' => 'Plan Solo Admin',
-            'price' => 999.00,
-            'type' => 'Individual',
-            'status' => 'Active',
-        ]);
-
-        $policy = Policy::query()->create([
-            'user_id' => $member->id,
-            'sales_user_id' => $salesUser->id,
-            'plan_id' => $plan->id,
-            'number' => 'POL-1003',
-            'type' => 'Individual',
-            'status' => 'Inactive',
-        ]);
-
-        $this->actingAs($salesUser);
-
-        Livewire::test(PoliciesPage::class)
-            ->set('policyId', $policy->id)
-            ->call('confirmActivation')
-            ->assertForbidden();
-
-        $policy->refresh();
-
-        $this->assertSame('Inactive', $policy->status);
-        $this->assertSame(0, UserPinSetupToken::query()->where('user_id', $member->id)->count());
     }
 }
