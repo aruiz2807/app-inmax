@@ -41,6 +41,8 @@ class PolicyPreregistrationsPage extends Component
 
     public string $preregistrationCompanyRfc = '';
 
+    public int|string $preregistrationMembers = 10;
+
     public ?string $lastPreregistrationUrl = null;
 
     public ?string $lastPreregistrationPhone = null;
@@ -145,6 +147,13 @@ class PolicyPreregistrationsPage extends Component
                 'min:12',
                 'max:13',
             ],
+            'preregistrationMembers' => [
+                Rule::requiredIf($this->preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER),
+                'nullable',
+                'integer',
+                'min:1',
+                'max:99',
+            ],
         ], [
             'preregistrationPhone.unique' => 'Ya existe un registro con ese telefono.',
             'preregistrationPhone.required' => 'El telefono es obligatorio.',
@@ -155,6 +164,7 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationCompanyType.required' => 'Selecciona el tipo de persona.',
             'preregistrationCompanyLegalName.required' => 'La razon social es obligatoria.',
             'preregistrationCompanyRfc.required' => 'El RFC es obligatorio.',
+            'preregistrationMembers.required' => 'La cantidad de miembros es obligatoria.',
         ]);
 
         $salesUser = $this->resolveSalesUser((int) $validated['preregistrationSalesUser']);
@@ -195,6 +205,7 @@ class PolicyPreregistrationsPage extends Component
                 str_contains($exception->getMessage(), 'tipo de persona') => 'preregistrationCompanyType',
                 str_contains($exception->getMessage(), 'razon social') => 'preregistrationCompanyLegalName',
                 str_contains($exception->getMessage(), 'RFC') => 'preregistrationCompanyRfc',
+                str_contains($exception->getMessage(), 'cantidad de miembros') => 'preregistrationMembers',
                 str_contains($exception->getMessage(), 'nombre del colectivo') => 'preregistrationCompanyName',
                 str_contains($exception->getMessage(), 'cobertura') => 'preregistrationPlan',
                 default => 'preregistrationPhone',
@@ -264,6 +275,7 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationCompanyType = $preregistration->company_type ?: 'PF';
         $this->preregistrationCompanyLegalName = (string) $preregistration->company_legal_name;
         $this->preregistrationCompanyRfc = (string) $preregistration->company_rfc;
+        $this->preregistrationMembers = $preregistration->members ?: 10;
 
         $this->resetErrorBag();
         $this->dispatch('open-preregistration-modal');
@@ -337,6 +349,7 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationCompanyType',
             'preregistrationCompanyLegalName',
             'preregistrationCompanyRfc',
+            'preregistrationMembers',
         ]);
 
         $this->preregistrationId = null;
@@ -348,6 +361,7 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationCompanyType = 'PF';
         $this->preregistrationCompanyLegalName = '';
         $this->preregistrationCompanyRfc = '';
+        $this->preregistrationMembers = 10;
         $this->preregistrationSalesUser = Auth::user()?->profile === 'Sales'
             ? (string) Auth::id()
             : null;
@@ -625,6 +639,7 @@ class PolicyPreregistrationsPage extends Component
             'company_type' => $validated['preregistrationCompanyType'],
             'company_legal_name' => $validated['preregistrationCompanyLegalName'],
             'company_rfc' => strtoupper((string) $validated['preregistrationCompanyRfc']),
+            'members' => (int) $validated['preregistrationMembers'],
         ];
     }
 }

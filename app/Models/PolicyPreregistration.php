@@ -29,6 +29,7 @@ class PolicyPreregistration extends Model
         'company_type',
         'company_legal_name',
         'company_rfc',
+        'members',
         'phone',
         'token_hash',
         'expires_at',

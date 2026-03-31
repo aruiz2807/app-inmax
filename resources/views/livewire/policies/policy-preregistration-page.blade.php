@@ -104,6 +104,7 @@
                         'salesAgents' => collect(),
                         'planReadonly' => true,
                         'planName' => $preregistration?->plan?->name,
+                        'membersReadonly' => true,
                         'promoterReadonly' => true,
                         'promoterName' => $preregistration?->salesUser?->name,
                     ])

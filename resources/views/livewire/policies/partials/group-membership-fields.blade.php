@@ -5,6 +5,7 @@
 @php($promoterName = $promoterName ?? '')
 @php($planReadonly = $planReadonly ?? false)
 @php($planName = $planName ?? '')
+@php($membersReadonly = $membersReadonly ?? false)
 
 <x-ui.fieldset label="Información de la membresía" class="mt-2">
     <x-ui.field required>
@@ -30,7 +31,11 @@
 
     <x-ui.field required>
         <x-ui.label>Cantidad de miembros</x-ui.label>
-        <x-ui.input wire:model="{{ $statePath }}.members" type="number" max="99" min="10" />
+        @if($membersReadonly)
+            <x-ui.input wire:model="{{ $statePath }}.members" type="number" max="99" min="1" readonly />
+        @else
+            <x-ui.input wire:model="{{ $statePath }}.members" type="number" max="99" min="10" />
+        @endif
         <x-ui.error :name="$statePath . '.members'" />
     </x-ui.field>
 

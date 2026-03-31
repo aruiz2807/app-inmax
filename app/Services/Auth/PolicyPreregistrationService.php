@@ -39,7 +39,7 @@ class PolicyPreregistrationService
     /**
      * Create a preregistration invitation and optionally deliver it by WhatsApp.
      *
-     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null}  $collectiveData
+     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null, members?: int|null}  $collectiveData
      * @return array{
      *     preregistration: PolicyPreregistration,
      *     url: string,
@@ -80,7 +80,7 @@ class PolicyPreregistrationService
     /**
      * Update a preregistration and rotate its token/link.
      *
-     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null}  $collectiveData
+     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null, members?: int|null}  $collectiveData
      * @return array{
      *     preregistration: PolicyPreregistration,
      *     url: string,
@@ -235,6 +235,7 @@ class PolicyPreregistrationService
                 'company_type' => $collectiveData['company_type'] ?? null,
                 'company_legal_name' => $collectiveData['company_legal_name'] ?? null,
                 'company_rfc' => $collectiveData['company_rfc'] ?? null,
+                'members' => $collectiveData['members'] ?? null,
                 'phone' => $phone,
                 'token_hash' => hash('sha256', $plainTextToken),
                 'expires_at' => $expiresAt,
@@ -274,6 +275,7 @@ class PolicyPreregistrationService
             'company_type' => $collectiveData['company_type'] ?? null,
             'company_legal_name' => $collectiveData['company_legal_name'] ?? null,
             'company_rfc' => $collectiveData['company_rfc'] ?? null,
+            'members' => $collectiveData['members'] ?? null,
             'phone' => $phone,
             'token_hash' => hash('sha256', $plainTextToken),
             'expires_at' => $expiresAt,
@@ -419,8 +421,8 @@ class PolicyPreregistrationService
     /**
      * Validate and normalize collective owner data captured by the sales user.
      *
-     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null}  $collectiveData
-     * @return array{company_name: string, company_type: string, company_legal_name: string, company_rfc: string}
+     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null, members?: int|null}  $collectiveData
+     * @return array{company_name: string, company_type: string, company_legal_name: string, company_rfc: string, members: int}
      */
     private function normalizeCollectiveData(array $collectiveData): array
     {
@@ -428,6 +430,7 @@ class PolicyPreregistrationService
         $companyType = trim((string) ($collectiveData['company_type'] ?? ''));
         $companyLegalName = trim((string) ($collectiveData['company_legal_name'] ?? ''));
         $companyRfc = strtoupper(trim((string) ($collectiveData['company_rfc'] ?? '')));
+        $members = (int) ($collectiveData['members'] ?? 0);
 
         if ($companyName === '') {
             throw new InvalidArgumentException('El nombre del colectivo es obligatorio.');
@@ -445,11 +448,16 @@ class PolicyPreregistrationService
             throw new InvalidArgumentException('El RFC del colectivo no es valido.');
         }
 
+        if ($members < 1 || $members > 99) {
+            throw new InvalidArgumentException('La cantidad de miembros del colectivo no es valida.');
+        }
+
         return [
             'company_name' => $companyName,
             'company_type' => $companyType,
             'company_legal_name' => $companyLegalName,
             'company_rfc' => $companyRfc,
+            'members' => $members,
         ];
     }
 

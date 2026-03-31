@@ -248,6 +248,12 @@
                             <x-ui.input wire:model="preregistrationCompanyRfc" placeholder="XAXX010101111" maxlength="13" />
                             <x-ui.error name="preregistrationCompanyRfc" />
                         </x-ui.field>
+
+                        <x-ui.field required>
+                            <x-ui.label>Cantidad de miembros</x-ui.label>
+                            <x-ui.input wire:model="preregistrationMembers" type="number" min="1" max="99" />
+                            <x-ui.error name="preregistrationMembers" />
+                        </x-ui.field>
                     </div>
                 @elseif($preregistrationType === 'group_member')
                     <div wire:key="preregistration-group-member-fields">

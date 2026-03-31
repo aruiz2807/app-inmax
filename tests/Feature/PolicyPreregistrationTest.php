@@ -605,6 +605,7 @@ class PolicyPreregistrationTest extends TestCase
             ->set('preregistrationCompanyType', 'PM')
             ->set('preregistrationCompanyLegalName', 'Inmax Colectivo SA de CV')
             ->set('preregistrationCompanyRfc', 'XAXX010101111')
+            ->set('preregistrationMembers', 12)
             ->call('savePreregistration')
             ->assertHasNoErrors()
             ->assertSet('lastPreregistrationPhone', '3310000060')
@@ -620,6 +621,7 @@ class PolicyPreregistrationTest extends TestCase
             'company_type' => 'PM',
             'company_legal_name' => 'Inmax Colectivo SA de CV',
             'company_rfc' => 'XAXX010101111',
+            'members' => 12,
         ]);
     }
 
@@ -658,6 +660,7 @@ class PolicyPreregistrationTest extends TestCase
             'company_type' => 'PM',
             'company_legal_name' => 'Colectivo Demo SA de CV',
             'company_rfc' => 'DEM010101ABC',
+            'members' => 10,
             'token_hash' => hash('sha256', $token),
             'expires_at' => now()->addDay(),
         ]);
@@ -667,7 +670,6 @@ class PolicyPreregistrationTest extends TestCase
             ->set('groupForm.email', 'representante.demo@example.com')
             ->set('groupForm.birth', '1988-03-14')
             ->set('groupForm.curp', 'DEMR880314HMCLPN09')
-            ->set('groupForm.members', 10)
             ->set('groupForm.insurance', ['imss'])
             ->call('save')
             ->assertHasNoErrors()
