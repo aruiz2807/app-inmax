@@ -34,7 +34,7 @@ class PinSetupWhatsAppTemplateTest extends TestCase
             'status' => 'Active',
         ]);
 
-        Policy::query()->create([
+        $policy = Policy::query()->create([
             'user_id' => $user->id,
             'sales_user_id' => $salesUser->id,
             'plan_id' => $plan->id,
@@ -43,13 +43,18 @@ class PinSetupWhatsAppTemplateTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $policy->forceFill([
+            'created_at' => now()->setDate(2026, 3, 15)->setTime(9, 0),
+            'updated_at' => now()->setDate(2026, 3, 15)->setTime(9, 0),
+        ])->saveQuietly();
+
         WhatsAppSetting::query()->create([
             'api_version' => 'v22.0',
             'phone_number_id' => '113206948334320',
             'access_token' => 'meta_test_token_12345',
             'activation_template_name' => 'pin_activation_inmax',
             'activation_language_code' => 'es',
-            'activation_body_parameters' => ['user_name', 'policy_number', 'sales_user_name'],
+            'activation_body_parameters' => ['user_name', 'policy_number', 'start_date', 'sales_user_name'],
             'activation_button_parameters' => ['pin_token'],
             'pin_reset_template_name' => 'pin_reset_inmax',
             'pin_reset_language_code' => 'en_US',
@@ -76,7 +81,8 @@ class PinSetupWhatsAppTemplateTest extends TestCase
                 && $request['template']['language']['code'] === 'es'
                 && $request['template']['components'][0]['parameters'][0]['text'] === 'Juan Perez'
                 && $request['template']['components'][0]['parameters'][1]['text'] === 'POL-3001'
-                && $request['template']['components'][0]['parameters'][2]['text'] === 'Promotor Uno'
+                && $request['template']['components'][0]['parameters'][2]['text'] === '15/03/2026'
+                && $request['template']['components'][0]['parameters'][3]['text'] === 'Promotor Uno'
                 && $request['template']['components'][1]['sub_type'] === 'url'
                 && $request['template']['components'][1]['parameters'][0]['text'] === $token;
         });

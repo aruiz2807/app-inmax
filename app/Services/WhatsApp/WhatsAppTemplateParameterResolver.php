@@ -33,6 +33,7 @@ class WhatsAppTemplateParameterResolver
             'user_phone' => 'Telefono del usuario',
             'policy_number' => 'Numero de membresia',
             'policy_type' => 'Tipo de poliza',
+            'start_date' => 'Fecha de inicio',
             'sales_user_name' => 'Nombre del promotor',
         ],
         self::ACTIVATION_BUTTON => [
@@ -224,6 +225,7 @@ class WhatsAppTemplateParameterResolver
             'user_phone' => $user?->phone,
             'policy_number' => $policy?->number,
             'policy_type' => $policy?->type,
+            'start_date' => $policy?->created_at?->format('d/m/Y'),
             'sales_user_name', 'promoter_name' => $salesUser?->name,
             'plan_name' => $plan?->name,
             'parent_policy_number' => $parentPolicy?->number,
