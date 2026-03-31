@@ -75,6 +75,80 @@
                     </x-ui.field>
                 </x-ui.fieldset>
 
+                <x-ui.fieldset label="Parametros por plantilla" class="mt-4">
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-ui.field>
+                            <x-ui.label>Activacion PIN - body</x-ui.label>
+                            <x-ui.textarea wire:model="activationBodyParameters" rows="4" placeholder="user_name&#10;policy_number&#10;sales_user_name" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['activation_body'] }}</p>
+                            <x-ui.error name="activationBodyParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Activacion PIN - boton</x-ui.label>
+                            <x-ui.textarea wire:model="activationButtonParameters" rows="2" placeholder="pin_token" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['activation_button'] ?: 'Sin parametros de boton disponibles.' }}</p>
+                            <x-ui.error name="activationButtonParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Reset PIN - body</x-ui.label>
+                            <x-ui.textarea wire:model="pinResetBodyParameters" rows="4" placeholder="user_name" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['pin_reset_body'] }}</p>
+                            <x-ui.error name="pinResetBodyParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Reset PIN - boton</x-ui.label>
+                            <x-ui.textarea wire:model="pinResetButtonParameters" rows="2" placeholder="pin_token" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['pin_reset_button'] ?: 'Sin parametros de boton disponibles.' }}</p>
+                            <x-ui.error name="pinResetButtonParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Preregistro - body</x-ui.label>
+                            <x-ui.textarea wire:model="preregistrationBodyParameters" rows="4" placeholder="promoter_name&#10;plan_name" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['preregistration_body'] }}</p>
+                            <x-ui.error name="preregistrationBodyParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Preregistro - boton</x-ui.label>
+                            <x-ui.textarea wire:model="preregistrationButtonParameters" rows="2" placeholder="preregistration_token" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['preregistration_button'] ?: 'Sin parametros de boton disponibles.' }}</p>
+                            <x-ui.error name="preregistrationButtonParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Solicitud de cita - body</x-ui.label>
+                            <x-ui.textarea wire:model="appointmentRequestBodyParameters" rows="4" placeholder="member_name&#10;appointment_date&#10;appointment_time" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['appointment_request_body'] }}</p>
+                            <x-ui.error name="appointmentRequestBodyParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Solicitud de cita - boton</x-ui.label>
+                            <x-ui.textarea wire:model="appointmentRequestButtonParameters" rows="2" placeholder="" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['appointment_request_button'] ?: 'Sin parametros de boton disponibles.' }}</p>
+                            <x-ui.error name="appointmentRequestButtonParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Cita finalizada - body</x-ui.label>
+                            <x-ui.textarea wire:model="appointmentCompletedBodyParameters" rows="4" placeholder="member_name&#10;completed_date&#10;doctor_name" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['appointment_completed_body'] }}</p>
+                            <x-ui.error name="appointmentCompletedBodyParameters" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Cita finalizada - boton</x-ui.label>
+                            <x-ui.textarea wire:model="appointmentCompletedButtonParameters" rows="2" placeholder="" />
+                            <p class="mt-1 text-xs text-slate-500">Disponibles: {{ $parameterHints['appointment_completed_button'] ?: 'Sin parametros de boton disponibles.' }}</p>
+                            <x-ui.error name="appointmentCompletedButtonParameters" />
+                        </x-ui.field>
+                    </div>
+                </x-ui.fieldset>
+
                 <div class="w-full flex justify-end gap-3 pt-4">
                     <x-ui.button type="submit" icon="check" variant="primary" color="teal">
                         Guardar configuracion
