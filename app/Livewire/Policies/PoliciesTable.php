@@ -95,7 +95,7 @@ final class PoliciesTable extends PowerGridComponent
                 ->sortable()
                 ->hidden(isHidden: true, isForceHidden: false),
 
-            Column::make('Cobertura', 'plan_name')
+            Column::make('Plan', 'plan_name')
                 ->sortable()
                 ->hidden(isHidden: true, isForceHidden: false),
 
