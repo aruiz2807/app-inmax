@@ -206,6 +206,22 @@
                 @if($preregistrationType === 'group_owner')
                     <div wire:key="preregistration-group-owner-fields">
                         <x-ui.field required>
+                            <x-ui.label>Plan</x-ui.label>
+                            <x-ui.select
+                                wire:model="preregistrationPlan"
+                                placeholder="Selecciona un plan colectivo"
+                                searchable
+                            >
+                                @foreach($preregistrationGroupPlans as $plan)
+                                    <x-ui.select.option value="{{ $plan->id }}">
+                                        {{ $plan->name }}
+                                    </x-ui.select.option>
+                                @endforeach
+                            </x-ui.select>
+                            <x-ui.error name="preregistrationPlan" />
+                        </x-ui.field>
+
+                        <x-ui.field required>
                             <x-ui.label>Nombre del colectivo</x-ui.label>
                             <x-ui.input wire:model="preregistrationCompanyName" placeholder="Inmax" />
                             <x-ui.error name="preregistrationCompanyName" />

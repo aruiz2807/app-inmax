@@ -3,22 +3,28 @@
 @php($salesAgents = $salesAgents ?? collect())
 @php($promoterReadonly = $promoterReadonly ?? false)
 @php($promoterName = $promoterName ?? '')
+@php($planReadonly = $planReadonly ?? false)
+@php($planName = $planName ?? '')
 
 <x-ui.fieldset label="Información de la membresía" class="mt-2">
     <x-ui.field required>
         <x-ui.label>Plan</x-ui.label>
-        <x-ui.select
-            placeholder="Buscar plan..."
-            icon="wallet"
-            searchable
-            wire:model="{{ $statePath }}.plan"
-        >
-            @foreach($plans as $plan)
-                <x-ui.select.option value="{{ $plan->id }}">
-                    {{ $plan->name }}
-                </x-ui.select.option>
-            @endforeach
-        </x-ui.select>
+        @if($planReadonly)
+            <x-ui.input :value="$planName" readonly copyable="false" />
+        @else
+            <x-ui.select
+                placeholder="Buscar plan..."
+                icon="wallet"
+                searchable
+                wire:model="{{ $statePath }}.plan"
+            >
+                @foreach($plans as $plan)
+                    <x-ui.select.option value="{{ $plan->id }}">
+                        {{ $plan->name }}
+                    </x-ui.select.option>
+                @endforeach
+            </x-ui.select>
+        @endif
         <x-ui.error :name="$statePath . '.plan'" />
     </x-ui.field>
 

@@ -395,6 +395,28 @@ class PolicyPreregistrationService
     }
 
     /**
+     * Validate that the selected plan is active and collective.
+     */
+    private function resolveGroupOwnerPlan(?int $planId): Plan
+    {
+        if (! $planId) {
+            throw new InvalidArgumentException('La cobertura seleccionada no esta disponible para preregistro.');
+        }
+
+        $plan = Plan::query()
+            ->whereKey($planId)
+            ->where('type', 'Group')
+            ->where('status', 'Active')
+            ->first();
+
+        if (! $plan) {
+            throw new InvalidArgumentException('La cobertura seleccionada no esta disponible para preregistro.');
+        }
+
+        return $plan;
+    }
+
+    /**
      * Validate and normalize collective owner data captured by the sales user.
      *
      * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null}  $collectiveData
@@ -502,13 +524,14 @@ class PolicyPreregistrationService
 
         if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER) {
             $normalizedCollectiveData = $this->normalizeCollectiveData($collectiveData);
+            $plan = $this->resolveGroupOwnerPlan($planId);
 
             return [
-                null,
+                $plan,
                 null,
                 $this->createToken(
                     salesUser: $salesUser,
-                    plan: null,
+                    plan: $plan,
                     parentPolicy: null,
                     phone: $phone,
                     preregistrationType: $preregistrationType,
@@ -568,14 +591,15 @@ class PolicyPreregistrationService
 
         if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER) {
             $normalizedCollectiveData = $this->normalizeCollectiveData($collectiveData);
+            $plan = $this->resolveGroupOwnerPlan($planId);
 
             return [
-                null,
+                $plan,
                 null,
                 $this->refreshToken(
                     preregistration: $preregistration,
                     salesUser: $salesUser,
-                    plan: null,
+                    plan: $plan,
                     parentPolicy: null,
                     phone: $phone,
                     preregistrationType: $preregistrationType,

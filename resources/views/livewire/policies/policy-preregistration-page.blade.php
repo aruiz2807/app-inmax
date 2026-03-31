@@ -100,8 +100,10 @@
 
                     @include('livewire.policies.partials.group-membership-fields', [
                         'statePath' => 'groupForm',
-                        'plans' => $groupPlans,
+                        'plans' => collect(),
                         'salesAgents' => collect(),
+                        'planReadonly' => true,
+                        'planName' => $preregistration?->plan?->name,
                         'promoterReadonly' => true,
                         'promoterName' => $preregistration?->salesUser?->name,
                     ])

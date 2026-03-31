@@ -588,11 +588,19 @@ class PolicyPreregistrationTest extends TestCase
             'profile' => 'Sales',
         ]);
 
+        $groupPlan = Plan::query()->create([
+            'name' => 'Plan Colectivo Preregistro',
+            'price' => 2500.00,
+            'type' => 'Group',
+            'status' => 'Active',
+        ]);
+
         $this->actingAs($salesUser);
 
         Livewire::test(PolicyPreregistrationsPage::class)
             ->set('preregistrationType', PolicyPreregistration::TYPE_GROUP_OWNER)
             ->set('preregistrationPhone', '3310000060')
+            ->set('preregistrationPlan', (string) $groupPlan->id)
             ->set('preregistrationCompanyName', 'Inmax Colectivo')
             ->set('preregistrationCompanyType', 'PM')
             ->set('preregistrationCompanyLegalName', 'Inmax Colectivo SA de CV')
@@ -605,7 +613,7 @@ class PolicyPreregistrationTest extends TestCase
         $this->assertDatabaseHas('policy_preregistrations', [
             'sales_user_id' => $salesUser->id,
             'preregistration_type' => PolicyPreregistration::TYPE_GROUP_OWNER,
-            'plan_id' => null,
+            'plan_id' => $groupPlan->id,
             'parent_policy_id' => null,
             'phone' => '3310000060',
             'company_name' => 'Inmax Colectivo',
@@ -643,6 +651,7 @@ class PolicyPreregistrationTest extends TestCase
 
         $preregistration = PolicyPreregistration::query()->create([
             'sales_user_id' => $salesUser->id,
+            'plan_id' => $groupPlan->id,
             'preregistration_type' => PolicyPreregistration::TYPE_GROUP_OWNER,
             'phone' => '3310000061',
             'company_name' => 'Colectivo Demo',
@@ -658,7 +667,6 @@ class PolicyPreregistrationTest extends TestCase
             ->set('groupForm.email', 'representante.demo@example.com')
             ->set('groupForm.birth', '1988-03-14')
             ->set('groupForm.curp', 'DEMR880314HMCLPN09')
-            ->set('groupForm.plan', (string) $groupPlan->id)
             ->set('groupForm.members', 10)
             ->set('groupForm.insurance', ['imss'])
             ->call('save')

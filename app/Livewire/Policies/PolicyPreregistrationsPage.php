@@ -67,6 +67,8 @@ class PolicyPreregistrationsPage extends Component
 
     public Collection $preregistrationPlans;
 
+    public Collection $preregistrationGroupPlans;
+
     public Collection $preregistrationFilterPlans;
 
     public Collection $preregistrationParentPolicies;
@@ -108,7 +110,10 @@ class PolicyPreregistrationsPage extends Component
                 Rule::unique('policy_preregistrations', 'phone')->ignore($this->preregistrationId),
             ],
             'preregistrationPlan' => [
-                Rule::requiredIf($this->preregistrationType === PolicyPreregistration::TYPE_INDIVIDUAL_POLICY),
+                Rule::requiredIf(in_array($this->preregistrationType, [
+                    PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
+                    PolicyPreregistration::TYPE_GROUP_OWNER,
+                ], true)),
                 'nullable',
             ],
             'preregistrationParentPolicy' => [
@@ -429,7 +434,7 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationParentPolicy = null;
 
         if ($value === PolicyPreregistration::TYPE_GROUP_OWNER) {
-            $this->preregistrationPlan = null;
+            $this->preregistrationParentPolicy = null;
         }
     }
 
@@ -452,6 +457,12 @@ class PolicyPreregistrationsPage extends Component
     {
         $this->preregistrationPlans = Plan::query()
             ->where('type', 'Individual')
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $this->preregistrationGroupPlans = Plan::query()
+            ->where('type', 'Group')
             ->where('status', 'Active')
             ->orderBy('name')
             ->get(['id', 'name']);
@@ -572,7 +583,7 @@ class PolicyPreregistrationsPage extends Component
         }
 
         if ($validated['preregistrationType'] === PolicyPreregistration::TYPE_GROUP_OWNER) {
-            return null;
+            return (int) $validated['preregistrationPlan'];
         }
 
         return (int) $validated['preregistrationPlan'];

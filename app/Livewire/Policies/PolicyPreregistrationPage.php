@@ -143,6 +143,7 @@ class PolicyPreregistrationPage extends Component
             $this->groupForm->legal_name = (string) $preregistration->company_legal_name;
             $this->groupForm->rfc = (string) $preregistration->company_rfc;
             $this->groupForm->phone = $preregistration->phone;
+            $this->groupForm->plan = $preregistration->plan_id ? (string) $preregistration->plan_id : null;
             $this->groupForm->sales_user = (string) $preregistration->sales_user_id;
 
             return;
