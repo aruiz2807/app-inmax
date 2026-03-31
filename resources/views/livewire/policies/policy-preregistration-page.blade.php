@@ -22,16 +22,16 @@
                         Tus datos han sido registrados correctamente en el sistema de INMAX.
                     </p>
                     <p class="mt-3">
-                        Tu membresia esta a un paso de quedar activa. Para comenzar a disfrutar de tus beneficios y recibir tu kit de bienvenida, te esperamos en nuestra sucursal para realizar tu pago.
+                        Tu membresía esta a un paso de quedar activa. Para comenzar a disfrutar de tus beneficios y recibir tu kit de bienvenida, te esperamos en nuestra sucursal para realizar tu pago.
                     </p>
                     <p class="mt-3">
-                        Horarios de atencion (Caja): Lunes a Viernes: 9:00 AM - 6:00 PM. Sabados: 9:00 AM - 2:00 PM.
+                        Horarios de atención (Caja): Lunes a Viernes: 9:00 AM - 6:00 PM. Sabados: 9:00 AM - 2:00 PM.
                     </p>
                     <p class="mt-3">
-                        Al llegar, solo menciona que ya completaste tu registro en linea. Te esperamos para activar tu Membresia INMAX.
+                        Al llegar, solo menciona que ya completaste tu registro en linea. Te esperamos para activar tu membresía INMAX.
                     </p>
                     <p class="mt-3">
-                        Ubicacion: Torre Medica, Av. Plan de San Luis #1831, Col. San Bernardo, C.P. 44260.
+                        Ubicación: Torre Medica, Av. Plan de San Luis #1831, Col. San Bernardo, C.P. 44260.
                     </p>
                 </div>
 

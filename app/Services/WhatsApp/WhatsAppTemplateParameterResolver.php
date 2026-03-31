@@ -40,7 +40,7 @@ class WhatsAppTemplateParameterResolver
         self::ACTIVATION_BODY => [
             'user_name' => 'Nombre del usuario',
             'user_phone' => 'Telefono del usuario',
-            'policy_number' => 'Numero de membresia',
+            'policy_number' => 'Numero de membresía',
             'policy_type' => 'Tipo de membresía',
             'start_date' => 'Fecha de inicio',
             'sales_user_name' => 'Nombre del promotor',
@@ -51,7 +51,7 @@ class WhatsAppTemplateParameterResolver
         self::PIN_RESET_BODY => [
             'user_name' => 'Nombre del usuario',
             'user_phone' => 'Telefono del usuario',
-            'policy_number' => 'Numero de membresia',
+            'policy_number' => 'Numero de membresía',
             'policy_type' => 'Tipo de membresía',
             'sales_user_name' => 'Nombre del promotor',
         ],

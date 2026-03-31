@@ -93,7 +93,7 @@ class PolicyPreregistrationPage extends Component
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Tus datos fueron registrados correctamente. Tu membresia esta pendiente de activacion.',
+            content: 'Tus datos fueron registrados correctamente. Tu membresía esta pendiente de activación.',
             duration: 5000
         );
     }

@@ -4,7 +4,7 @@ return [
     'home' => 'Home',
     'appointments' => 'Citas',
     'preregistration' => 'Preregistros',
-    'policies' => 'Membresias',
+    'policies' => 'Membresías',
     'doctors' => 'Red',
     'users' => 'Usuarios',
 
