@@ -40,13 +40,9 @@ class PinSetupWhatsAppTemplateTest extends TestCase
             'plan_id' => $plan->id,
             'number' => 'POL-3001',
             'type' => 'Individual',
+            'start_date' => '2026-03-15',
             'status' => 'Active',
         ]);
-
-        $policy->forceFill([
-            'created_at' => now()->setDate(2026, 3, 15)->setTime(9, 0),
-            'updated_at' => now()->setDate(2026, 3, 15)->setTime(9, 0),
-        ])->saveQuietly();
 
         WhatsAppSetting::query()->create([
             'api_version' => 'v22.0',
