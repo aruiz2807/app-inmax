@@ -9,7 +9,7 @@ use App\Services\WhatsApp\WhatsAppDestinationResolver;
 use App\Services\WhatsApp\WhatsAppTemplateParameterResolver;
 use Illuminate\Support\Facades\Log;
 
-class AppointmentRequestNotificationService
+class AppointmentCompletedNotificationService
 {
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService,
@@ -18,13 +18,13 @@ class AppointmentRequestNotificationService
     ) {}
 
     /**
-     * Notify the assigned doctor/provider about a newly created appointment request.
+     * Notify the member when the appointment has been completed.
      *
      * @return array{attempted: bool, ok: bool, reason?: string, status?: int, to?: string, tried_to?: array<int, string>}
      */
     public function send(Appointment $appointment): array
     {
-        $appointment->loadMissing('user', 'doctor.user');
+        $appointment->loadMissing('user', 'doctor.user', 'note');
 
         $setting = WhatsAppSetting::query()->first();
 
@@ -36,7 +36,7 @@ class AppointmentRequestNotificationService
             ];
         }
 
-        if (! filled($setting->appointment_request_template_name)) {
+        if (! filled($setting->appointment_completed_template_name)) {
             return [
                 'attempted' => false,
                 'ok' => false,
@@ -44,9 +44,9 @@ class AppointmentRequestNotificationService
             ];
         }
 
-        $doctorUser = $appointment->doctor?->user;
+        $member = $appointment->user;
 
-        if (! filled($doctorUser?->phone)) {
+        if (! filled($member?->phone)) {
             return [
                 'attempted' => false,
                 'ok' => false,
@@ -55,11 +55,11 @@ class AppointmentRequestNotificationService
         }
 
         $destinations = $this->destinationResolver->resolve(
-            phone: (string) $doctorUser->phone,
-            countryCode: (string) ($doctorUser->phone_country_code ?? '52')
+            phone: (string) $member->phone,
+            countryCode: (string) ($member->phone_country_code ?? '52')
         );
 
-        if (empty($destinations)) {
+        if ($destinations === []) {
             return [
                 'attempted' => false,
                 'ok' => false,
@@ -67,20 +67,21 @@ class AppointmentRequestNotificationService
             ];
         }
 
-        $languageCode = $setting->default_language ?: 'es_MX';
         $parameterContext = [
             'appointment' => $appointment,
-            'member' => $appointment->user,
-            'doctor_name' => $doctorUser->name,
+            'member' => $member,
+            'doctor_name' => $appointment->doctor?->user?->name,
+            'completed_at' => $appointment->note?->created_at ?? now(),
         ];
+        $languageCode = $setting->default_language ?: 'es_MX';
         $parameters = $this->parameterResolver->resolve(
-            $setting->appointment_request_body_parameters,
-            WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY,
+            $setting->appointment_completed_body_parameters,
+            WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY,
             $parameterContext
         );
         $buttonParameters = $this->parameterResolver->resolve(
-            $setting->appointment_request_button_parameters,
-            WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON,
+            $setting->appointment_completed_button_parameters,
+            WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BUTTON,
             $parameterContext
         );
 
@@ -90,20 +91,20 @@ class AppointmentRequestNotificationService
             $lastResponse = $this->whatsAppService->sendTemplateMessage(
                 setting: $setting,
                 to: $destination,
-                templateName: $setting->appointment_request_template_name,
+                templateName: $setting->appointment_completed_template_name,
                 languageCode: $languageCode,
                 parameters: $parameters,
                 buttonUrlParameters: $buttonParameters,
             );
 
             if ($lastResponse['ok']) {
-                Log::info('WHATSAPP_APPOINTMENT_REQUEST', [
+                Log::info('WHATSAPP_APPOINTMENT_COMPLETED', [
                     'appointment_id' => $appointment->id,
                     'doctor_id' => $appointment->doctor_id,
                     'user_id' => $appointment->user_id,
                     'to' => $destination,
                     'status' => $lastResponse['status'],
-                    'template' => $setting->appointment_request_template_name,
+                    'template' => $setting->appointment_completed_template_name,
                 ]);
 
                 return [
@@ -115,12 +116,12 @@ class AppointmentRequestNotificationService
             }
         }
 
-        Log::info('WHATSAPP_APPOINTMENT_REQUEST', [
+        Log::info('WHATSAPP_APPOINTMENT_COMPLETED', [
             'appointment_id' => $appointment->id,
             'doctor_id' => $appointment->doctor_id,
             'user_id' => $appointment->user_id,
             'status' => $lastResponse['status'] ?? null,
-            'template' => $setting->appointment_request_template_name,
+            'template' => $setting->appointment_completed_template_name,
             'tried_to' => $destinations,
             'response' => $lastResponse['data'] ?? [],
         ]);

@@ -8,6 +8,7 @@ use App\Models\UserPinSetupToken;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Services\WhatsApp\WhatsAppDestinationResolver;
+use App\Services\WhatsApp\WhatsAppTemplateParameterResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +30,8 @@ class PinSetupTokenService
 
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService,
-        private readonly WhatsAppDestinationResolver $destinationResolver
+        private readonly WhatsAppDestinationResolver $destinationResolver,
+        private readonly WhatsAppTemplateParameterResolver $parameterResolver
     ) {}
 
     /**
@@ -209,6 +211,8 @@ class PinSetupTokenService
      */
     private function sendWhatsAppTemplate(User $user, string $plainTextToken, string $purpose): array
     {
+        $user->loadMissing('policy.plan', 'policy.sales_user');
+
         $setting = WhatsAppSetting::query()->first();
 
         if (! $setting || ! filled($setting->access_token) || ! filled($setting->phone_number_id)) {
@@ -247,6 +251,31 @@ class PinSetupTokenService
         }
 
         $lastResponse = null;
+        $policy = $user->policy;
+        $parameterContext = [
+            'user' => $user,
+            'policy' => $policy,
+            'sales_user' => $policy?->sales_user,
+            'pin_token' => $plainTextToken,
+        ];
+        $bodyParameters = $this->parameterResolver->resolve(
+            $purpose === self::PURPOSE_RESET
+                ? $setting->pin_reset_body_parameters
+                : $setting->activation_body_parameters,
+            $purpose === self::PURPOSE_RESET
+                ? WhatsAppTemplateParameterResolver::PIN_RESET_BODY
+                : WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
+            $parameterContext
+        );
+        $buttonParameters = $this->parameterResolver->resolve(
+            $purpose === self::PURPOSE_RESET
+                ? $setting->pin_reset_button_parameters
+                : $setting->activation_button_parameters,
+            $purpose === self::PURPOSE_RESET
+                ? WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON
+                : WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
+            $parameterContext
+        );
 
         foreach ($destinations as $destination) {
             $lastResponse = $this->whatsAppService->sendTemplateMessage(
@@ -254,8 +283,8 @@ class PinSetupTokenService
                 to: $destination,
                 templateName: $templateName,
                 languageCode: $languageCode,
-                parameters: [$user->name],
-                buttonUrlParameters: [$plainTextToken]
+                parameters: $bodyParameters,
+                buttonUrlParameters: $buttonParameters
             );
 
             if ($lastResponse['ok']) {

@@ -10,6 +10,7 @@ use App\Models\WhatsAppSetting;
 use App\Services\Policies\GroupPolicyCapacityService;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Services\WhatsApp\WhatsAppDestinationResolver;
+use App\Services\WhatsApp\WhatsAppTemplateParameterResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +32,8 @@ class PolicyPreregistrationService
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService,
         private readonly WhatsAppDestinationResolver $destinationResolver,
-        private readonly GroupPolicyCapacityService $groupPolicyCapacityService
+        private readonly GroupPolicyCapacityService $groupPolicyCapacityService,
+        private readonly WhatsAppTemplateParameterResolver $parameterResolver
     ) {}
 
     /**
@@ -275,6 +277,8 @@ class PolicyPreregistrationService
      */
     private function sendWhatsAppTemplate(PolicyPreregistration $preregistration, string $plainTextToken): array
     {
+        $preregistration->loadMissing('salesUser', 'plan', 'parentPolicy.user.company');
+
         $setting = WhatsAppSetting::query()->first();
 
         if (! $setting || ! filled($setting->access_token) || ! filled($setting->phone_number_id)) {
@@ -305,7 +309,23 @@ class PolicyPreregistrationService
 
         $languageCode = $setting->default_language ?: 'es_MX';
         $lastResponse = null;
-        $promoterName = $preregistration->salesUser?->name ?: 'Inmax-Sure';
+        $parameterContext = [
+            'preregistration' => $preregistration,
+            'promoter' => $preregistration->salesUser,
+            'plan' => $preregistration->plan,
+            'parent_policy' => $preregistration->parentPolicy,
+            'preregistration_token' => $plainTextToken,
+        ];
+        $bodyParameters = $this->parameterResolver->resolve(
+            $setting->preregistration_body_parameters,
+            WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY,
+            $parameterContext
+        );
+        $buttonParameters = $this->parameterResolver->resolve(
+            $setting->preregistration_button_parameters,
+            WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON,
+            $parameterContext
+        );
 
         foreach ($destinations as $destination) {
             $lastResponse = $this->whatsAppService->sendTemplateMessage(
@@ -313,8 +333,8 @@ class PolicyPreregistrationService
                 to: $destination,
                 templateName: $setting->preregistration_template_name,
                 languageCode: $languageCode,
-                parameters: [$promoterName],
-                buttonUrlParameters: [$plainTextToken]
+                parameters: $bodyParameters,
+                buttonUrlParameters: $buttonParameters
             );
 
             if ($lastResponse['ok']) {

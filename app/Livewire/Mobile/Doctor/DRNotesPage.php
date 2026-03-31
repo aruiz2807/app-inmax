@@ -8,13 +8,12 @@ use App\Enums\DoctorType;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\PolicyService;
+use App\Services\Appointments\AppointmentCompletedNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use App\Models\WhatsAppSetting;
-use App\Services\WhatsApp\WhatsAppCloudApiService;
 
 class DRNotesPage extends Component
 {
@@ -124,23 +123,6 @@ class DRNotesPage extends Component
             'status' => 'Completed',
         ]);
 
-        //enviar whatsapp
-        $service = app(WhatsAppCloudApiService::class);
-        $params = [$this->appointment->user->name, $this->appointment->note->created_at->format('d/m/Y'), $this->appointment->doctor->user->name ];
-        $this->sendWhatsApp($service, $this->appointment->user->phone, $params);
-    }
-
-    public function sendWhatsApp(WhatsAppCloudApiService $service, $to, $params)
-    {
-        $setting = WhatsAppSetting::query()->firstOrFail();
-
-        $result = $service->sendTemplateMessage(
-            setting: $setting,
-            to: '+52'.$to,
-            templateName: $setting->appointment_completed_template_name,
-            languageCode: $setting->default_language ?: 'es_MX',
-            parameters: $params,
-            buttonUrlParameters: [],
-        );
+        app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
     }
 }

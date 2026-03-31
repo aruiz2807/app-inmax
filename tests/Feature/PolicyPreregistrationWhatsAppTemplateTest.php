@@ -14,10 +14,11 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_preregistration_template_sends_promoter_name_in_body_and_token_in_button(): void
+    public function test_preregistration_template_uses_configured_body_and_button_parameters(): void
     {
         $salesUser = User::factory()->create([
             'profile' => 'Sales',
+            'name' => 'Promotor Colectivo',
         ]);
 
         $plan = Plan::query()->create([
@@ -34,6 +35,8 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
             'activation_template_name' => 'pin_activation_inmax',
             'pin_reset_template_name' => 'pin_reset_inmax',
             'preregistration_template_name' => 'policy_preregistration_template',
+            'preregistration_body_parameters' => ['promoter_name', 'plan_name'],
+            'preregistration_button_parameters' => ['preregistration_token'],
             'default_language' => 'es_MX',
         ]);
 
@@ -64,6 +67,7 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
                 && count($components) === 2
                 && ($components[0]['type'] ?? null) === 'body'
                 && ($components[0]['parameters'][0]['text'] ?? null) === $salesUser->name
+                && ($components[0]['parameters'][1]['text'] ?? null) === 'Plan Individual'
                 && ($components[1]['type'] ?? null) === 'button'
                 && ($components[1]['sub_type'] ?? null) === 'url'
                 && ($components[1]['index'] ?? null) === '0'

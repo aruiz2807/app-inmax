@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Appointments\AppointmentFormPage;
 use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Models\Office;
 use App\Models\Plan;
 use App\Models\Policy;
 use App\Models\Service;
@@ -87,6 +88,9 @@ class AppointmentRequestWhatsAppTest extends TestCase
             'pin_reset_template_name' => 'pin_reset_template',
             'preregistration_template_name' => 'policy_preregistration_template',
             'appointment_request_template_name' => 'appointment_request_template',
+            'appointment_request_body_parameters' => ['member_name', 'appointment_date', 'appointment_time', 'doctor_name'],
+            'appointment_request_button_parameters' => [],
+            'appointment_completed_template_name' => 'appointment_completed_template',
             'default_language' => 'es_MX',
         ]);
 
@@ -123,7 +127,8 @@ class AppointmentRequestWhatsAppTest extends TestCase
                 && ($request['template']['components'][0]['type'] ?? null) === 'body'
                 && ($request['template']['components'][0]['parameters'][0]['text'] ?? null) === 'Juan Perez'
                 && ($request['template']['components'][0]['parameters'][1]['text'] ?? null) === '25/03/2026'
-                && ($request['template']['components'][0]['parameters'][2]['text'] ?? null) === '11:00 AM';
+                && ($request['template']['components'][0]['parameters'][2]['text'] ?? null) === '11:00 AM'
+                && ($request['template']['components'][0]['parameters'][3]['text'] ?? null) === 'Dra. Rivera';
         });
     }
 
@@ -181,12 +186,22 @@ class AppointmentRequestWhatsAppTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $office = Office::query()->create([
+            'name' => 'Consultorio Centro',
+            'address' => 'Av. Reforma 100',
+            'maps_url' => 'https://maps.example.com/consultorio-centro',
+        ]);
+
+        $doctor->offices()->attach($office->id);
+
         $appointment = Appointment::query()->create([
             'user_id' => $member->id,
             'doctor_id' => $doctor->id,
+            'office_id' => $office->id,
+            'requested_by_user_id' => $scheduler->id,
             'date' => '2026-03-25',
             'time' => '10:00',
-            'covered' => true,
+            'status' => 'Booked',
         ]);
 
         WhatsAppSetting::query()->create([
@@ -197,6 +212,7 @@ class AppointmentRequestWhatsAppTest extends TestCase
             'pin_reset_template_name' => 'pin_reset_template',
             'preregistration_template_name' => 'policy_preregistration_template',
             'appointment_request_template_name' => 'appointment_request_template',
+            'appointment_completed_template_name' => 'appointment_completed_template',
             'default_language' => 'es_MX',
         ]);
 
