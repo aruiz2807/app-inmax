@@ -470,13 +470,11 @@ class PolicyPreregistrationsPage extends Component
     private function loadPreregistrationOptions(): void
     {
         $this->preregistrationPlans = Plan::query()
-            ->where('type', 'Individual')
             ->where('status', 'Active')
             ->orderBy('name')
             ->get(['id', 'name']);
 
         $this->preregistrationGroupPlans = Plan::query()
-            ->where('type', 'Group')
             ->where('status', 'Active')
             ->orderBy('name')
             ->get(['id', 'name']);

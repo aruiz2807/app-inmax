@@ -375,7 +375,7 @@ class PolicyPreregistrationService
     }
 
     /**
-     * Validate that the selected plan is active and individual.
+     * Validate that the selected plan is active.
      */
     private function resolvePlan(?int $planId): Plan
     {
@@ -385,7 +385,6 @@ class PolicyPreregistrationService
 
         $plan = Plan::query()
             ->whereKey($planId)
-            ->where('type', 'Individual')
             ->where('status', 'Active')
             ->first();
 
@@ -397,7 +396,7 @@ class PolicyPreregistrationService
     }
 
     /**
-     * Validate that the selected plan is active and collective.
+     * Validate that the selected plan is active for collective owner preregistration.
      */
     private function resolveGroupOwnerPlan(?int $planId): Plan
     {
@@ -407,7 +406,6 @@ class PolicyPreregistrationService
 
         $plan = Plan::query()
             ->whereKey($planId)
-            ->where('type', 'Group')
             ->where('status', 'Active')
             ->first();
 
