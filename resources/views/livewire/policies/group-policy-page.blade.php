@@ -1,6 +1,6 @@
 <div>
     <form wire:submit="save">
-        <x-ui.fieldset label="Información del colecticvo">
+        <x-ui.fieldset label="Información del colectivo">
             <x-ui.field required>
                 <x-ui.label>Nombre</x-ui.label>
                 <x-ui.input wire:model="form.company" name="company" placeholder="Inmax" />
