@@ -61,8 +61,13 @@
             <div class="mb-4 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700">
                 <p><span class="font-semibold">Telefono:</span> {{ $preregistration->phone }}</p>
                 <p><span class="font-semibold">Tipo:</span> {{ $preregistration->type_label }}</p>
-                <p><span class="font-semibold">Plan:</span> {{ $preregistration->plan?->name }}</p>
+                <p><span class="font-semibold">Plan:</span> {{ $preregistration->plan?->name ?: 'Se definira durante el registro' }}</p>
                 <p><span class="font-semibold">Membresía principal:</span> {{ $preregistration->parentPolicy?->number ?: 'Sin membresía principal' }}</p>
+                @if($preregistration->isGroupOwner())
+                    <p><span class="font-semibold">Colectivo:</span> {{ $preregistration->company_name }}</p>
+                    <p><span class="font-semibold">Razon social:</span> {{ $preregistration->company_legal_name }}</p>
+                    <p><span class="font-semibold">RFC:</span> {{ $preregistration->company_rfc }}</p>
+                @endif
                 <p><span class="font-semibold">Promotor:</span> {{ $preregistration->salesUser?->name }}</p>
             </div>
         @endif
@@ -81,24 +86,45 @@
 
         @if ($this->canRegister() && ! $registrationCompleted)
             <form wire:submit="save">
-                @include('livewire.policies.partials.individual-customer-fields', ['phoneReadonly' => true])
+                @if($preregistration?->isGroupOwner())
+                    @include('livewire.policies.partials.group-collective-fields', [
+                        'statePath' => 'groupForm',
+                        'readonly' => true,
+                    ])
 
-                <x-ui.fieldset label="Informacion de la membresía" class="mt-2">
-                    <x-ui.field>
-                        <x-ui.label>Plan</x-ui.label>
-                        <x-ui.input :value="$preregistration?->plan?->name" readonly copyable="false" />
-                    </x-ui.field>
+                    @include('livewire.policies.partials.group-representative-fields', [
+                        'statePath' => 'groupForm',
+                        'age' => $this->groupAge,
+                        'phoneReadonly' => true,
+                    ])
 
-                    <x-ui.field>
-                        <x-ui.label>Membresía principal</x-ui.label>
-                        <x-ui.input :value="$preregistration?->parentPolicy?->number ?: 'Sin membresía principal'" readonly copyable="false" />
-                    </x-ui.field>
+                    @include('livewire.policies.partials.group-membership-fields', [
+                        'statePath' => 'groupForm',
+                        'plans' => $groupPlans,
+                        'salesAgents' => collect(),
+                        'promoterReadonly' => true,
+                        'promoterName' => $preregistration?->salesUser?->name,
+                    ])
+                @else
+                    @include('livewire.policies.partials.individual-customer-fields', ['phoneReadonly' => true])
 
-                    <x-ui.field>
-                        <x-ui.label>Promotor</x-ui.label>
-                        <x-ui.input :value="$preregistration?->salesUser?->name" readonly copyable="false" />
-                    </x-ui.field>
-                </x-ui.fieldset>
+                    <x-ui.fieldset label="Informacion de la membresía" class="mt-2">
+                        <x-ui.field>
+                            <x-ui.label>Plan</x-ui.label>
+                            <x-ui.input :value="$preregistration?->plan?->name" readonly copyable="false" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Membresía principal</x-ui.label>
+                            <x-ui.input :value="$preregistration?->parentPolicy?->number ?: 'Sin membresía principal'" readonly copyable="false" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Promotor</x-ui.label>
+                            <x-ui.input :value="$preregistration?->salesUser?->name" readonly copyable="false" />
+                        </x-ui.field>
+                    </x-ui.fieldset>
+                @endif
 
                 <div class="mt-4 flex items-center justify-end">
                     <x-ui.button type="submit" color="teal" icon="check">

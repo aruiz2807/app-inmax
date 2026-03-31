@@ -29,7 +29,7 @@
 
                 <p class="text-sm mt-2">
                     Telefono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
-                    | Plan: <span class="font-semibold">{{ $lastPreregistrationPlanName }}</span>
+                    | Referencia: <span class="font-semibold">{{ $lastPreregistrationReference }}</span>
                 </p>
 
                 <p class="text-sm mt-1 text-slate-600">
@@ -69,9 +69,10 @@
 
                 <x-ui.field>
                     <x-ui.label>Filtro tipo</x-ui.label>
-                    <x-ui.select wire:model.live="filterPreregistrationType" placeholder="Todos">
-                        <x-ui.select.option value="">Todos</x-ui.select.option>
+                        <x-ui.select wire:model.live="filterPreregistrationType" placeholder="Todos">
+                            <x-ui.select.option value="">Todos</x-ui.select.option>
                         <x-ui.select.option value="individual_policy">Membresía individual</x-ui.select.option>
+                        <x-ui.select.option value="group_owner">Titular colectiva</x-ui.select.option>
                         <x-ui.select.option value="group_member">Miembro colectiva</x-ui.select.option>
                     </x-ui.select>
                 </x-ui.field>
@@ -109,7 +110,7 @@
                         <tr>
                             <th class="text-left px-3 py-2 font-semibold">Telefono</th>
                             <th class="text-left px-3 py-2 font-semibold">Tipo</th>
-                            <th class="text-left px-3 py-2 font-semibold">Plan</th>
+                            <th class="text-left px-3 py-2 font-semibold">Plan / Colectivo</th>
                             <th class="text-left px-3 py-2 font-semibold">Membresía padre</th>
                             <th class="text-left px-3 py-2 font-semibold">Promotor</th>
                             <th class="text-left px-3 py-2 font-semibold">Estatus</th>
@@ -123,7 +124,7 @@
                             <tr class="border-t border-neutral-200 dark:border-neutral-700">
                                 <td class="px-3 py-2">{{ $preregistration->phone }}</td>
                                 <td class="px-3 py-2">{{ $preregistration->type_label }}</td>
-                                <td class="px-3 py-2">{{ $preregistration->plan?->name }}</td>
+                                <td class="px-3 py-2">{{ $preregistration->company_name ?: $preregistration->plan?->name ?: '-' }}</td>
                                 <td class="px-3 py-2">{{ $preregistration->parentPolicy?->number ?: '-' }}</td>
                                 <td class="px-3 py-2">{{ $preregistration->salesUser?->name }}</td>
                                 <td class="px-3 py-2">
@@ -190,6 +191,7 @@
                     <x-ui.label>Tipo de preregistro</x-ui.label>
                     <x-ui.select wire:model.live="preregistrationType">
                         <x-ui.select.option value="individual_policy">Membresía individual</x-ui.select.option>
+                        <x-ui.select.option value="group_owner">Titular de membresía colectiva</x-ui.select.option>
                         <x-ui.select.option value="group_member">Miembro de membresía colectiva</x-ui.select.option>
                     </x-ui.select>
                     <x-ui.error name="preregistrationType" />
@@ -201,7 +203,37 @@
                     <x-ui.error name="preregistrationPhone" />
                 </x-ui.field>
 
-                @if($preregistrationType === 'group_member')
+                @if($preregistrationType === 'group_owner')
+                    <div wire:key="preregistration-group-owner-fields">
+                        <x-ui.field required>
+                            <x-ui.label>Nombre del colectivo</x-ui.label>
+                            <x-ui.input wire:model="preregistrationCompanyName" placeholder="Inmax" />
+                            <x-ui.error name="preregistrationCompanyName" />
+                        </x-ui.field>
+
+                        <x-ui.field required>
+                            <x-ui.label>Tipo de persona</x-ui.label>
+                            <x-ui.select wire:model="preregistrationCompanyType">
+                                <x-ui.select.option value="PF">Persona fisica</x-ui.select.option>
+                                <x-ui.select.option value="PM">Persona moral</x-ui.select.option>
+                                <x-ui.select.option value="PFA">Persona fisica con actividad empresarial</x-ui.select.option>
+                            </x-ui.select>
+                            <x-ui.error name="preregistrationCompanyType" />
+                        </x-ui.field>
+
+                        <x-ui.field required>
+                            <x-ui.label>Razon social</x-ui.label>
+                            <x-ui.input wire:model="preregistrationCompanyLegalName" placeholder="Inmax SA de CV" />
+                            <x-ui.error name="preregistrationCompanyLegalName" />
+                        </x-ui.field>
+
+                        <x-ui.field required>
+                            <x-ui.label>RFC</x-ui.label>
+                            <x-ui.input wire:model="preregistrationCompanyRfc" placeholder="XAXX010101111" maxlength="13" />
+                            <x-ui.error name="preregistrationCompanyRfc" />
+                        </x-ui.field>
+                    </div>
+                @elseif($preregistrationType === 'group_member')
                     <div wire:key="preregistration-group-member-fields">
                         <x-ui.field required>
                             <x-ui.label>Membresía colectiva</x-ui.label>

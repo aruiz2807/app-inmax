@@ -2,11 +2,15 @@
 
 namespace App\Livewire\Policies;
 
+use App\Livewire\Forms\GroupPolicyForm;
 use App\Livewire\Forms\IndividualPolicyForm;
+use App\Models\Plan;
 use App\Models\PolicyPreregistration;
 use App\Services\Auth\PolicyPreregistrationService;
+use App\Services\Policies\GroupPolicyRegistrationService;
 use App\Services\Policies\IndividualPolicyRegistrationService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -18,6 +22,8 @@ class PolicyPreregistrationPage extends Component
     use WithFileUploads;
 
     public IndividualPolicyForm $form;
+
+    public GroupPolicyForm $groupForm;
 
     public string $token = '';
 
@@ -33,6 +39,8 @@ class PolicyPreregistrationPage extends Component
 
     public string $officeMapsUrl = 'https://maps.app.goo.gl/5TQTNEzeJ3FKCK6Z9';
 
+    public Collection $groupPlans;
+
     #[Layout('layouts.guest')]
     public function render()
     {
@@ -47,13 +55,18 @@ class PolicyPreregistrationPage extends Component
         $this->tokenStatus = $resolved['status'];
         $this->preregistration = $resolved['preregistration'];
         $this->tokenMessage = $this->resolveTokenMessage($this->tokenStatus);
+        $this->groupPlans = Plan::query()
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $this->syncFormWithPreregistration($this->preregistration);
     }
 
     public function save(
         PolicyPreregistrationService $preregistrationService,
-        IndividualPolicyRegistrationService $registrationService
+        IndividualPolicyRegistrationService $registrationService,
+        GroupPolicyRegistrationService $groupRegistrationService
     ) {
         $resolved = $preregistrationService->resolveTokenStatus($this->token);
         $this->tokenStatus = $resolved['status'];
@@ -68,7 +81,9 @@ class PolicyPreregistrationPage extends Component
 
         $this->syncFormWithPreregistration($this->preregistration);
 
-        $policy = $this->form->store($registrationService, $this->preregistration->id);
+        $policy = $this->preregistration->isGroupOwner()
+            ? $this->groupForm->store($groupRegistrationService, $this->preregistration->id)
+            : $this->form->store($registrationService, $this->preregistration->id);
         $preregistrationService->consumeToken($this->preregistration);
         $this->registrationCompleted = true;
         $this->registeredMemberName = $policy->user->name;
@@ -102,9 +117,34 @@ class PolicyPreregistrationPage extends Component
         }
     }
 
+    #[Computed]
+    public function groupAge(): ?int
+    {
+        if (! $this->groupForm->birth) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($this->groupForm->birth)->age;
+        } catch (\Exception) {
+            return null;
+        }
+    }
+
     private function syncFormWithPreregistration(?PolicyPreregistration $preregistration): void
     {
         if (! $preregistration) {
+            return;
+        }
+
+        if ($preregistration->isGroupOwner()) {
+            $this->groupForm->company = (string) $preregistration->company_name;
+            $this->groupForm->type = $preregistration->company_type ?: 'PF';
+            $this->groupForm->legal_name = (string) $preregistration->company_legal_name;
+            $this->groupForm->rfc = (string) $preregistration->company_rfc;
+            $this->groupForm->phone = $preregistration->phone;
+            $this->groupForm->sales_user = (string) $preregistration->sales_user_id;
+
             return;
         }
 

@@ -33,11 +33,19 @@ class PolicyPreregistrationsPage extends Component
 
     public ?string $preregistrationSalesUser = null;
 
+    public string $preregistrationCompanyName = '';
+
+    public string $preregistrationCompanyType = 'PF';
+
+    public string $preregistrationCompanyLegalName = '';
+
+    public string $preregistrationCompanyRfc = '';
+
     public ?string $lastPreregistrationUrl = null;
 
     public ?string $lastPreregistrationPhone = null;
 
-    public ?string $lastPreregistrationPlanName = null;
+    public ?string $lastPreregistrationReference = null;
 
     public ?string $lastPreregistrationExpiresAt = null;
 
@@ -90,6 +98,7 @@ class PolicyPreregistrationsPage extends Component
         $validated = $this->validate([
             'preregistrationType' => ['required', Rule::in([
                 PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
+                PolicyPreregistration::TYPE_GROUP_OWNER,
                 PolicyPreregistration::TYPE_GROUP_MEMBER,
             ])],
             'preregistrationPhone' => [
@@ -107,12 +116,40 @@ class PolicyPreregistrationsPage extends Component
                 'nullable',
             ],
             'preregistrationSalesUser' => ['required', 'exists:users,id'],
+            'preregistrationCompanyName' => [
+                Rule::requiredIf($this->preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER),
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'preregistrationCompanyType' => [
+                Rule::requiredIf($this->preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER),
+                'nullable',
+                Rule::in(['PF', 'PM', 'PFA']),
+            ],
+            'preregistrationCompanyLegalName' => [
+                Rule::requiredIf($this->preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER),
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'preregistrationCompanyRfc' => [
+                Rule::requiredIf($this->preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER),
+                'nullable',
+                'string',
+                'min:12',
+                'max:13',
+            ],
         ], [
             'preregistrationPhone.unique' => 'Ya existe un registro con ese telefono.',
             'preregistrationPhone.required' => 'El telefono es obligatorio.',
             'preregistrationPhone.digits' => 'El telefono debe contener 10 digitos.',
             'preregistrationParentPolicy.required' => 'Selecciona la membresía colectiva.',
             'preregistrationPlan.required' => 'Selecciona el plan.',
+            'preregistrationCompanyName.required' => 'El nombre del colectivo es obligatorio.',
+            'preregistrationCompanyType.required' => 'Selecciona el tipo de persona.',
+            'preregistrationCompanyLegalName.required' => 'La razon social es obligatoria.',
+            'preregistrationCompanyRfc.required' => 'El RFC es obligatorio.',
         ]);
 
         $salesUser = $this->resolveSalesUser((int) $validated['preregistrationSalesUser']);
@@ -120,6 +157,7 @@ class PolicyPreregistrationsPage extends Component
         $parentPolicyId = filled($validated['preregistrationParentPolicy'])
             ? (int) $validated['preregistrationParentPolicy']
             : null;
+        $collectiveData = $this->resolveCollectiveData($validated);
 
         try {
             if (! $isEditing) {
@@ -129,6 +167,7 @@ class PolicyPreregistrationsPage extends Component
                     $planId,
                     $parentPolicyId,
                     $validated['preregistrationType'],
+                    $collectiveData,
                 );
             } else {
                 $preregistration = $this->resolveManagedPreregistration($this->preregistrationId);
@@ -139,6 +178,7 @@ class PolicyPreregistrationsPage extends Component
                     $planId,
                     $parentPolicyId,
                     $validated['preregistrationType'],
+                    $collectiveData,
                 );
             }
         } catch (InvalidArgumentException $exception) {
@@ -147,6 +187,10 @@ class PolicyPreregistrationsPage extends Component
                 str_contains($exception->getMessage(), 'lugares disponibles') => 'preregistrationParentPolicy',
                 str_contains($exception->getMessage(), 'colectiva') => 'preregistrationParentPolicy',
                 str_contains($exception->getMessage(), 'principal') => 'preregistrationParentPolicy',
+                str_contains($exception->getMessage(), 'tipo de persona') => 'preregistrationCompanyType',
+                str_contains($exception->getMessage(), 'razon social') => 'preregistrationCompanyLegalName',
+                str_contains($exception->getMessage(), 'RFC') => 'preregistrationCompanyRfc',
+                str_contains($exception->getMessage(), 'nombre del colectivo') => 'preregistrationCompanyName',
                 str_contains($exception->getMessage(), 'cobertura') => 'preregistrationPlan',
                 default => 'preregistrationPhone',
             };
@@ -158,7 +202,10 @@ class PolicyPreregistrationsPage extends Component
 
         $this->lastPreregistrationUrl = $result['url'];
         $this->lastPreregistrationPhone = $validated['preregistrationPhone'];
-        $this->lastPreregistrationPlanName = $result['preregistration']->plan?->name;
+        $this->lastPreregistrationReference = ($collectiveData['company_name'] ?? null)
+            ?: $result['preregistration']->company_name
+            ?: $result['preregistration']->plan?->name
+            ?: $result['preregistration']->type_label;
         $this->lastPreregistrationExpiresAt = $result['expires_at']->format('d/m/Y H:i');
 
         $content = match (true) {
@@ -208,6 +255,10 @@ class PolicyPreregistrationsPage extends Component
             ? (string) $preregistration->parent_policy_id
             : null;
         $this->preregistrationSalesUser = (string) $preregistration->sales_user_id;
+        $this->preregistrationCompanyName = (string) $preregistration->company_name;
+        $this->preregistrationCompanyType = $preregistration->company_type ?: 'PF';
+        $this->preregistrationCompanyLegalName = (string) $preregistration->company_legal_name;
+        $this->preregistrationCompanyRfc = (string) $preregistration->company_rfc;
 
         $this->resetErrorBag();
         $this->dispatch('open-preregistration-modal');
@@ -277,6 +328,10 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationPlan',
             'preregistrationParentPolicy',
             'preregistrationSalesUser',
+            'preregistrationCompanyName',
+            'preregistrationCompanyType',
+            'preregistrationCompanyLegalName',
+            'preregistrationCompanyRfc',
         ]);
 
         $this->preregistrationId = null;
@@ -284,6 +339,10 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationPhone = '';
         $this->preregistrationPlan = null;
         $this->preregistrationParentPolicy = null;
+        $this->preregistrationCompanyName = '';
+        $this->preregistrationCompanyType = 'PF';
+        $this->preregistrationCompanyLegalName = '';
+        $this->preregistrationCompanyRfc = '';
         $this->preregistrationSalesUser = Auth::user()?->profile === 'Sales'
             ? (string) Auth::id()
             : null;
@@ -368,6 +427,10 @@ class PolicyPreregistrationsPage extends Component
         }
 
         $this->preregistrationParentPolicy = null;
+
+        if ($value === PolicyPreregistration::TYPE_GROUP_OWNER) {
+            $this->preregistrationPlan = null;
+        }
     }
 
     public function updatedPreregistrationParentPolicy(?string $value): void
@@ -494,7 +557,7 @@ class PolicyPreregistrationsPage extends Component
         return $query->firstOrFail();
     }
 
-    private function resolvePreregistrationPlanId(array $validated): int
+    private function resolvePreregistrationPlanId(array $validated): ?int
     {
         if ($validated['preregistrationType'] === PolicyPreregistration::TYPE_GROUP_MEMBER) {
             $groupPolicy = $this->selectedGroupPolicy;
@@ -508,6 +571,10 @@ class PolicyPreregistrationsPage extends Component
             return (int) $groupPolicy->plan_id;
         }
 
+        if ($validated['preregistrationType'] === PolicyPreregistration::TYPE_GROUP_OWNER) {
+            return null;
+        }
+
         return (int) $validated['preregistrationPlan'];
     }
 
@@ -517,6 +584,7 @@ class PolicyPreregistrationsPage extends Component
 
         if (in_array($requestedType, [
             PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
+            PolicyPreregistration::TYPE_GROUP_OWNER,
             PolicyPreregistration::TYPE_GROUP_MEMBER,
         ], true)) {
             $this->preregistrationType = $requestedType;
@@ -533,5 +601,19 @@ class PolicyPreregistrationsPage extends Component
                 $this->shouldOpenPrefilledPreregistrationModal = request()->query('open') === '1';
             }
         }
+    }
+
+    private function resolveCollectiveData(array $validated): array
+    {
+        if ($validated['preregistrationType'] !== PolicyPreregistration::TYPE_GROUP_OWNER) {
+            return [];
+        }
+
+        return [
+            'company_name' => $validated['preregistrationCompanyName'],
+            'company_type' => $validated['preregistrationCompanyType'],
+            'company_legal_name' => $validated['preregistrationCompanyLegalName'],
+            'company_rfc' => strtoupper((string) $validated['preregistrationCompanyRfc']),
+        ];
     }
 }

@@ -240,7 +240,8 @@ class WhatsAppTemplateParameterResolver
             'sales_user_name', 'promoter_name' => $salesUser?->name,
             'plan_name' => $plan?->name,
             'parent_policy_number' => $parentPolicy?->number,
-            'company_name' => $parentPolicy?->user?->company?->name
+            'company_name' => $preregistration?->company_name
+                ?? $parentPolicy?->user?->company?->name
                 ?? $policy?->user?->company?->name
                 ?? $user?->company?->name,
             'pin_token' => $context['pin_token'] ?? null,

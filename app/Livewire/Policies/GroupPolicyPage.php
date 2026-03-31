@@ -6,6 +6,7 @@ use App\Livewire\Forms\GroupPolicyForm;
 use App\Models\Plan;
 use App\Models\Policy;
 use App\Models\User;
+use App\Services\Policies\GroupPolicyRegistrationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
@@ -47,7 +48,7 @@ class GroupPolicyPage extends Component
             ->get();
     }
 
-    public function save()
+    public function save(GroupPolicyRegistrationService $registrationService)
     {
         if($this->policyId)
         {
@@ -55,7 +56,7 @@ class GroupPolicyPage extends Component
         }
         else
         {
-            $this->form->store();
+            $this->form->store($registrationService);
         }
 
         // Show success toast
