@@ -12,6 +12,19 @@ use Livewire\Component;
 
 class WhatsAppSettingsPage extends Component
 {
+    private const PARAMETER_SCOPE_MAP = [
+        'activationBodyParameters' => WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
+        'activationButtonParameters' => WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
+        'pinResetBodyParameters' => WhatsAppTemplateParameterResolver::PIN_RESET_BODY,
+        'pinResetButtonParameters' => WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON,
+        'preregistrationBodyParameters' => WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY,
+        'preregistrationButtonParameters' => WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON,
+        'appointmentRequestBodyParameters' => WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY,
+        'appointmentRequestButtonParameters' => WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON,
+        'appointmentCompletedBodyParameters' => WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY,
+        'appointmentCompletedButtonParameters' => WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BUTTON,
+    ];
+
     public string $apiVersion = 'v22.0';
     public string $phoneNumberId = '';
     public string $accessToken = '';
@@ -20,19 +33,20 @@ class WhatsAppSettingsPage extends Component
     public string $preregistrationTemplateName = '';
     public string $appointmentRequestTemplateName = '';
     public string $appointmentCompletedTemplateName = '';
-    public string $activationBodyParameters = '';
-    public string $activationButtonParameters = '';
-    public string $pinResetBodyParameters = '';
-    public string $pinResetButtonParameters = '';
-    public string $preregistrationBodyParameters = '';
-    public string $preregistrationButtonParameters = '';
-    public string $appointmentRequestBodyParameters = '';
-    public string $appointmentRequestButtonParameters = '';
-    public string $appointmentCompletedBodyParameters = '';
-    public string $appointmentCompletedButtonParameters = '';
+    public array $activationBodyParameters = [];
+    public array $activationButtonParameters = [];
+    public array $pinResetBodyParameters = [];
+    public array $pinResetButtonParameters = [];
+    public array $preregistrationBodyParameters = [];
+    public array $preregistrationButtonParameters = [];
+    public array $appointmentRequestBodyParameters = [];
+    public array $appointmentRequestButtonParameters = [];
+    public array $appointmentCompletedBodyParameters = [];
+    public array $appointmentCompletedButtonParameters = [];
     public string $defaultLanguage = 'es_MX';
     public bool $hasStoredAccessToken = false;
-    public array $parameterHints = [];
+    public array $parameterOptions = [];
+    public array $templateSections = [];
 
     public string $testPhone = '';
     public string $testTemplateName = '';
@@ -51,18 +65,8 @@ class WhatsAppSettingsPage extends Component
     public function mount(): void
     {
         $resolver = app(WhatsAppTemplateParameterResolver::class);
-        $this->parameterHints = [
-            'activation_body' => $resolver->hintText(WhatsAppTemplateParameterResolver::ACTIVATION_BODY),
-            'activation_button' => $resolver->hintText(WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON),
-            'pin_reset_body' => $resolver->hintText(WhatsAppTemplateParameterResolver::PIN_RESET_BODY),
-            'pin_reset_button' => $resolver->hintText(WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON),
-            'preregistration_body' => $resolver->hintText(WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY),
-            'preregistration_button' => $resolver->hintText(WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON),
-            'appointment_request_body' => $resolver->hintText(WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY),
-            'appointment_request_button' => $resolver->hintText(WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON),
-            'appointment_completed_body' => $resolver->hintText(WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY),
-            'appointment_completed_button' => $resolver->hintText(WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BUTTON),
-        ];
+        $this->parameterOptions = $resolver->allOptions();
+        $this->templateSections = $this->buildTemplateSections();
 
         $setting = WhatsAppSetting::query()->first();
 
@@ -78,34 +82,34 @@ class WhatsAppSettingsPage extends Component
         $this->preregistrationTemplateName = $setting->preregistration_template_name ?? '';
         $this->appointmentRequestTemplateName = $setting->appointment_request_template_name ?? '';
         $this->appointmentCompletedTemplateName = $setting->appointment_completed_template_name ?? '';
-        $this->activationBodyParameters = $this->serializeParameters(
+        $this->activationBodyParameters = $this->normalizeConfiguredParameters(
             $setting->activation_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::ACTIVATION_BODY)
         );
-        $this->activationButtonParameters = $this->serializeParameters(
+        $this->activationButtonParameters = $this->normalizeConfiguredParameters(
             $setting->activation_button_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON)
         );
-        $this->pinResetBodyParameters = $this->serializeParameters(
+        $this->pinResetBodyParameters = $this->normalizeConfiguredParameters(
             $setting->pin_reset_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PIN_RESET_BODY)
         );
-        $this->pinResetButtonParameters = $this->serializeParameters(
+        $this->pinResetButtonParameters = $this->normalizeConfiguredParameters(
             $setting->pin_reset_button_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON)
         );
-        $this->preregistrationBodyParameters = $this->serializeParameters(
+        $this->preregistrationBodyParameters = $this->normalizeConfiguredParameters(
             $setting->preregistration_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY)
         );
-        $this->preregistrationButtonParameters = $this->serializeParameters(
+        $this->preregistrationButtonParameters = $this->normalizeConfiguredParameters(
             $setting->preregistration_button_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON)
         );
-        $this->appointmentRequestBodyParameters = $this->serializeParameters(
+        $this->appointmentRequestBodyParameters = $this->normalizeConfiguredParameters(
             $setting->appointment_request_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY)
         );
-        $this->appointmentRequestButtonParameters = $this->serializeParameters(
+        $this->appointmentRequestButtonParameters = $this->normalizeConfiguredParameters(
             $setting->appointment_request_button_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON)
         );
-        $this->appointmentCompletedBodyParameters = $this->serializeParameters(
+        $this->appointmentCompletedBodyParameters = $this->normalizeConfiguredParameters(
             $setting->appointment_completed_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY)
         );
-        $this->appointmentCompletedButtonParameters = $this->serializeParameters(
+        $this->appointmentCompletedButtonParameters = $this->normalizeConfiguredParameters(
             $setting->appointment_completed_button_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BUTTON)
         );
         $this->defaultLanguage = $setting->default_language;
@@ -125,16 +129,26 @@ class WhatsAppSettingsPage extends Component
             'preregistrationTemplateName' => ['required', 'string', 'max:255'],
             'appointmentRequestTemplateName' => ['required', 'string', 'max:255'],
             'appointmentCompletedTemplateName' => ['required', 'string', 'max:255'],
-            'activationBodyParameters' => ['nullable', 'string'],
-            'activationButtonParameters' => ['nullable', 'string'],
-            'pinResetBodyParameters' => ['nullable', 'string'],
-            'pinResetButtonParameters' => ['nullable', 'string'],
-            'preregistrationBodyParameters' => ['nullable', 'string'],
-            'preregistrationButtonParameters' => ['nullable', 'string'],
-            'appointmentRequestBodyParameters' => ['nullable', 'string'],
-            'appointmentRequestButtonParameters' => ['nullable', 'string'],
-            'appointmentCompletedBodyParameters' => ['nullable', 'string'],
-            'appointmentCompletedButtonParameters' => ['nullable', 'string'],
+            'activationBodyParameters' => ['nullable', 'array'],
+            'activationBodyParameters.*' => ['nullable', 'string'],
+            'activationButtonParameters' => ['nullable', 'array'],
+            'activationButtonParameters.*' => ['nullable', 'string'],
+            'pinResetBodyParameters' => ['nullable', 'array'],
+            'pinResetBodyParameters.*' => ['nullable', 'string'],
+            'pinResetButtonParameters' => ['nullable', 'array'],
+            'pinResetButtonParameters.*' => ['nullable', 'string'],
+            'preregistrationBodyParameters' => ['nullable', 'array'],
+            'preregistrationBodyParameters.*' => ['nullable', 'string'],
+            'preregistrationButtonParameters' => ['nullable', 'array'],
+            'preregistrationButtonParameters.*' => ['nullable', 'string'],
+            'appointmentRequestBodyParameters' => ['nullable', 'array'],
+            'appointmentRequestBodyParameters.*' => ['nullable', 'string'],
+            'appointmentRequestButtonParameters' => ['nullable', 'array'],
+            'appointmentRequestButtonParameters.*' => ['nullable', 'string'],
+            'appointmentCompletedBodyParameters' => ['nullable', 'array'],
+            'appointmentCompletedBodyParameters.*' => ['nullable', 'string'],
+            'appointmentCompletedButtonParameters' => ['nullable', 'array'],
+            'appointmentCompletedButtonParameters.*' => ['nullable', 'string'],
             'defaultLanguage' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
         ];
 
@@ -265,6 +279,39 @@ class WhatsAppSettingsPage extends Component
         );
     }
 
+    public function addTemplateParameter(string $property): void
+    {
+        $scope = self::PARAMETER_SCOPE_MAP[$property] ?? null;
+
+        if (! $scope) {
+            return;
+        }
+
+        $options = array_keys($this->parameterOptions[$scope] ?? []);
+
+        if ($options === []) {
+            return;
+        }
+
+        $this->{$property}[] = $options[0];
+    }
+
+    public function removeTemplateParameter(string $property, int $index): void
+    {
+        if (! array_key_exists($property, self::PARAMETER_SCOPE_MAP)) {
+            return;
+        }
+
+        $currentValues = $this->{$property};
+
+        if (! array_key_exists($index, $currentValues)) {
+            return;
+        }
+
+        unset($currentValues[$index]);
+        $this->{$property} = array_values($currentValues);
+    }
+
     /**
      * Convert each line from textarea into template body parameters.
      *
@@ -281,44 +328,48 @@ class WhatsAppSettingsPage extends Component
 
     private function hydrateDefaultParameterMappings(WhatsAppTemplateParameterResolver $resolver): void
     {
-        $this->activationBodyParameters = $this->serializeParameters(
+        $this->activationBodyParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::ACTIVATION_BODY)
         );
-        $this->activationButtonParameters = $this->serializeParameters(
+        $this->activationButtonParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON)
         );
-        $this->pinResetBodyParameters = $this->serializeParameters(
+        $this->pinResetBodyParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PIN_RESET_BODY)
         );
-        $this->pinResetButtonParameters = $this->serializeParameters(
+        $this->pinResetButtonParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON)
         );
-        $this->preregistrationBodyParameters = $this->serializeParameters(
+        $this->preregistrationBodyParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY)
         );
-        $this->preregistrationButtonParameters = $this->serializeParameters(
+        $this->preregistrationButtonParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON)
         );
-        $this->appointmentRequestBodyParameters = $this->serializeParameters(
+        $this->appointmentRequestBodyParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY)
         );
-        $this->appointmentRequestButtonParameters = $this->serializeParameters(
+        $this->appointmentRequestButtonParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON)
         );
-        $this->appointmentCompletedBodyParameters = $this->serializeParameters(
+        $this->appointmentCompletedBodyParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY)
         );
-        $this->appointmentCompletedButtonParameters = $this->serializeParameters(
+        $this->appointmentCompletedButtonParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BUTTON)
         );
     }
 
     /**
-     * @param  array<int, string>  $parameters
+     * @param  array<int, string>|string|null  $parameters
+     * @return array<int, string>
      */
-    private function serializeParameters(array $parameters): string
+    private function normalizeConfiguredParameters(array|string|null $parameters): array
     {
-        return implode(PHP_EOL, $parameters);
+        return array_values(array_filter(
+            app(WhatsAppTemplateParameterResolver::class)->extractKeys($parameters),
+            fn (string $parameter) => $parameter !== ''
+        ));
     }
 
     /**
@@ -327,16 +378,16 @@ class WhatsAppSettingsPage extends Component
     private function validatedTemplateMappings(WhatsAppTemplateParameterResolver $resolver): array
     {
         $mappings = [
-            'activation_body_parameters' => $this->extractParameters($this->activationBodyParameters),
-            'activation_button_parameters' => $this->extractParameters($this->activationButtonParameters),
-            'pin_reset_body_parameters' => $this->extractParameters($this->pinResetBodyParameters),
-            'pin_reset_button_parameters' => $this->extractParameters($this->pinResetButtonParameters),
-            'preregistration_body_parameters' => $this->extractParameters($this->preregistrationBodyParameters),
-            'preregistration_button_parameters' => $this->extractParameters($this->preregistrationButtonParameters),
-            'appointment_request_body_parameters' => $this->extractParameters($this->appointmentRequestBodyParameters),
-            'appointment_request_button_parameters' => $this->extractParameters($this->appointmentRequestButtonParameters),
-            'appointment_completed_body_parameters' => $this->extractParameters($this->appointmentCompletedBodyParameters),
-            'appointment_completed_button_parameters' => $this->extractParameters($this->appointmentCompletedButtonParameters),
+            'activation_body_parameters' => $resolver->extractKeys($this->activationBodyParameters),
+            'activation_button_parameters' => $resolver->extractKeys($this->activationButtonParameters),
+            'pin_reset_body_parameters' => $resolver->extractKeys($this->pinResetBodyParameters),
+            'pin_reset_button_parameters' => $resolver->extractKeys($this->pinResetButtonParameters),
+            'preregistration_body_parameters' => $resolver->extractKeys($this->preregistrationBodyParameters),
+            'preregistration_button_parameters' => $resolver->extractKeys($this->preregistrationButtonParameters),
+            'appointment_request_body_parameters' => $resolver->extractKeys($this->appointmentRequestBodyParameters),
+            'appointment_request_button_parameters' => $resolver->extractKeys($this->appointmentRequestButtonParameters),
+            'appointment_completed_body_parameters' => $resolver->extractKeys($this->appointmentCompletedBodyParameters),
+            'appointment_completed_button_parameters' => $resolver->extractKeys($this->appointmentCompletedButtonParameters),
         ];
 
         $scopes = [
@@ -380,5 +431,59 @@ class WhatsAppSettingsPage extends Component
         }
 
         return $mappings;
+    }
+
+    /**
+     * @return array<int, array<string, string>>
+     */
+    private function buildTemplateSections(): array
+    {
+        return [
+            [
+                'title' => 'Activacion PIN',
+                'body_label' => 'Body',
+                'body_field' => 'activationBodyParameters',
+                'body_scope' => WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
+                'button_label' => 'Boton URL',
+                'button_field' => 'activationButtonParameters',
+                'button_scope' => WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
+            ],
+            [
+                'title' => 'Reset PIN',
+                'body_label' => 'Body',
+                'body_field' => 'pinResetBodyParameters',
+                'body_scope' => WhatsAppTemplateParameterResolver::PIN_RESET_BODY,
+                'button_label' => 'Boton URL',
+                'button_field' => 'pinResetButtonParameters',
+                'button_scope' => WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON,
+            ],
+            [
+                'title' => 'Preregistro',
+                'body_label' => 'Body',
+                'body_field' => 'preregistrationBodyParameters',
+                'body_scope' => WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY,
+                'button_label' => 'Boton URL',
+                'button_field' => 'preregistrationButtonParameters',
+                'button_scope' => WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON,
+            ],
+            [
+                'title' => 'Solicitud de cita',
+                'body_label' => 'Body',
+                'body_field' => 'appointmentRequestBodyParameters',
+                'body_scope' => WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY,
+                'button_label' => 'Boton URL',
+                'button_field' => 'appointmentRequestButtonParameters',
+                'button_scope' => WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON,
+            ],
+            [
+                'title' => 'Cita finalizada',
+                'body_label' => 'Body',
+                'body_field' => 'appointmentCompletedBodyParameters',
+                'body_scope' => WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY,
+                'button_label' => 'Boton URL',
+                'button_field' => 'appointmentCompletedButtonParameters',
+                'button_scope' => WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BUTTON,
+            ],
+        ];
     }
 }
