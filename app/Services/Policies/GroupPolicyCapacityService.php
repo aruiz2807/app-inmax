@@ -27,7 +27,7 @@ class GroupPolicyCapacityService
         $policy = $query->first();
 
         if (! $policy) {
-            throw new InvalidArgumentException('La poliza colectiva seleccionada no esta disponible para preregistro.');
+            throw new InvalidArgumentException('La membresía colectiva seleccionada no esta disponible para preregistro.');
         }
 
         return $policy;
@@ -84,7 +84,7 @@ class GroupPolicyCapacityService
         $summary = $this->summary($groupPolicy, $ignorePreregistrationId);
 
         if ($summary['available_slots'] < 1) {
-            throw new InvalidArgumentException('La poliza colectiva seleccionada ya no tiene lugares disponibles.');
+            throw new InvalidArgumentException('La membresía colectiva seleccionada ya no tiene lugares disponibles.');
         }
 
         return $summary;

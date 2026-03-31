@@ -38,10 +38,10 @@
             <x-ui.fieldset label="Información del consultorio">
                  <x-ui.field required>
                     <x-ui.label>Nombre del consultorio</x-ui.label>
-                    <x-ui.input wire:model="form.name" name="name" placeholder="Consultorio Angel Nuño" />
+                    <x-ui.input wire:model="form.name" name="name" placeholder="Inmax Country" />
                     <x-ui.error name="form.name" />
                 </x-ui.field>
-            
+
                 <x-ui.field required>
                     <x-ui.label>Dirección</x-ui.label>
                     <x-ui.textarea wire:model="form.address" name="address" />

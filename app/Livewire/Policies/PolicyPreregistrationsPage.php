@@ -111,8 +111,8 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationPhone.unique' => 'Ya existe un registro con ese telefono.',
             'preregistrationPhone.required' => 'El telefono es obligatorio.',
             'preregistrationPhone.digits' => 'El telefono debe contener 10 digitos.',
-            'preregistrationParentPolicy.required' => 'Selecciona la poliza colectiva.',
-            'preregistrationPlan.required' => 'Selecciona la cobertura.',
+            'preregistrationParentPolicy.required' => 'Selecciona la membresía colectiva.',
+            'preregistrationPlan.required' => 'Selecciona el plan.',
         ]);
 
         $salesUser = $this->resolveSalesUser((int) $validated['preregistrationSalesUser']);
@@ -501,7 +501,7 @@ class PolicyPreregistrationsPage extends Component
 
             if (! $groupPolicy) {
                 throw ValidationException::withMessages([
-                    'preregistrationParentPolicy' => 'Selecciona una poliza colectiva valida.',
+                    'preregistrationParentPolicy' => 'Selecciona una membresía colectiva valida.',
                 ]);
             }
 

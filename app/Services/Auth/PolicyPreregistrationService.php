@@ -368,7 +368,7 @@ class PolicyPreregistrationService
             ->first();
 
         if (! $plan) {
-            throw new InvalidArgumentException('La cobertura seleccionada no esta disponible para preregistro.');
+            throw new InvalidArgumentException('La membresía seleccionada no esta disponible para preregistro.');
         }
 
         return $plan;
@@ -382,7 +382,7 @@ class PolicyPreregistrationService
     private function resolveGroupMemberTarget(?int $parentPolicyId, ?int $ignorePreregistrationId = null): array
     {
         if (! $parentPolicyId) {
-            throw new InvalidArgumentException('Selecciona la poliza colectiva a la que pertenece el miembro.');
+            throw new InvalidArgumentException('Selecciona la membresía colectiva a la que pertenece el miembro.');
         }
 
         $groupPolicy = $this->groupPolicyCapacityService->resolveGroupPolicy($parentPolicyId, true);
@@ -406,7 +406,7 @@ class PolicyPreregistrationService
             ->first();
 
         if (! $policy) {
-            throw new InvalidArgumentException('La poliza principal seleccionada no es valida.');
+            throw new InvalidArgumentException('La membresía principal seleccionada no es valida.');
         }
 
         return $policy;

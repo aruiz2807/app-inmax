@@ -96,7 +96,7 @@ class PolicyPreregistration extends Model
     {
         return $this->isGroupMember()
             ? 'Miembro colectiva'
-            : 'Poliza individual';
+            : 'Membresía individual';
     }
 
     /**

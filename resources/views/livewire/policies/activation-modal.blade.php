@@ -2,8 +2,8 @@
     id="activation-modal"
     animation="fade"
     width="2xl"
-    heading="Activar póliza"
-    description="Está seguro que desea activar esta póliza?"
+    heading="Activar membresía"
+    description="Está seguro que desea activar esta membresía?"
     x-on:open-activation-modal.window="$data.open()"
     x-on:close-activation-modal.window="$data.close()"
 >

@@ -89,7 +89,7 @@ class IndividualPolicyPage extends Component
         {
             $this->form->update($this->policyId);
 
-            $content = 'Poliza almacenada exitosamente!';
+            $content = 'Membresía almacenada exitosamente!';
         }
         else
         {
@@ -111,9 +111,9 @@ class IndividualPolicyPage extends Component
             );
 
             $content = match (true) {
-                ($result['whatsapp']['ok'] ?? false) => 'Poliza creada y enlace de PIN enviado por WhatsApp.',
-                ($result['whatsapp']['attempted'] ?? false) => 'Poliza creada. No se pudo enviar WhatsApp, enlace de PIN generado.',
-                default => 'Poliza creada. Falta configurar WhatsApp para enviar el enlace de PIN.',
+                ($result['whatsapp']['ok'] ?? false) => 'Membresía creada y enlace de PIN enviado por WhatsApp.',
+                ($result['whatsapp']['attempted'] ?? false) => 'Membresía creada. No se pudo enviar WhatsApp, enlace de PIN generado.',
+                default => 'Membresía creada. Falta configurar WhatsApp para enviar el enlace de PIN.',
             };
         }
 

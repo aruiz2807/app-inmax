@@ -2,7 +2,7 @@
     id="deactivation-modal"
     animation="fade"
     width="2xl"
-    heading="Inactivar póliza"
+    heading="Inactivar membresía"
     description="Está seguro que desea inactivar esta membresía?"
     x-on:open-deactivation-modal.window="$data.open()"
     x-on:close-deactivation-modal.window="$data.close()"

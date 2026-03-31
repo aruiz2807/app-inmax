@@ -54,19 +54,19 @@
 
                 <x-ui.field required>
                     <x-ui.label>Nombre completo</x-ui.label>
-                    <x-ui.input wire:model="form.name" name="name" placeholder="Angel Nuño" />
+                    <x-ui.input wire:model="form.name" name="name" placeholder="Nombre Apellido" />
                     <x-ui.error name="form.name" />
                 </x-ui.field>
 
                 <x-ui.field required>
                     <x-ui.label>Correo electrónico</x-ui.label>
-                    <x-ui.input wire:model="form.email" name="email" type="email" placeholder="angel.nuño@mail.com" />
+                    <x-ui.input wire:model="form.email" name="email" type="email" placeholder="nombre@correo.com" />
                     <x-ui.error name="form.email" />
                 </x-ui.field>
 
                 <x-ui.field required>
                     <x-ui.label>Celular</x-ui.label>
-                    <x-ui.input wire:model="form.phone" name="phone" placeholder="3310203040" />
+                    <x-ui.input wire:model="form.phone" name="phone" placeholder="3300000000" />
                     <x-ui.error name="form.phone" />
                 </x-ui.field>
 

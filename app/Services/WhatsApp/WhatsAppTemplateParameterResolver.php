@@ -41,7 +41,7 @@ class WhatsAppTemplateParameterResolver
             'user_name' => 'Nombre del usuario',
             'user_phone' => 'Telefono del usuario',
             'policy_number' => 'Numero de membresia',
-            'policy_type' => 'Tipo de poliza',
+            'policy_type' => 'Tipo de membresía',
             'start_date' => 'Fecha de inicio',
             'sales_user_name' => 'Nombre del promotor',
         ],
@@ -52,7 +52,7 @@ class WhatsAppTemplateParameterResolver
             'user_name' => 'Nombre del usuario',
             'user_phone' => 'Telefono del usuario',
             'policy_number' => 'Numero de membresia',
-            'policy_type' => 'Tipo de poliza',
+            'policy_type' => 'Tipo de membresía',
             'sales_user_name' => 'Nombre del promotor',
         ],
         self::PIN_RESET_BUTTON => [
@@ -60,8 +60,8 @@ class WhatsAppTemplateParameterResolver
         ],
         self::PREREGISTRATION_BODY => [
             'promoter_name' => 'Nombre del promotor',
-            'plan_name' => 'Nombre de la cobertura',
-            'parent_policy_number' => 'Numero de poliza principal/colectiva',
+            'plan_name' => 'Nombre del plan',
+            'parent_policy_number' => 'Numero de membresía principal/colectiva',
             'company_name' => 'Empresa relacionada',
         ],
         self::PREREGISTRATION_BUTTON => [
