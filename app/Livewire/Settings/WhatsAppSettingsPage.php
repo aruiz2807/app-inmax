@@ -13,6 +13,8 @@ use Livewire\Component;
 class WhatsAppSettingsPage extends Component
 {
     private const PARAMETER_SCOPE_MAP = [
+        'systemUserActivationBodyParameters' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY,
+        'systemUserActivationButtonParameters' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON,
         'activationBodyParameters' => WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
         'activationButtonParameters' => WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
         'pinResetBodyParameters' => WhatsAppTemplateParameterResolver::PIN_RESET_BODY,
@@ -28,6 +30,8 @@ class WhatsAppSettingsPage extends Component
     public string $apiVersion = 'v22.0';
     public string $phoneNumberId = '';
     public string $accessToken = '';
+    public string $systemUserActivationTemplateName = '';
+    public string $systemUserActivationLanguageCode = 'es_MX';
     public string $activationTemplateName = '';
     public string $activationLanguageCode = 'es_MX';
     public string $pinResetTemplateName = '';
@@ -38,6 +42,8 @@ class WhatsAppSettingsPage extends Component
     public string $appointmentRequestLanguageCode = 'es_MX';
     public string $appointmentCompletedTemplateName = '';
     public string $appointmentCompletedLanguageCode = 'es_MX';
+    public array $systemUserActivationBodyParameters = [];
+    public array $systemUserActivationButtonParameters = [];
     public array $activationBodyParameters = [];
     public array $activationButtonParameters = [];
     public array $pinResetBodyParameters = [];
@@ -82,8 +88,16 @@ class WhatsAppSettingsPage extends Component
 
         $this->apiVersion = $setting->api_version;
         $this->phoneNumberId = $setting->phone_number_id ?? '';
+        $this->systemUserActivationTemplateName = $setting->system_user_activation_template_name ?? '';
+        $this->systemUserActivationLanguageCode = $setting->system_user_activation_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->activationTemplateName = $setting->activation_template_name ?? '';
         $this->activationLanguageCode = $setting->activation_language_code ?: ($setting->default_language ?: 'es_MX');
+        $this->systemUserActivationBodyParameters = $this->normalizeConfiguredParameters(
+            $setting->system_user_activation_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY)
+        );
+        $this->systemUserActivationButtonParameters = $this->normalizeConfiguredParameters(
+            $setting->system_user_activation_button_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON)
+        );
         $this->pinResetTemplateName = $setting->pin_reset_template_name ?? '';
         $this->pinResetLanguageCode = $setting->pin_reset_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->preregistrationTemplateName = $setting->preregistration_template_name ?? '';
@@ -134,6 +148,8 @@ class WhatsAppSettingsPage extends Component
         $rules = [
             'apiVersion' => ['required', 'regex:/^v\d+\.\d+$/'],
             'phoneNumberId' => ['required', 'digits_between:8,30'],
+            'systemUserActivationTemplateName' => ['nullable', 'string', 'max:255'],
+            'systemUserActivationLanguageCode' => ['required_with:systemUserActivationTemplateName', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'activationTemplateName' => ['required', 'string', 'max:255'],
             'activationLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'pinResetTemplateName' => ['required', 'string', 'max:255'],
@@ -144,6 +160,10 @@ class WhatsAppSettingsPage extends Component
             'appointmentRequestLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'appointmentCompletedTemplateName' => ['required', 'string', 'max:255'],
             'appointmentCompletedLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
+            'systemUserActivationBodyParameters' => ['nullable', 'array'],
+            'systemUserActivationBodyParameters.*' => ['nullable', 'string'],
+            'systemUserActivationButtonParameters' => ['nullable', 'array'],
+            'systemUserActivationButtonParameters.*' => ['nullable', 'string'],
             'activationBodyParameters' => ['nullable', 'array'],
             'activationBodyParameters.*' => ['nullable', 'string'],
             'activationButtonParameters' => ['nullable', 'array'],
@@ -175,6 +195,8 @@ class WhatsAppSettingsPage extends Component
             'apiVersion' => $this->apiVersion,
             'phoneNumberId' => $this->phoneNumberId,
             'accessToken' => $this->accessToken,
+            'systemUserActivationTemplateName' => $this->systemUserActivationTemplateName,
+            'systemUserActivationLanguageCode' => $this->systemUserActivationLanguageCode,
             'activationTemplateName' => $this->activationTemplateName,
             'activationLanguageCode' => $this->activationLanguageCode,
             'pinResetTemplateName' => $this->pinResetTemplateName,
@@ -185,6 +207,8 @@ class WhatsAppSettingsPage extends Component
             'appointmentRequestLanguageCode' => $this->appointmentRequestLanguageCode,
             'appointmentCompletedTemplateName' => $this->appointmentCompletedTemplateName,
             'appointmentCompletedLanguageCode' => $this->appointmentCompletedLanguageCode,
+            'systemUserActivationBodyParameters' => $this->systemUserActivationBodyParameters,
+            'systemUserActivationButtonParameters' => $this->systemUserActivationButtonParameters,
             'activationBodyParameters' => $this->activationBodyParameters,
             'activationButtonParameters' => $this->activationButtonParameters,
             'pinResetBodyParameters' => $this->pinResetBodyParameters,
@@ -207,6 +231,12 @@ class WhatsAppSettingsPage extends Component
 
         $setting->api_version = $this->apiVersion;
         $setting->phone_number_id = $this->phoneNumberId;
+        $setting->system_user_activation_template_name = $this->systemUserActivationTemplateName;
+        $setting->system_user_activation_language_code = filled($this->systemUserActivationTemplateName)
+            ? $this->systemUserActivationLanguageCode
+            : null;
+        $setting->system_user_activation_body_parameters = $mappings['system_user_activation_body_parameters'];
+        $setting->system_user_activation_button_parameters = $mappings['system_user_activation_button_parameters'];
         $setting->activation_template_name = $this->activationTemplateName;
         $setting->activation_language_code = $this->activationLanguageCode;
         $setting->activation_body_parameters = $mappings['activation_body_parameters'];
@@ -353,6 +383,12 @@ class WhatsAppSettingsPage extends Component
 
     private function hydrateDefaultParameterMappings(WhatsAppTemplateParameterResolver $resolver): void
     {
+        $this->systemUserActivationBodyParameters = $this->normalizeConfiguredParameters(
+            $resolver->defaultKeys(WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY)
+        );
+        $this->systemUserActivationButtonParameters = $this->normalizeConfiguredParameters(
+            $resolver->defaultKeys(WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON)
+        );
         $this->activationBodyParameters = $this->normalizeConfiguredParameters(
             $resolver->defaultKeys(WhatsAppTemplateParameterResolver::ACTIVATION_BODY)
         );
@@ -403,6 +439,8 @@ class WhatsAppSettingsPage extends Component
     private function validatedTemplateMappings(WhatsAppTemplateParameterResolver $resolver): array
     {
         $mappings = [
+            'system_user_activation_body_parameters' => $resolver->extractKeys($this->systemUserActivationBodyParameters),
+            'system_user_activation_button_parameters' => $resolver->extractKeys($this->systemUserActivationButtonParameters),
             'activation_body_parameters' => $resolver->extractKeys($this->activationBodyParameters),
             'activation_button_parameters' => $resolver->extractKeys($this->activationButtonParameters),
             'pin_reset_body_parameters' => $resolver->extractKeys($this->pinResetBodyParameters),
@@ -416,6 +454,8 @@ class WhatsAppSettingsPage extends Component
         ];
 
         $scopes = [
+            'system_user_activation_body_parameters' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY,
+            'system_user_activation_button_parameters' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON,
             'activation_body_parameters' => WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
             'activation_button_parameters' => WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
             'pin_reset_body_parameters' => WhatsAppTemplateParameterResolver::PIN_RESET_BODY,
@@ -435,6 +475,8 @@ class WhatsAppSettingsPage extends Component
 
             if ($invalidKeys !== []) {
                 $property = match ($field) {
+                    'system_user_activation_body_parameters' => 'systemUserActivationBodyParameters',
+                    'system_user_activation_button_parameters' => 'systemUserActivationButtonParameters',
                     'activation_body_parameters' => 'activationBodyParameters',
                     'activation_button_parameters' => 'activationButtonParameters',
                     'pin_reset_body_parameters' => 'pinResetBodyParameters',
@@ -464,6 +506,17 @@ class WhatsAppSettingsPage extends Component
     private function buildTemplateSections(): array
     {
         return [
+            [
+                'title' => 'Activacion PIN usuario sistema',
+                'template_field' => 'systemUserActivationTemplateName',
+                'language_field' => 'systemUserActivationLanguageCode',
+                'body_label' => 'Body',
+                'body_field' => 'systemUserActivationBodyParameters',
+                'body_scope' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY,
+                'button_label' => 'Boton URL',
+                'button_field' => 'systemUserActivationButtonParameters',
+                'button_scope' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON,
+            ],
             [
                 'title' => 'Activacion PIN',
                 'template_field' => 'activationTemplateName',

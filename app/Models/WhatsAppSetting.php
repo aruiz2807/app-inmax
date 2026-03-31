@@ -23,6 +23,10 @@ class WhatsAppSetting extends Model
         'phone_number_id',
         'access_token',
         'activation_template_name',
+        'system_user_activation_template_name',
+        'system_user_activation_language_code',
+        'system_user_activation_body_parameters',
+        'system_user_activation_button_parameters',
         'activation_language_code',
         'activation_body_parameters',
         'activation_button_parameters',
@@ -63,6 +67,8 @@ class WhatsAppSetting extends Model
     {
         return [
             'access_token' => 'encrypted',
+            'system_user_activation_body_parameters' => 'array',
+            'system_user_activation_button_parameters' => 'array',
             'activation_body_parameters' => 'array',
             'activation_button_parameters' => 'array',
             'pin_reset_body_parameters' => 'array',

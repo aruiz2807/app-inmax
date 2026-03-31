@@ -11,6 +11,8 @@ use Carbon\CarbonInterface;
 
 class WhatsAppTemplateParameterResolver
 {
+    public const SYSTEM_USER_ACTIVATION_BODY = 'system_user_activation_body';
+    public const SYSTEM_USER_ACTIVATION_BUTTON = 'system_user_activation_button';
     public const ACTIVATION_BODY = 'activation_body';
     public const ACTIVATION_BUTTON = 'activation_button';
     public const PIN_RESET_BODY = 'pin_reset_body';
@@ -28,6 +30,13 @@ class WhatsAppTemplateParameterResolver
      * @var array<string, array<string, string>>
      */
     private const OPTIONS = [
+        self::SYSTEM_USER_ACTIVATION_BODY => [
+            'user_name' => 'Nombre del usuario',
+            'user_phone' => 'Telefono del usuario',
+        ],
+        self::SYSTEM_USER_ACTIVATION_BUTTON => [
+            'pin_token' => 'Token del enlace PIN',
+        ],
         self::ACTIVATION_BODY => [
             'user_name' => 'Nombre del usuario',
             'user_phone' => 'Telefono del usuario',
@@ -80,6 +89,8 @@ class WhatsAppTemplateParameterResolver
      * @var array<string, array<int, string>>
      */
     private const DEFAULTS = [
+        self::SYSTEM_USER_ACTIVATION_BODY => ['user_name'],
+        self::SYSTEM_USER_ACTIVATION_BUTTON => ['pin_token'],
         self::ACTIVATION_BODY => ['user_name'],
         self::ACTIVATION_BUTTON => ['pin_token'],
         self::PIN_RESET_BODY => ['user_name'],

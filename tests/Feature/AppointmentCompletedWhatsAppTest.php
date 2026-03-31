@@ -62,12 +62,14 @@ class AppointmentCompletedWhatsAppTest extends TestCase
             'status' => 'Completed',
         ]);
 
-        AppointmentNote::query()->create([
+        $note = AppointmentNote::query()->create([
             'appointment_id' => $appointment->id,
             'notes' => 'Completada',
+        ]);
+        $note->forceFill([
             'created_at' => now()->setDate(2026, 3, 30)->setTime(14, 0),
             'updated_at' => now()->setDate(2026, 3, 30)->setTime(14, 0),
-        ]);
+        ])->saveQuietly();
 
         WhatsAppSetting::query()->create([
             'api_version' => 'v22.0',

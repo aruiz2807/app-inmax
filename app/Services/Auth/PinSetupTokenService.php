@@ -16,6 +16,8 @@ use Illuminate\Support\Str;
 
 class PinSetupTokenService
 {
+    public const PURPOSE_SYSTEM_USER_ACTIVATION = 'system_user_activation';
+
     public const PURPOSE_ACTIVATION = 'activation';
 
     public const PURPOSE_RESET = 'reset';
@@ -224,6 +226,7 @@ class PinSetupTokenService
         }
 
         $templateName = match ($purpose) {
+            self::PURPOSE_SYSTEM_USER_ACTIVATION => $setting->system_user_activation_template_name,
             self::PURPOSE_RESET => $setting->pin_reset_template_name,
             default => $setting->activation_template_name,
         };
@@ -237,6 +240,7 @@ class PinSetupTokenService
         }
 
         $languageCode = match ($purpose) {
+            self::PURPOSE_SYSTEM_USER_ACTIVATION => $setting->system_user_activation_language_code ?: ($setting->default_language ?: 'es_MX'),
             self::PURPOSE_RESET => $setting->pin_reset_language_code ?: ($setting->default_language ?: 'es_MX'),
             default => $setting->activation_language_code ?: ($setting->default_language ?: 'es_MX'),
         };
@@ -262,21 +266,29 @@ class PinSetupTokenService
             'pin_token' => $plainTextToken,
         ];
         $bodyParameters = $this->parameterResolver->resolve(
-            $purpose === self::PURPOSE_RESET
-                ? $setting->pin_reset_body_parameters
-                : $setting->activation_body_parameters,
-            $purpose === self::PURPOSE_RESET
-                ? WhatsAppTemplateParameterResolver::PIN_RESET_BODY
-                : WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
+            match ($purpose) {
+                self::PURPOSE_SYSTEM_USER_ACTIVATION => $setting->system_user_activation_body_parameters,
+                self::PURPOSE_RESET => $setting->pin_reset_body_parameters,
+                default => $setting->activation_body_parameters,
+            },
+            match ($purpose) {
+                self::PURPOSE_SYSTEM_USER_ACTIVATION => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY,
+                self::PURPOSE_RESET => WhatsAppTemplateParameterResolver::PIN_RESET_BODY,
+                default => WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
+            },
             $parameterContext
         );
         $buttonParameters = $this->parameterResolver->resolve(
-            $purpose === self::PURPOSE_RESET
-                ? $setting->pin_reset_button_parameters
-                : $setting->activation_button_parameters,
-            $purpose === self::PURPOSE_RESET
-                ? WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON
-                : WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
+            match ($purpose) {
+                self::PURPOSE_SYSTEM_USER_ACTIVATION => $setting->system_user_activation_button_parameters,
+                self::PURPOSE_RESET => $setting->pin_reset_button_parameters,
+                default => $setting->activation_button_parameters,
+            },
+            match ($purpose) {
+                self::PURPOSE_SYSTEM_USER_ACTIVATION => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON,
+                self::PURPOSE_RESET => WhatsAppTemplateParameterResolver::PIN_RESET_BUTTON,
+                default => WhatsAppTemplateParameterResolver::ACTIVATION_BUTTON,
+            },
             $parameterContext
         );
 

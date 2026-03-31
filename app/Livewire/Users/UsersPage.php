@@ -41,7 +41,7 @@ class UsersPage extends Component
         $user = User::findOrFail($userId);
         $purpose = $user->pin_set_at
             ? PinSetupTokenService::PURPOSE_RESET
-            : PinSetupTokenService::PURPOSE_ACTIVATION;
+            : PinSetupTokenService::PURPOSE_SYSTEM_USER_ACTIVATION;
 
         $result = $tokenService->generateSetupLink($user, Auth::user(), $purpose);
 
@@ -79,7 +79,7 @@ class UsersPage extends Component
             $result = $tokenService->generateSetupLink(
                 $user,
                 Auth::user(),
-                PinSetupTokenService::PURPOSE_ACTIVATION
+                PinSetupTokenService::PURPOSE_SYSTEM_USER_ACTIVATION
             );
 
             $this->lastPinSetupUrl = $result['url'];

@@ -54,6 +54,10 @@ class WhatsAppSettingsTest extends TestCase
             ->set('apiVersion', 'v22.0')
             ->set('phoneNumberId', '113206948334320')
             ->set('accessToken', 'meta_test_token_12345')
+            ->set('systemUserActivationTemplateName', 'system_user_pin_template')
+            ->set('systemUserActivationLanguageCode', 'es')
+            ->set('systemUserActivationBodyParameters', ['user_name', 'user_phone'])
+            ->set('systemUserActivationButtonParameters', ['pin_token'])
             ->set('activationTemplateName', 'activation_pin_template')
             ->set('activationLanguageCode', 'es_MX')
             ->set('activationBodyParameters', ['user_name', 'policy_number', 'sales_user_name'])
@@ -81,6 +85,8 @@ class WhatsAppSettingsTest extends TestCase
         $this->assertDatabaseHas('whatsapp_settings', [
             'api_version' => 'v22.0',
             'phone_number_id' => '113206948334320',
+            'system_user_activation_template_name' => 'system_user_pin_template',
+            'system_user_activation_language_code' => 'es',
             'activation_template_name' => 'activation_pin_template',
             'activation_language_code' => 'es_MX',
             'pin_reset_template_name' => 'reset_pin_template',
@@ -98,6 +104,8 @@ class WhatsAppSettingsTest extends TestCase
 
         $this->assertSame('meta_test_token_12345', $setting->access_token);
         $this->assertNotSame('meta_test_token_12345', (string) $setting->getRawOriginal('access_token'));
+        $this->assertSame(['user_name', 'user_phone'], $setting->system_user_activation_body_parameters);
+        $this->assertSame(['pin_token'], $setting->system_user_activation_button_parameters);
         $this->assertSame(['user_name', 'policy_number', 'sales_user_name'], $setting->activation_body_parameters);
         $this->assertSame(['pin_token'], $setting->activation_button_parameters);
         $this->assertSame(['promoter_name', 'plan_name'], $setting->preregistration_body_parameters);
@@ -116,6 +124,8 @@ class WhatsAppSettingsTest extends TestCase
             'api_version' => 'v22.0',
             'phone_number_id' => '113206948334320',
             'access_token' => 'meta_test_token_12345',
+            'system_user_activation_template_name' => 'system_user_pin_template',
+            'system_user_activation_language_code' => 'es',
             'activation_template_name' => 'activation_pin_template',
             'activation_language_code' => 'es_MX',
             'pin_reset_template_name' => 'reset_pin_template',
