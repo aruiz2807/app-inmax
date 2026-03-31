@@ -35,6 +35,7 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
             'activation_template_name' => 'pin_activation_inmax',
             'pin_reset_template_name' => 'pin_reset_inmax',
             'preregistration_template_name' => 'policy_preregistration_template',
+            'preregistration_language_code' => 'en_US',
             'preregistration_body_parameters' => ['promoter_name', 'plan_name'],
             'preregistration_button_parameters' => ['preregistration_token'],
             'default_language' => 'es_MX',
@@ -63,7 +64,7 @@ class PolicyPreregistrationWhatsAppTemplateTest extends TestCase
 
             return str_contains($request->url(), '/v22.0/113206948334320/messages')
                 && $request['template']['name'] === 'policy_preregistration_template'
-                && $request['template']['language']['code'] === 'es_MX'
+                && $request['template']['language']['code'] === 'en_US'
                 && count($components) === 2
                 && ($components[0]['type'] ?? null) === 'body'
                 && ($components[0]['parameters'][0]['text'] ?? null) === $salesUser->name

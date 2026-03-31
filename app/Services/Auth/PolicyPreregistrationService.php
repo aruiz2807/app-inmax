@@ -307,7 +307,7 @@ class PolicyPreregistrationService
             ];
         }
 
-        $languageCode = $setting->default_language ?: 'es_MX';
+        $languageCode = $setting->preregistration_language_code ?: ($setting->default_language ?: 'es_MX');
         $lastResponse = null;
         $parameterContext = [
             'preregistration' => $preregistration,

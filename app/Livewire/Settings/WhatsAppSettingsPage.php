@@ -29,10 +29,15 @@ class WhatsAppSettingsPage extends Component
     public string $phoneNumberId = '';
     public string $accessToken = '';
     public string $activationTemplateName = '';
+    public string $activationLanguageCode = 'es_MX';
     public string $pinResetTemplateName = '';
+    public string $pinResetLanguageCode = 'es_MX';
     public string $preregistrationTemplateName = '';
+    public string $preregistrationLanguageCode = 'es_MX';
     public string $appointmentRequestTemplateName = '';
+    public string $appointmentRequestLanguageCode = 'es_MX';
     public string $appointmentCompletedTemplateName = '';
+    public string $appointmentCompletedLanguageCode = 'es_MX';
     public array $activationBodyParameters = [];
     public array $activationButtonParameters = [];
     public array $pinResetBodyParameters = [];
@@ -78,10 +83,15 @@ class WhatsAppSettingsPage extends Component
         $this->apiVersion = $setting->api_version;
         $this->phoneNumberId = $setting->phone_number_id ?? '';
         $this->activationTemplateName = $setting->activation_template_name ?? '';
+        $this->activationLanguageCode = $setting->activation_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->pinResetTemplateName = $setting->pin_reset_template_name ?? '';
+        $this->pinResetLanguageCode = $setting->pin_reset_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->preregistrationTemplateName = $setting->preregistration_template_name ?? '';
+        $this->preregistrationLanguageCode = $setting->preregistration_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->appointmentRequestTemplateName = $setting->appointment_request_template_name ?? '';
+        $this->appointmentRequestLanguageCode = $setting->appointment_request_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->appointmentCompletedTemplateName = $setting->appointment_completed_template_name ?? '';
+        $this->appointmentCompletedLanguageCode = $setting->appointment_completed_language_code ?: ($setting->default_language ?: 'es_MX');
         $this->activationBodyParameters = $this->normalizeConfiguredParameters(
             $setting->activation_body_parameters ?? $resolver->defaultKeys(WhatsAppTemplateParameterResolver::ACTIVATION_BODY)
         );
@@ -125,10 +135,15 @@ class WhatsAppSettingsPage extends Component
             'apiVersion' => ['required', 'regex:/^v\d+\.\d+$/'],
             'phoneNumberId' => ['required', 'digits_between:8,30'],
             'activationTemplateName' => ['required', 'string', 'max:255'],
+            'activationLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'pinResetTemplateName' => ['required', 'string', 'max:255'],
+            'pinResetLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'preregistrationTemplateName' => ['required', 'string', 'max:255'],
+            'preregistrationLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'appointmentRequestTemplateName' => ['required', 'string', 'max:255'],
+            'appointmentRequestLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'appointmentCompletedTemplateName' => ['required', 'string', 'max:255'],
+            'appointmentCompletedLanguageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'activationBodyParameters' => ['nullable', 'array'],
             'activationBodyParameters.*' => ['nullable', 'string'],
             'activationButtonParameters' => ['nullable', 'array'],
@@ -161,10 +176,15 @@ class WhatsAppSettingsPage extends Component
             'phoneNumberId' => $this->phoneNumberId,
             'accessToken' => $this->accessToken,
             'activationTemplateName' => $this->activationTemplateName,
+            'activationLanguageCode' => $this->activationLanguageCode,
             'pinResetTemplateName' => $this->pinResetTemplateName,
+            'pinResetLanguageCode' => $this->pinResetLanguageCode,
             'preregistrationTemplateName' => $this->preregistrationTemplateName,
+            'preregistrationLanguageCode' => $this->preregistrationLanguageCode,
             'appointmentRequestTemplateName' => $this->appointmentRequestTemplateName,
+            'appointmentRequestLanguageCode' => $this->appointmentRequestLanguageCode,
             'appointmentCompletedTemplateName' => $this->appointmentCompletedTemplateName,
+            'appointmentCompletedLanguageCode' => $this->appointmentCompletedLanguageCode,
             'activationBodyParameters' => $this->activationBodyParameters,
             'activationButtonParameters' => $this->activationButtonParameters,
             'pinResetBodyParameters' => $this->pinResetBodyParameters,
@@ -188,18 +208,23 @@ class WhatsAppSettingsPage extends Component
         $setting->api_version = $this->apiVersion;
         $setting->phone_number_id = $this->phoneNumberId;
         $setting->activation_template_name = $this->activationTemplateName;
+        $setting->activation_language_code = $this->activationLanguageCode;
         $setting->activation_body_parameters = $mappings['activation_body_parameters'];
         $setting->activation_button_parameters = $mappings['activation_button_parameters'];
         $setting->pin_reset_template_name = $this->pinResetTemplateName;
+        $setting->pin_reset_language_code = $this->pinResetLanguageCode;
         $setting->pin_reset_body_parameters = $mappings['pin_reset_body_parameters'];
         $setting->pin_reset_button_parameters = $mappings['pin_reset_button_parameters'];
         $setting->preregistration_template_name = $this->preregistrationTemplateName;
+        $setting->preregistration_language_code = $this->preregistrationLanguageCode;
         $setting->preregistration_body_parameters = $mappings['preregistration_body_parameters'];
         $setting->preregistration_button_parameters = $mappings['preregistration_button_parameters'];
         $setting->appointment_request_template_name = $this->appointmentRequestTemplateName;
+        $setting->appointment_request_language_code = $this->appointmentRequestLanguageCode;
         $setting->appointment_request_body_parameters = $mappings['appointment_request_body_parameters'];
         $setting->appointment_request_button_parameters = $mappings['appointment_request_button_parameters'];
         $setting->appointment_completed_template_name = $this->appointmentCompletedTemplateName;
+        $setting->appointment_completed_language_code = $this->appointmentCompletedLanguageCode;
         $setting->appointment_completed_body_parameters = $mappings['appointment_completed_body_parameters'];
         $setting->appointment_completed_button_parameters = $mappings['appointment_completed_button_parameters'];
         $setting->default_language = $this->defaultLanguage;
@@ -441,6 +466,8 @@ class WhatsAppSettingsPage extends Component
         return [
             [
                 'title' => 'Activacion PIN',
+                'template_field' => 'activationTemplateName',
+                'language_field' => 'activationLanguageCode',
                 'body_label' => 'Body',
                 'body_field' => 'activationBodyParameters',
                 'body_scope' => WhatsAppTemplateParameterResolver::ACTIVATION_BODY,
@@ -450,6 +477,8 @@ class WhatsAppSettingsPage extends Component
             ],
             [
                 'title' => 'Reset PIN',
+                'template_field' => 'pinResetTemplateName',
+                'language_field' => 'pinResetLanguageCode',
                 'body_label' => 'Body',
                 'body_field' => 'pinResetBodyParameters',
                 'body_scope' => WhatsAppTemplateParameterResolver::PIN_RESET_BODY,
@@ -459,6 +488,8 @@ class WhatsAppSettingsPage extends Component
             ],
             [
                 'title' => 'Preregistro',
+                'template_field' => 'preregistrationTemplateName',
+                'language_field' => 'preregistrationLanguageCode',
                 'body_label' => 'Body',
                 'body_field' => 'preregistrationBodyParameters',
                 'body_scope' => WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY,
@@ -468,6 +499,8 @@ class WhatsAppSettingsPage extends Component
             ],
             [
                 'title' => 'Solicitud de cita',
+                'template_field' => 'appointmentRequestTemplateName',
+                'language_field' => 'appointmentRequestLanguageCode',
                 'body_label' => 'Body',
                 'body_field' => 'appointmentRequestBodyParameters',
                 'body_scope' => WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY,
@@ -477,6 +510,8 @@ class WhatsAppSettingsPage extends Component
             ],
             [
                 'title' => 'Cita finalizada',
+                'template_field' => 'appointmentCompletedTemplateName',
+                'language_field' => 'appointmentCompletedLanguageCode',
                 'body_label' => 'Body',
                 'body_field' => 'appointmentCompletedBodyParameters',
                 'body_scope' => WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY,

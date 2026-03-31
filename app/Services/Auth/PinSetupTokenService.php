@@ -236,7 +236,10 @@ class PinSetupTokenService
             ];
         }
 
-        $languageCode = $setting->default_language ?: 'es_MX';
+        $languageCode = match ($purpose) {
+            self::PURPOSE_RESET => $setting->pin_reset_language_code ?: ($setting->default_language ?: 'es_MX'),
+            default => $setting->activation_language_code ?: ($setting->default_language ?: 'es_MX'),
+        };
         $destinations = $this->destinationResolver->resolve(
             phone: (string) $user->phone,
             countryCode: (string) ($user->phone_country_code ?? '52')

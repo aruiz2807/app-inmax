@@ -88,6 +88,7 @@ class AppointmentRequestWhatsAppTest extends TestCase
             'pin_reset_template_name' => 'pin_reset_template',
             'preregistration_template_name' => 'policy_preregistration_template',
             'appointment_request_template_name' => 'appointment_request_template',
+            'appointment_request_language_code' => 'en',
             'appointment_request_body_parameters' => ['member_name', 'appointment_date', 'appointment_time', 'doctor_name'],
             'appointment_request_button_parameters' => [],
             'appointment_completed_template_name' => 'appointment_completed_template',
@@ -122,7 +123,7 @@ class AppointmentRequestWhatsAppTest extends TestCase
             return str_contains($request->url(), '/v22.0/113206948334320/messages')
                 && $request['to'] === '5213311112233'
                 && $request['template']['name'] === 'appointment_request_template'
-                && $request['template']['language']['code'] === 'es_MX'
+                && $request['template']['language']['code'] === 'en'
                 && count($request['template']['components'] ?? []) === 1
                 && ($request['template']['components'][0]['type'] ?? null) === 'body'
                 && ($request['template']['components'][0]['parameters'][0]['text'] ?? null) === 'Juan Perez'
@@ -212,7 +213,9 @@ class AppointmentRequestWhatsAppTest extends TestCase
             'pin_reset_template_name' => 'pin_reset_template',
             'preregistration_template_name' => 'policy_preregistration_template',
             'appointment_request_template_name' => 'appointment_request_template',
+            'appointment_request_language_code' => 'es_MX',
             'appointment_completed_template_name' => 'appointment_completed_template',
+            'appointment_completed_language_code' => 'es_MX',
             'default_language' => 'es_MX',
         ]);
 

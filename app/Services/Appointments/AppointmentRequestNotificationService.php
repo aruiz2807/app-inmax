@@ -67,7 +67,7 @@ class AppointmentRequestNotificationService
             ];
         }
 
-        $languageCode = $setting->default_language ?: 'es_MX';
+        $languageCode = $setting->appointment_request_language_code ?: ($setting->default_language ?: 'es_MX');
         $parameterContext = [
             'appointment' => $appointment,
             'member' => $appointment->user,

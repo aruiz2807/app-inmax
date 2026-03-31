@@ -73,7 +73,7 @@ class AppointmentCompletedNotificationService
             'doctor_name' => $appointment->doctor?->user?->name,
             'completed_at' => $appointment->note?->created_at ?? now(),
         ];
-        $languageCode = $setting->default_language ?: 'es_MX';
+        $languageCode = $setting->appointment_completed_language_code ?: ($setting->default_language ?: 'es_MX');
         $parameters = $this->parameterResolver->resolve(
             $setting->appointment_completed_body_parameters,
             WhatsAppTemplateParameterResolver::APPOINTMENT_COMPLETED_BODY,

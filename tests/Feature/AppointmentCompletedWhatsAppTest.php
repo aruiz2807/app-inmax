@@ -78,9 +78,10 @@ class AppointmentCompletedWhatsAppTest extends TestCase
             'preregistration_template_name' => 'policy_preregistration_template',
             'appointment_request_template_name' => 'appointment_request_template',
             'appointment_completed_template_name' => 'appointment_completed_template',
+            'appointment_completed_language_code' => 'es',
             'appointment_completed_body_parameters' => ['member_name', 'completed_date', 'doctor_name'],
             'appointment_completed_button_parameters' => [],
-            'default_language' => 'es_MX',
+            'default_language' => 'en_US',
         ]);
 
         Http::fake([
@@ -98,6 +99,7 @@ class AppointmentCompletedWhatsAppTest extends TestCase
             return str_contains($request->url(), '/v22.0/113206948334320/messages')
                 && $request['to'] === '5213312345678'
                 && $request['template']['name'] === 'appointment_completed_template'
+                && $request['template']['language']['code'] === 'es'
                 && ($request['template']['components'][0]['parameters'][0]['text'] ?? null) === 'Juan Perez'
                 && ($request['template']['components'][0]['parameters'][1]['text'] ?? null) === '30/03/2026'
                 && ($request['template']['components'][0]['parameters'][2]['text'] ?? null) === 'Dra. Rivera';

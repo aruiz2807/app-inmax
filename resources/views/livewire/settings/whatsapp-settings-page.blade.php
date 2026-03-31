@@ -37,40 +37,11 @@
                     </x-ui.field>
                 </x-ui.fieldset>
 
-                <x-ui.fieldset label="Plantillas y lenguaje" class="mt-4">
+                <x-ui.fieldset label="Idioma global" class="mt-4">
                     <x-ui.field required>
-                        <x-ui.label>Plantilla activacion PIN</x-ui.label>
-                        <x-ui.input wire:model="activationTemplateName" placeholder="activation_pin_template" />
-                        <x-ui.error name="activationTemplateName" />
-                    </x-ui.field>
-
-                    <x-ui.field required>
-                        <x-ui.label>Plantilla restablecimiento PIN</x-ui.label>
-                        <x-ui.input wire:model="pinResetTemplateName" placeholder="reset_pin_template" />
-                        <x-ui.error name="pinResetTemplateName" />
-                    </x-ui.field>
-
-                    <x-ui.field required>
-                        <x-ui.label>Plantilla preregistro membresía</x-ui.label>
-                        <x-ui.input wire:model="preregistrationTemplateName" placeholder="policy_preregistration_template" />
-                        <x-ui.error name="preregistrationTemplateName" />
-                    </x-ui.field>
-
-                    <x-ui.field required>
-                        <x-ui.label>Plantilla solicitud de cita</x-ui.label>
-                        <x-ui.input wire:model="appointmentRequestTemplateName" placeholder="appointment_request_template" />
-                        <x-ui.error name="appointmentRequestTemplateName" />
-                    </x-ui.field>
-
-                    <x-ui.field required>
-                        <x-ui.label>Plantilla finalizacion cita</x-ui.label>
-                        <x-ui.input wire:model="appointmentCompletedTemplateName" placeholder="appointment_completed_template" />
-                        <x-ui.error name="appointmentCompletedTemplateName" />
-                    </x-ui.field>
-
-                    <x-ui.field required>
-                        <x-ui.label>Idioma por defecto</x-ui.label>
+                        <x-ui.label>Idioma por defecto fallback</x-ui.label>
                         <x-ui.input wire:model="defaultLanguage" placeholder="es_MX" />
+                        <p class="mt-1 text-xs text-slate-500">Se usa solo si una plantilla no tiene idioma especifico.</p>
                         <x-ui.error name="defaultLanguage" />
                     </x-ui.field>
                 </x-ui.fieldset>
@@ -82,6 +53,26 @@
                                 <div class="pb-3">
                                     <h4 class="text-sm font-semibold text-slate-900">{{ $section['title'] }}</h4>
                                     <p class="text-xs text-slate-500">Define el orden exacto de variables que espera la plantilla.</p>
+                                </div>
+
+                                <div class="grid gap-4 pb-4 md:grid-cols-2">
+                                    <x-ui.field required>
+                                        <x-ui.label>Nombre de plantilla</x-ui.label>
+                                        <x-ui.input
+                                            wire:model="{{ $section['template_field'] }}"
+                                            placeholder="template_name"
+                                        />
+                                        <x-ui.error name="{{ $section['template_field'] }}" />
+                                    </x-ui.field>
+
+                                    <x-ui.field required>
+                                        <x-ui.label>Idioma</x-ui.label>
+                                        <x-ui.input
+                                            wire:model="{{ $section['language_field'] }}"
+                                            placeholder="es_MX"
+                                        />
+                                        <x-ui.error name="{{ $section['language_field'] }}" />
+                                    </x-ui.field>
                                 </div>
 
                                 <div class="grid gap-4 md:grid-cols-2">

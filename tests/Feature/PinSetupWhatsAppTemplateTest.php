@@ -48,10 +48,12 @@ class PinSetupWhatsAppTemplateTest extends TestCase
             'phone_number_id' => '113206948334320',
             'access_token' => 'meta_test_token_12345',
             'activation_template_name' => 'pin_activation_inmax',
+            'activation_language_code' => 'es',
             'activation_body_parameters' => ['user_name', 'policy_number', 'sales_user_name'],
             'activation_button_parameters' => ['pin_token'],
             'pin_reset_template_name' => 'pin_reset_inmax',
-            'default_language' => 'es_MX',
+            'pin_reset_language_code' => 'en_US',
+            'default_language' => 'fr',
         ]);
 
         Http::fake([
@@ -71,7 +73,7 @@ class PinSetupWhatsAppTemplateTest extends TestCase
         Http::assertSent(function ($request) use ($token) {
             return str_contains($request->url(), '/v22.0/113206948334320/messages')
                 && $request['template']['name'] === 'pin_activation_inmax'
-                && $request['template']['language']['code'] === 'es_MX'
+                && $request['template']['language']['code'] === 'es'
                 && $request['template']['components'][0]['parameters'][0]['text'] === 'Juan Perez'
                 && $request['template']['components'][0]['parameters'][1]['text'] === 'POL-3001'
                 && $request['template']['components'][0]['parameters'][2]['text'] === 'Promotor Uno'
@@ -93,6 +95,8 @@ class PinSetupWhatsAppTemplateTest extends TestCase
             'access_token' => 'meta_test_token_12345',
             'activation_template_name' => 'pin_activation_inmax',
             'pin_reset_template_name' => 'pin_reset_inmax',
+            'activation_language_code' => 'es_MX',
+            'pin_reset_language_code' => 'en_US',
             'default_language' => 'es_MX',
         ]);
 
@@ -109,7 +113,8 @@ class PinSetupWhatsAppTemplateTest extends TestCase
         $this->assertTrue($result['whatsapp']['ok']);
 
         Http::assertSent(function ($request) {
-            return $request['template']['name'] === 'pin_reset_inmax';
+            return $request['template']['name'] === 'pin_reset_inmax'
+                && $request['template']['language']['code'] === 'en_US';
         });
     }
 
