@@ -24,6 +24,7 @@
                 icon="wallet"
                 wire:model="payment_method"
             >
+                <x-ui.select.option value="CS">Efectivo</x-ui.select.option>
                 <x-ui.select.option value="CC">Tarjeta de credito</x-ui.select.option>
                 <x-ui.select.option value="DC">Tarjeta de debito</x-ui.select.option>
                 <x-ui.select.option value="TR">Transferencia</x-ui.select.option>

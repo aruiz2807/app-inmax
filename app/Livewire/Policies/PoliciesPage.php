@@ -126,10 +126,15 @@ class PoliciesPage extends Component
         {
             $start = Carbon::now()->addDays(5);
             $end = Carbon::now()->addDays(5)->addYear();
+            $path = null;
+            $originalName = null;
 
-            $file = $this->payment_attachment;
-            $path = $file->store('attachments');
-            $originalName = $file->getClientOriginalName();
+            if($this->payment_attachment)
+            {
+                $file = $this->payment_attachment;
+                $path = $file->store('attachments');
+                $originalName = $file->getClientOriginalName();
+            }
 
             $policy->update([
                 'status' => 'Active',
