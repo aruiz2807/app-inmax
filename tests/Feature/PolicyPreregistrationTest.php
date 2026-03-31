@@ -473,7 +473,7 @@ class PolicyPreregistrationTest extends TestCase
             'profile' => 'Sales',
         ]);
 
-        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 2);
 
         $preregistration = PolicyPreregistration::query()->create([
             'sales_user_id' => $salesUser->id,
@@ -512,7 +512,7 @@ class PolicyPreregistrationTest extends TestCase
             'profile' => 'Sales',
         ]);
 
-        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 2);
 
         $inactiveMember = $this->createGroupMemberPolicy($groupPolicy, $groupPlan, '3310000058');
         $inactiveMember->update([
@@ -533,6 +533,24 @@ class PolicyPreregistrationTest extends TestCase
             'phone' => '3310000059',
             'preregistration_type' => PolicyPreregistration::TYPE_GROUP_MEMBER,
         ]);
+    }
+
+    public function test_collective_holder_consumes_one_slot_for_group_member_capacity(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PolicyPreregistrationsPage::class)
+            ->set('preregistrationType', PolicyPreregistration::TYPE_GROUP_MEMBER)
+            ->set('preregistrationPhone', '3310000069')
+            ->set('preregistrationParentPolicy', (string) $groupPolicy->id)
+            ->call('savePreregistration')
+            ->assertHasErrors(['preregistrationParentPolicy']);
     }
 
     public function test_group_member_preregistration_page_creates_member_policy_under_collective_parent(): void

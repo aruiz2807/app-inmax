@@ -49,10 +49,13 @@ class GroupPolicyCapacityService
             ? $groupPolicy
             : $this->resolveGroupPolicy($groupPolicy);
 
-        $registeredMembers = Policy::query()
+        $registeredChildMembers = Policy::query()
             ->where('parent_policy_id', $policy->id)
             ->where('status', 'Active')
             ->count();
+
+        // The collective holder consumes one seat as long as the root policy exists.
+        $registeredMembers = 1 + $registeredChildMembers;
 
         $pendingPreregistrations = PolicyPreregistration::query()
             ->where('preregistration_type', PolicyPreregistration::TYPE_GROUP_MEMBER)
