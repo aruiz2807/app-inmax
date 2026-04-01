@@ -180,7 +180,7 @@
                 <x-ui.fieldset label="Datos de prueba">
                     <x-ui.field required>
                         <x-ui.label>Telefono destino</x-ui.label>
-                        <x-ui.input wire:model="testPhone" placeholder="5213312345678" />
+                        <x-ui.input wire:model="testPhone" placeholder="3300000000" />
                         <x-ui.error name="testPhone" />
                     </x-ui.field>
 
@@ -198,7 +198,7 @@
 
                     <x-ui.field>
                         <x-ui.label>Parametros body (uno por linea)</x-ui.label>
-                        <x-ui.textarea wire:model="testParameters" placeholder="Juan Perez&#10;1234" />
+                        <x-ui.textarea wire:model="testParameters" placeholder="Nombre Apellido" />
                         <x-ui.error name="testParameters" />
                     </x-ui.field>
 
