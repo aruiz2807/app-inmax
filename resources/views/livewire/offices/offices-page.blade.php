@@ -52,6 +52,12 @@
                     <x-ui.error name="form.maps_url" />
                 </x-ui.field>
 
+                <x-ui.field>
+                    <x-ui.label>Teléfono</x-ui.label>
+                    <x-ui.input wire:model="form.phone_number" name="phone_number" placeholder="Ej. +52 55 1234 5678" />
+                    <x-ui.error name="form.phone_number" />
+                </x-ui.field>
+
             </x-ui.fieldset>
 
             <x-ui.fieldset class="mt-4" label="Asignación médica y horarios">
@@ -187,7 +193,7 @@
 
             <div class="w-full flex justify-end gap-3 pt-4">
                 <x-ui.button x-on:click="$data.close();" wire:click="resetForm" icon="x-mark" variant="outline">
-                    Cancel
+                    Cancelar
                 </x-ui.button>
 
                 <x-ui.button type="submit" icon="check" variant="primary" color="teal">

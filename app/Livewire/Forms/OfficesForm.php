@@ -19,6 +19,9 @@ class OfficesForm extends Form
     #[Validate('required|max:2048')]
     public $maps_url = '';
 
+    #[Validate('nullable|string|max:20')]
+    public $phone_number = '';
+
     #[Validate('required')]
     public $office_id = 1;
 
@@ -46,6 +49,7 @@ class OfficesForm extends Form
             'name' => $this->name,
             'address' => $this->address,
             'maps_url' => $this->maps_url,
+            'phone_number' => $this->phone_number ?: null,
         ]);
 
         $office->doctors()->sync($this->selectedDoctors);
@@ -66,6 +70,7 @@ class OfficesForm extends Form
         $this->name = $office->name;
         $this->address = $office->address;
         $this->maps_url = $office->maps_url;
+        $this->phone_number = $office->phone_number ?? '';
         $this->selectedDoctors = $office->doctors()->pluck('doctors.id')->toArray();
         $this->slots = $office->officeHours()->pluck('slot')->toArray();
     }
@@ -87,6 +92,7 @@ class OfficesForm extends Form
             'name' => $this->name,
             'address' => $this->address,
             'maps_url' => $this->maps_url,
+            'phone_number' => $this->phone_number ?: null,
         ]);
 
         $office->doctors()->sync($this->selectedDoctors);

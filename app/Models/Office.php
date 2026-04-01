@@ -16,6 +16,7 @@ class Office extends Model
         'name',
         'address',
         'maps_url',
+        'phone_number',
     ];
 
     /**
