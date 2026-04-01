@@ -80,7 +80,7 @@
                             @endif
 
                             <x-ui.button class="w-40 ml-1" wire:click="record({{ $upcoming->user->id }})" variant="outline" color="teal" icon="clipboard-document-list">
-                                Expediente
+                                Historial
                             </x-ui.button>
                         </div>
                     </div>
