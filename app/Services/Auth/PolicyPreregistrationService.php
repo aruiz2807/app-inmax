@@ -639,7 +639,7 @@ class PolicyPreregistrationService
         $normalizedPhone = preg_replace('/\D+/', '', $phone) ?? '';
 
         if (strlen($normalizedPhone) !== 10) {
-            throw new InvalidArgumentException('El telefono debe contener 10 digitos.');
+            throw new InvalidArgumentException('El teléfono debe contener 10 digitos.');
         }
 
         return $normalizedPhone;
@@ -651,7 +651,7 @@ class PolicyPreregistrationService
     private function assertPhoneAvailable(string $phone, ?int $ignorePreregistrationId = null): void
     {
         if (User::query()->where('phone', $phone)->exists()) {
-            throw new InvalidArgumentException('Ya existe un usuario registrado con ese telefono.');
+            throw new InvalidArgumentException('Ya existe un usuario registrado con ese teléfono.');
         }
 
         $query = PolicyPreregistration::query()->where('phone', $phone);
@@ -661,7 +661,7 @@ class PolicyPreregistrationService
         }
 
         if ($query->exists()) {
-            throw new InvalidArgumentException('Ya existe un preregistro registrado con ese telefono.');
+            throw new InvalidArgumentException('Ya existe un preregistro registrado con ese teléfono.');
         }
     }
 

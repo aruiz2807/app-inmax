@@ -155,9 +155,9 @@ class PolicyPreregistrationsPage extends Component
                 'max:99',
             ],
         ], [
-            'preregistrationPhone.unique' => 'Ya existe un registro con ese telefono.',
-            'preregistrationPhone.required' => 'El telefono es obligatorio.',
-            'preregistrationPhone.digits' => 'El telefono debe contener 10 digitos.',
+            'preregistrationPhone.unique' => 'Ya existe un registro con ese teléfono.',
+            'preregistrationPhone.required' => 'El teléfono es obligatorio.',
+            'preregistrationPhone.digits' => 'El teléfono debe contener 10 digitos.',
             'preregistrationParentPolicy.required' => 'Selecciona la membresía colectiva.',
             'preregistrationPlan.required' => 'Selecciona el plan.',
             'preregistrationCompanyName.required' => 'El nombre del colectivo es obligatorio.',
@@ -198,7 +198,7 @@ class PolicyPreregistrationsPage extends Component
             }
         } catch (InvalidArgumentException $exception) {
             $field = match (true) {
-                str_contains($exception->getMessage(), 'telefono') => 'preregistrationPhone',
+                str_contains($exception->getMessage(), 'teléfono') => 'preregistrationPhone',
                 str_contains($exception->getMessage(), 'lugares disponibles') => 'preregistrationParentPolicy',
                 str_contains($exception->getMessage(), 'colectiva') => 'preregistrationParentPolicy',
                 str_contains($exception->getMessage(), 'principal') => 'preregistrationParentPolicy',

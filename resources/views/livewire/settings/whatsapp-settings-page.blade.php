@@ -173,13 +173,13 @@
                 Envio de prueba
             </x-ui.heading>
             <p class="mt-2">
-                Realiza una prueba manual de envio de plantilla con telefono, nombre de plantilla, idioma, parametros de body y parametros de boton URL.
+                Realiza una prueba manual de envio de plantilla con teléfono, nombre de plantilla, idioma, parametros de body y parametros de boton URL.
             </p>
 
             <form wire:submit="sendTestMessage" class="pt-4">
                 <x-ui.fieldset label="Datos de prueba">
                     <x-ui.field required>
-                        <x-ui.label>Telefono destino</x-ui.label>
+                        <x-ui.label>teléfono destino</x-ui.label>
                         <x-ui.input wire:model="testPhone" placeholder="3300000000" />
                         <x-ui.error name="testPhone" />
                     </x-ui.field>

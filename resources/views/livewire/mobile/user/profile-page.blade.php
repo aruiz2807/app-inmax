@@ -44,7 +44,7 @@
                     <x-ui.separator />
 
                     <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                        <x-ui.text>Telefono : </x-ui.text>
+                        <x-ui.text>teléfono : </x-ui.text>
                         <x-ui.text class="font-semibold">{{$user->phone}}</x-ui.text>
                     </div>
 

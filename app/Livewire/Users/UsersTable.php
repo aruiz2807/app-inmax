@@ -81,7 +81,7 @@ final class UsersTable extends PowerGridComponent
             Column::make('Correo', 'email')
                 ->searchable(),
 
-            Column::make('Telefono', 'phone')
+            Column::make('Teléfono', 'phone')
                 ->searchable(),
 
             Column::make('Perfil', 'profile')

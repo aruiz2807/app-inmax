@@ -28,7 +28,7 @@
                 </x-ui.heading>
 
                 <p class="text-sm mt-2">
-                    Telefono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
+                    teléfono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
                     | Referencia: <span class="font-semibold">{{ $lastPreregistrationReference }}</span>
                 </p>
 
@@ -51,8 +51,8 @@
 
             <div class="pt-4 grid gap-2 md:grid-cols-5">
                 <x-ui.field>
-                    <x-ui.label>Filtro telefono</x-ui.label>
-                    <x-ui.input wire:model.live.debounce.400ms="filterPreregistrationPhone" placeholder="Buscar telefono..." />
+                    <x-ui.label>Filtro teléfono</x-ui.label>
+                    <x-ui.input wire:model.live.debounce.400ms="filterPreregistrationPhone" placeholder="Buscar teléfono..." />
                 </x-ui.field>
 
                 <x-ui.field>
@@ -108,7 +108,7 @@
                 <table class="min-w-full text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
                     <thead class="bg-neutral-100 dark:bg-neutral-800">
                         <tr>
-                            <th class="text-left px-3 py-2 font-semibold">Telefono</th>
+                            <th class="text-left px-3 py-2 font-semibold">teléfono</th>
                             <th class="text-left px-3 py-2 font-semibold">Tipo</th>
                             <th class="text-left px-3 py-2 font-semibold">Plan / Colectivo</th>
                             <th class="text-left px-3 py-2 font-semibold">Membresía padre</th>
@@ -181,7 +181,7 @@
         animation="fade"
         width="2xl"
         heading="{{ $preregistrationId ? 'Editar preregistro' : 'Nuevo preregistro' }}"
-        description="Captura el telefono y el plan para enviar la invitacion de registro"
+        description="Captura el teléfono y el plan para enviar la invitacion de registro"
         x-on:close-preregistration-modal.window="$data.close()"
         x-on:open-preregistration-modal.window="$data.open()"
     >
@@ -198,7 +198,7 @@
                 </x-ui.field>
 
                 <x-ui.field required>
-                    <x-ui.label>Telefono</x-ui.label>
+                    <x-ui.label>teléfono</x-ui.label>
                     <x-ui.input wire:model="preregistrationPhone" name="preregistrationPhone" placeholder="3310203040" />
                     <x-ui.error name="preregistrationPhone" />
                 </x-ui.field>
@@ -378,7 +378,7 @@
     >
         <div class="space-y-4">
             <p class="text-sm text-slate-700">
-                Telefono del preregistro: <span class="font-semibold">{{ $preregistrationToCancelPhone }}</span>
+                teléfono del preregistro: <span class="font-semibold">{{ $preregistrationToCancelPhone }}</span>
             </p>
 
             <div class="w-full flex justify-end gap-3 pt-2">
