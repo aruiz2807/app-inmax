@@ -51,7 +51,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <span class="text-lg font-bold text-gray-800">Ver historial médico</span>
+                    <span class="text-lg font-bold text-gray-800">Mis consultas y servicios</span>
                 </a>
 
                 <a href="{{ route('user.status') }}" class="flex items-center p-4 bg-[#E0F7F4] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50 group">
