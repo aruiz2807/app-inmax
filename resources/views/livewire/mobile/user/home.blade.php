@@ -42,7 +42,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
-                    <span class="text-lg font-bold text-gray-800">Ver mis consultas</span>
+                    <span class="text-lg font-bold text-gray-800">Mis consultas y servicios</span>
                 </a>
 
                 <a href="{{ route('user.record') }}" class="flex items-center p-4 bg-[#FEEBED] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
@@ -51,7 +51,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <span class="text-lg font-bold text-gray-800">Mis consultas y servicios</span>
+                    <span class="text-lg font-bold text-gray-800">Mi historial médico</span>
                 </a>
 
                 <a href="{{ route('user.status') }}" class="flex items-center p-4 bg-[#E0F7F4] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50 group">
