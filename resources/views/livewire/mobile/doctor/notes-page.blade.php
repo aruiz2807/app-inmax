@@ -146,8 +146,8 @@
         </x-ui.field>
 
         <x-ui.field class="mt-2">
-            <x-ui.label>Pago miembro</x-ui.label>
-            <x-ui.alerts variant="info" icon="currency-dollar">
+            <x-ui.label>Cobro al paciente (Pago miembro)</x-ui.label>
+            <x-ui.alerts variant="success" icon="currency-dollar">
                 <x-ui.alerts.description>{{$user_payment}}</x-ui.alerts.description>
             </x-ui.alerts>
         </x-ui.field>
@@ -160,8 +160,8 @@
         </x-ui.field>
 
         <x-ui.field class="mt-2">
-            <x-ui.label>Total</x-ui.label>
-            <x-ui.alerts variant="success" icon="currency-dollar">
+            <x-ui.label>Ganancia del proveedor</x-ui.label>
+            <x-ui.alerts variant="info" icon="currency-dollar">
                 <x-ui.alerts.heading>{{$total}}</x-ui.alerts.heading>
             </x-ui.alerts>
         </x-ui.field>
