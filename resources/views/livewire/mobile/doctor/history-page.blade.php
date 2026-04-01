@@ -5,7 +5,7 @@
 
     <div class="grid grid-cols-[2rem_auto] justify-stretch items-center pt-4 pb-4">
         <x-ui.icon name="arrow-left" class="w-5 h-5 cursor-pointer" x-on:click="window.history.back()" />
-        <x-ui.text class="text-2xl">Historial de consultas</x-ui.text>
+        <x-ui.text class="text-2xl">Mis consultas y servicios</x-ui.text>
     </div>
 
     <div class="relative w-full">
