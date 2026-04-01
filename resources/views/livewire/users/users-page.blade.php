@@ -61,7 +61,7 @@
                 </x-ui.field>
 
                 <x-ui.field required>
-                    <x-ui.label>Correo electronico</x-ui.label>
+                    <x-ui.label>Correo electrónico</x-ui.label>
                     <x-ui.input wire:model="form.email" name="email" type="email" placeholder="nombre@correo.com" />
                     <x-ui.error name="form.email" />
                 </x-ui.field>
