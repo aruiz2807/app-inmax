@@ -239,10 +239,10 @@
             <tr>
                 <td class="footer-left">INMAX</td>
                 <td class="footer-right">
-                    TEL: <br>
-                    DIR: <br>
-                    EMAIL: <br>
-                    WEB:
+                    TEL: 3313666626<br>
+                    DIR: Torre Médica <br> wire:
+                    Av. Plan de San Luis #1831 Col. San Bernardo, C.P. 44260<br>
+                    EMAIL: contacto@inmax-sure.com<br>
                 </td>
             </tr>
         </table>
