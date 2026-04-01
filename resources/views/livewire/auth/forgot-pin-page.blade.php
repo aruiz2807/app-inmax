@@ -18,7 +18,7 @@
 
         <form wire:submit="sendResetLink">
             <div>
-                <x-label for="phone" value="teléfono" />
+                <x-label for="phone" value="Teléfono" />
                 <x-input
                     id="phone"
                     class="block mt-1 w-full"
@@ -29,7 +29,7 @@
                     maxlength="10"
                     autofocus
                     autocomplete="tel"
-                    placeholder="3310203040"
+                    placeholder="3300000000"
                 />
                 <x-ui.error name="phone" />
             </div>

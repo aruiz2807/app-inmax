@@ -28,7 +28,7 @@
                 </x-ui.heading>
 
                 <p class="text-sm mt-2">
-                    teléfono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
+                    Teléfono: <span class="font-semibold">{{ $lastPreregistrationPhone }}</span>
                     | Referencia: <span class="font-semibold">{{ $lastPreregistrationReference }}</span>
                 </p>
 
@@ -108,7 +108,7 @@
                 <table class="min-w-full text-sm border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
                     <thead class="bg-neutral-100 dark:bg-neutral-800">
                         <tr>
-                            <th class="text-left px-3 py-2 font-semibold">teléfono</th>
+                            <th class="text-left px-3 py-2 font-semibold">Teléfono</th>
                             <th class="text-left px-3 py-2 font-semibold">Tipo</th>
                             <th class="text-left px-3 py-2 font-semibold">Plan / Colectivo</th>
                             <th class="text-left px-3 py-2 font-semibold">Membresía padre</th>
@@ -198,8 +198,8 @@
                 </x-ui.field>
 
                 <x-ui.field required>
-                    <x-ui.label>teléfono</x-ui.label>
-                    <x-ui.input wire:model="preregistrationPhone" name="preregistrationPhone" placeholder="3310203040" />
+                    <x-ui.label>Teléfono</x-ui.label>
+                    <x-ui.input wire:model="preregistrationPhone" name="preregistrationPhone" placeholder="3300000000" />
                     <x-ui.error name="preregistrationPhone" />
                 </x-ui.field>
 
@@ -378,7 +378,7 @@
     >
         <div class="space-y-4">
             <p class="text-sm text-slate-700">
-                teléfono del preregistro: <span class="font-semibold">{{ $preregistrationToCancelPhone }}</span>
+                Teléfono del preregistro: <span class="font-semibold">{{ $preregistrationToCancelPhone }}</span>
             </p>
 
             <div class="w-full flex justify-end gap-3 pt-2">

@@ -179,7 +179,7 @@
             <form wire:submit="sendTestMessage" class="pt-4">
                 <x-ui.fieldset label="Datos de prueba">
                     <x-ui.field required>
-                        <x-ui.label>teléfono destino</x-ui.label>
+                        <x-ui.label>Teléfono destino</x-ui.label>
                         <x-ui.input wire:model="testPhone" placeholder="3300000000" />
                         <x-ui.error name="testPhone" />
                     </x-ui.field>

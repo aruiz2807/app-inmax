@@ -59,7 +59,7 @@
 
         @if ($preregistration)
             <div class="mb-4 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700">
-                <p><span class="font-semibold">teléfono:</span> {{ $preregistration->phone }}</p>
+                <p><span class="font-semibold">Teléfono:</span> {{ $preregistration->phone }}</p>
                 <p><span class="font-semibold">Tipo:</span> {{ $preregistration->type_label }}</p>
                 <p><span class="font-semibold">Plan:</span> {{ $preregistration->plan?->name ?: 'Se definira durante el registro' }}</p>
                 <p><span class="font-semibold">Membresía principal:</span> {{ $preregistration->parentPolicy?->number ?: 'Sin membresía principal' }}</p>

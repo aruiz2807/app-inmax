@@ -32,14 +32,14 @@ class WhatsAppTemplateParameterResolver
     private const OPTIONS = [
         self::SYSTEM_USER_ACTIVATION_BODY => [
             'user_name' => 'Nombre del usuario',
-            'user_phone' => 'teléfono del usuario',
+            'user_phone' => 'Teléfono del usuario',
         ],
         self::SYSTEM_USER_ACTIVATION_BUTTON => [
             'pin_token' => 'Token del enlace PIN',
         ],
         self::ACTIVATION_BODY => [
             'user_name' => 'Nombre del usuario',
-            'user_phone' => 'teléfono del usuario',
+            'user_phone' => 'Teléfono del usuario',
             'policy_number' => 'Numero de membresía',
             'policy_type' => 'Tipo de membresía',
             'start_date' => 'Fecha de inicio',
@@ -50,7 +50,7 @@ class WhatsAppTemplateParameterResolver
         ],
         self::PIN_RESET_BODY => [
             'user_name' => 'Nombre del usuario',
-            'user_phone' => 'teléfono del usuario',
+            'user_phone' => 'Teléfono del usuario',
             'policy_number' => 'Numero de membresía',
             'policy_type' => 'Tipo de membresía',
             'sales_user_name' => 'Nombre del promotor',
