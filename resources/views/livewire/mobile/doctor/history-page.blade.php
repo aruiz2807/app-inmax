@@ -73,9 +73,11 @@
                         </div>
 
                         <div class="flex justify-center mt-2">
+                            @if($upcoming->requested_by_user_id)
                             <x-ui.button class="w-40 mr-1" wire:click="order({{ $upcoming->id }})" variant="outline" color="indigo" icon="clipboard-document-list">
                                 Orden
                             </x-ui.button>
+                            @endif
 
                             <x-ui.button class="w-40 ml-1" wire:click="record({{ $upcoming->user->id }})" variant="outline" color="teal" icon="clipboard-document-list">
                                 Expediente
