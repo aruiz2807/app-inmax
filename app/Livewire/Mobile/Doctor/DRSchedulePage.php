@@ -6,6 +6,7 @@ use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Doctor;
+use App\Models\Office;
 use App\Models\PolicyService;
 use App\Models\Service;
 use App\Models\User;
@@ -60,6 +61,11 @@ class DRSchedulePage extends Component
         $this->doctor = Doctor::find($value);
         $this->offices = $this->doctor->offices;
         $this->services = $this->doctor->specialty->services;
+    }
+
+    public function updatedSelectedOffice($value)
+    {
+        $this->getAvailableHoursProperty();
     }
 
     public function updatedSelectedServices($value)
@@ -179,16 +185,28 @@ class DRSchedulePage extends Component
             return [];
         }
 
-        $usedSlots = Appointment::whereDate('date', $this->selectedDate)->where('status', 'Booked')
-            ->pluck('time')
-            ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
-            ->toArray();
-
+        $doctor = Doctor::find($this->selectedDoctor);
+        $usedSlots = [];
         $slots = [
             '09:00 AM','10:00 AM','11:00 AM','12:00 PM',
             '01:00 PM','02:00 PM','03:00 PM','04:00 PM',
             '05:00 PM','06:00 PM','07:00 PM'
         ];
+
+        if($doctor?->specialty_id == 1 && $this->selectedOffice)
+        {
+            $usedSlots = Appointment::whereDate('date', $this->selectedDate)
+                ->where('office_id', $this->selectedOffice)
+                ->where('status', 'Booked')
+                ->pluck('time')
+                ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
+                ->toArray();
+
+            $slots = Office::find($this->selectedOffice)->officeHours
+                ->sortBy(fn ($item) => Carbon::createFromFormat('h:i A', $item->slot))
+                ->pluck('slot')
+                ->toArray();
+        }
 
         return collect($slots)
             ->map(function ($slot) use ($usedSlots) {

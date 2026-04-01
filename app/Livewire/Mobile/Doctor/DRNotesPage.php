@@ -60,18 +60,20 @@ class DRNotesPage extends Component
 
         if($this->appointment->doctor)
         {
-            $discount = round($subtotal * ($this->appointment->doctor->discount/100), 2);
-            $this->user_payment = number_format($subtotal - $discount, 2);
-            $this->commision = number_format($subtotal * ($this->appointment->doctor->commission / 100), 2);
-            $this->total = number_format($subtotal - $discount - floatval(str_replace(',', '', $this->commision)), 2);
+            $doc_discount = $this->appointment->doctor->discount/100;
+            $doc_commision = $this->appointment->doctor->commission/100;
         }
         else
         {
-            $discount = 0;
-            $this->user_payment = number_format($subtotal - $discount, 2);
-            $this->commision = 0;
-            $this->total = number_format($subtotal - $discount - floatval(str_replace(',', '', $this->commision)), 2);
+            $doc_discount = $this->user->doctor->discount/100;
+            $doc_commision = $this->user->doctor->commission/100;
         }
+
+        $discount = round($subtotal * $doc_discount, 2);
+        $this->user_payment = number_format($subtotal - $discount, 2);
+        $this->commision = number_format($subtotal * $doc_commision, 2);
+        $this->total = number_format($subtotal - $discount - floatval(str_replace(',', '', $this->commision)), 2);
+
     }
 
     public function confirmNotes()
