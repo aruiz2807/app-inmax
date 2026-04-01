@@ -23,6 +23,14 @@ class Office extends Model
      */
     public function doctors()
     {
-        return $this->hasMany(Doctor::class);
+        return $this->belongsToMany(Doctor::class, 'office_doctors');
+    }
+    
+    /**
+     * Each office can have multiple hours.
+     */
+    public function officeHours()
+    {
+        return $this->hasMany(OfficeHour::class);
     }
 }
