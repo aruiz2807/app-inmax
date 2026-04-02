@@ -9,11 +9,13 @@
 /vendor
 /public/build
 /public/hot
+/public/storage
 
 /database/*.sqlite
 /database/*.sqlite-journal
 /database/database.sqlite
 /database/database.sqlite-journal
+/storage/*.key
 /.phpunit.result.cache
 /.phpunit.cache
 /.phpunit.cache/*
