@@ -37,7 +37,7 @@
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Doctor : </x-ui.text>
+                    <x-ui.text>{{ $note->appointment->doctor->type === \App\Enums\DoctorType::Doctor ? 'Doctor : ' : 'Proveedor : '}}</x-ui.text>
                     <x-ui.text class="font-semibold">{{ $note->appointment->doctor->user->name }}</x-ui.text>
                 </div>
 
@@ -52,40 +52,47 @@
 
             @if($note->appointment->subtotal > 0)
             <div class="mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
+                <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
                     <x-ui.text>Total cuenta : </x-ui.text>
-                    <x-ui.text class="font-semibold">${{ $this->subtotal }}</x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $this->subtotal }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
-                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Pago : </x-ui.text>
-                    <x-ui.text class="font-semibold">${{ $this->payment }}</x-ui.text>
+                <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
+                    <x-ui.text>Cobro al paciente : </x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $this->payment }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
-                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Comisión : </x-ui.text>
-                    <x-ui.text class="font-semibold">${{ $this->commission }}</x-ui.text>
+                <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
+                    <x-ui.text>Comision Inmax : </x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $this->commission }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
-                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
-                    <x-ui.text>Total : </x-ui.text>
-                    <x-ui.text class="font-semibold">${{ $this->total }}</x-ui.text>
+                <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
+                    <x-ui.text>Ganancia del proveedor : </x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $this->total }}</x-ui.text>
                 </div>
             </div>
             @endif
 
-
+            @if($note->appointment->doctor->type === \App\Enums\DoctorType::Doctor)
             <div class="flex justify-center mt-4">
                 <x-ui.button class="w-40 mr-1" wire:click="print" variant="outline" color="indigo" icon="document">
                     Receta digital
                 </x-ui.button>
             </div>
+            @else
+            <div class="flex justify-center mt-4">
+                <x-ui.button class="w-40 mr-1" wire:click="print_ticket" variant="outline" color="indigo" icon="document">
+                    Ticket
+                </x-ui.button>
+            </div>
+            @endif
         </x-ui.card>
     </div>
 </div>

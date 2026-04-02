@@ -33,7 +33,12 @@ class DoctorNotesForm extends Form
             'diagnosis' => [$required, 'string'],
             'treatment' => [$required, 'string'],
             'notes' => ['nullable', 'string'],
-            'services' => ['nullable', 'array'],
+            'services' => ['nullable', 'array',
+                function ($attribute, $value, $fail) {
+                    if (empty($value) || !collect($value)->contains(true)) {
+                        $fail('Debe marcar al menos un servicio como realizado.');
+                    }
+                }],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
         ];

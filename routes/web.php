@@ -84,7 +84,7 @@ Route::middleware([
         Route::get('/appointments', AppointmentsPage::class)->name('appointments');
 
         Route::get('/offices', OfficesPage::class)->name('offices');
-        
+
         Route::get('/services', ServicesPage::class)->name('services');
 
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
@@ -119,7 +119,6 @@ Route::middleware([
         Route::get('/rating-confirmation', RatingConfirmationPage::class)->name('user.rating-confirmation');
 
         Route::get('/my-profile', ProfilePage::class)->name('user.my-profile');
-
     });
 
     Route::prefix('doctor')->middleware('profile:Doctor,Admin')->group(function () {
@@ -145,5 +144,4 @@ Route::middleware([
 
         Route::get('/my-profile', DRProfilePage::class)->name('doctor.my-profile');
     });
-
 });
