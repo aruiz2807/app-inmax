@@ -43,6 +43,29 @@ npm run dev
 npm run build
 ```
 
+## Deploy / Plesk
+Este proyecto usa `npm` como gestor de paquetes para frontend. No mezcles `npm` y `yarn` en el mismo deploy.
+
+Instalacion limpia recomendada:
+```bash
+rm -rf node_modules
+npm ci
+npm run build
+```
+
+Si Plesk tiene configurado `yarn build`, cambialo por:
+```bash
+npm run build
+```
+
+Si despues de una instalacion vieja falla Rollup con `@rollup/rollup-linux-x64-gnu`, limpia e instala de nuevo con:
+```bash
+rm -rf node_modules
+npm cache clean --force
+npm ci
+npm run build
+```
+
 ## Tests
 ```bash
 php artisan test
