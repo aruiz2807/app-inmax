@@ -17,6 +17,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "apexcharts": "3.42",
         "nouislider": "^15.8.1"
     }
 }

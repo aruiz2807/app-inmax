@@ -190,11 +190,18 @@ class AppointmentFormPage extends Component
         $this->selectedUser = (string) $this->appointment->user->id;
         $this->user = User::find($this->selectedUser);
 
-        $this->selectedDoctor = (string) $this->appointment->doctor_id;
-        $this->doctor = Doctor::find($this->selectedDoctor);
+        if($this->appointment->doctor_id)
+        {
+            $this->selectedDoctor = (string) $this->appointment->doctor_id;
+            $this->doctor = Doctor::find($this->selectedDoctor);
+            $this->offices = $this->doctor->offices;
+        }
+        else
+        {
+            $this->offices = Office::all();
+        }
 
-        $this->offices = $this->doctor->offices;
-        $this->selectedOffice = $this->appointment->office->id;
+        $this->selectedOffice = (string) $this->appointment->office_id;
         $this->selectedDate = $this->appointment->date->format('Y-m-d');
         $this->selectedTime = $this->appointment->time->format('H:i');
 

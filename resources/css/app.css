@@ -28,3 +28,12 @@
         @apply inline font-medium text-start underline underline-offset-[6px] hover:decoration-current text-neutral-800 dark:text-white decoration-neutral-800/20 dark:decoration-white/20;
     }
 }
+
+/* Make ApexCharts inherit the app's standard font (Figtree) */
+.apexcharts-text,
+.apexcharts-title-text,
+.apexcharts-datalabels text,
+.apexcharts-xaxis-label,
+.apexcharts-yaxis-label {
+    font-family: var(--font-sans) !important;
+}

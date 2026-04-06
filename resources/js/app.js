@@ -15,4 +15,8 @@ import './components/slider.js'
 // power grid tables
 import './../../vendor/power-components/livewire-powergrid/dist/powergrid'
 
+// apex charts
+import ApexCharts from 'apexcharts';
+window.ApexCharts = ApexCharts;
+
 Livewire.start();

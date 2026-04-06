@@ -26,6 +26,7 @@
         </x-ui.select>
     </x-ui.field>
 
+    @if(!$appointment || ($appointment && $this->selectedDoctor))
     <x-ui.field class="mt-2">
         <x-ui.label>Médico / Proveedor</x-ui.label>
         <x-ui.select
@@ -41,8 +42,9 @@
             @endforeach
         </x-ui.select>
     </x-ui.field>
+    @endif
 
-    @if($selectedDoctor && $offices->count())
+    @if(($selectedDoctor && $offices->count()) || ($appointment && $selectedOffice))
     <x-ui.field class="mt-2">
         <x-ui.label>Consultorio</x-ui.label>
         <x-ui.select
