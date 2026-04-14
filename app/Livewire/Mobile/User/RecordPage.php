@@ -27,12 +27,12 @@ class RecordPage extends Component
 
         $this->appointments = Appointment::where([
             ['user_id', $user->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])->get();
 
         $this->doctorAppointments  = Appointment::where([
             ['user_id', $user->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])
         ->whereHas('doctor', function ($query) {
             $query->where('type', DoctorType::Doctor);
@@ -41,10 +41,10 @@ class RecordPage extends Component
 
         $this->exams = AppointmentService::query()
             ->with('appointment')
-            ->where('status', 'Completed')
+            ->where('status', \App\Enums\AppointmentStatus::COMPLETED)
             ->whereHas('appointment', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
-                    ->where('status', 'Completed');
+                    ->where('status', \App\Enums\AppointmentStatus::COMPLETED);
             })
             ->get();
     }

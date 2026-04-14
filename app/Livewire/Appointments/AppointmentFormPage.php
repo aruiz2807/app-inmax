@@ -140,7 +140,7 @@ class AppointmentFormPage extends Component
                 'requested_by_user_id' => Auth::user()->id,
                 'date' => $this->selectedDate,
                 'time' => $this->selectedTime,
-                'status' => $doctor->specialty->id == 1 ? 'Booked' : 'Requested',
+                'status' => $doctor->specialty->id == 1 ? \App\Enums\AppointmentStatus::BOOKED : \App\Enums\AppointmentStatus::REQUESTED,
             ]);
 
             foreach($this->servicesData as $service)
@@ -292,7 +292,7 @@ class AppointmentFormPage extends Component
         {
             $usedSlots = Appointment::whereDate('date', $this->selectedDate)
                 ->where('office_id', $this->selectedOffice)
-                ->where('status', 'Booked')
+                ->where('status', \App\Enums\AppointmentStatus::BOOKED)
                 ->pluck('time')
                 ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
                 ->toArray();

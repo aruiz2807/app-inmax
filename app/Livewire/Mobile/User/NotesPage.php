@@ -25,7 +25,7 @@ class NotesPage extends Component
         $this->appointment = Appointment::findOrFail($appointment);
         $this->services = AppointmentService::where([
             ['appointment_id', $this->appointment->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])->get();
         $this->isDoctor = $this->appointment->doctor->type === DoctorType::Doctor;
     }

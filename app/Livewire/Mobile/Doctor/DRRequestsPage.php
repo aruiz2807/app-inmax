@@ -23,7 +23,7 @@ class DRRequestsPage extends Component
         $user = Auth::user();
 
         $this->requests = Appointment::where([
-                ['status', 'Requested'],
+                ['status', \App\Enums\AppointmentStatus::REQUESTED],
                 ['doctor_id', $user->doctor->id],
             ])
             ->orderBy('date')
@@ -52,7 +52,7 @@ class DRRequestsPage extends Component
         $appointment = Appointment::findOrFail($this->appointmentId);
 
         $appointment->update([
-            'status' => 'Booked',
+            'status' => \App\Enums\AppointmentStatus::BOOKED,
         ]);
 
         //close modal
@@ -68,7 +68,7 @@ class DRRequestsPage extends Component
         $appointment = Appointment::findOrFail($this->appointmentId);
 
         $appointment->update([
-            'status' => 'Rejected',
+            'status' => \App\Enums\AppointmentStatus::REJECTED,
         ]);
 
         //close modal

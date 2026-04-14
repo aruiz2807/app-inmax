@@ -14,7 +14,7 @@ class HomePage extends Component
     public function mount()
     {
         $this->unratedAppointments = Appointment::where('user_id', Auth::user()->id)
-            ->where('status', 'Completed')
+            ->where('status', \App\Enums\AppointmentStatus::COMPLETED)
             ->whereNull('rating')
             ->with('doctor.user')
             ->get();
