@@ -70,6 +70,7 @@ Route::middleware([
     })->middleware('profile:Admin,Sales')->name('dashboard');
 
     Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
+    Route::get('/external-service/{external_service_id}', [AttachmentController::class, 'downloadExternalService'])->name('external-service.download');
 
     Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
 
