@@ -6,6 +6,7 @@ use App\Models\Policy;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -14,10 +15,14 @@ use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\Facades\Rule;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
+use PowerComponents\LivewirePowerGrid\Traits\WithExport;  
+use PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable; 
 
 
 final class PoliciesTable extends PowerGridComponent
 {
+    use WithExport; 
+
     public string $tableName = 'policiesTable';
 
     public function setUp(): array
@@ -25,6 +30,8 @@ final class PoliciesTable extends PowerGridComponent
         $this->showCheckBox();
 
         return [
+            PowerGrid::exportable(fileName: 'Membresias') 
+                ->type(Exportable::TYPE_XLS, Exportable::TYPE_CSV), 
             PowerGrid::header()
                 ->showSearchInput()
                 ->showToggleColumns(),
@@ -42,12 +49,12 @@ final class PoliciesTable extends PowerGridComponent
         if($user->profile === 'Sales')
         {
             $policies = Policy::query()
-                ->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id', 'user.company:id,name'])
+                ->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id,phone,profile_photo_path', 'user.company:id,name'])
                 ->where('sales_user_id', $user->id);
         }
         else
         {
-            $policies = Policy::query()->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id', 'user.company:id,name']);
+            $policies = Policy::query()->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id,phone,profile_photo_path', 'user.company:id,name']);
         }
 
          return $policies;
@@ -64,6 +71,9 @@ final class PoliciesTable extends PowerGridComponent
             ->add('id')
             ->add('user_id')
             ->add('name', fn ($model) => e($model->user->name))
+            ->add('phone', fn ($model) => e($model->user->phone))
+            ->add('photo', fn ($model) => $model->user->profile_photo_path ? url(Storage::url($model->user->profile_photo_path)) : '')
+            ->add('type')
             ->add('sales_user_id')
             ->add('sales_agent', fn ($model) => e($model->sales_user->name))
             ->add('company', fn ($model) => e($model->user->company->name ?? ''))
@@ -82,40 +92,89 @@ final class PoliciesTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('Id', 'id'),
+            Column::make('Id', 'id')
+                ->visibleInExport(false),
 
             Column::make('Number', 'number')
                 ->sortable()
-                ->searchable(),
+                ->searchable()
+                ->visibleInExport(false),
 
             Column::make('Propietario', 'name')
-                ->sortable(),
+                ->sortable()
+                ->visibleInExport(false),
 
             Column::make('Empresa', 'company')
                 ->sortable()
-                ->hidden(isHidden: true, isForceHidden: false),
+                ->hidden(isHidden: true, isForceHidden: false)
+                ->visibleInExport(false),
 
             Column::make('Plan', 'plan_name')
                 ->sortable()
-                ->hidden(isHidden: true, isForceHidden: false),
+                ->hidden(isHidden: true, isForceHidden: false)
+                ->visibleInExport(false),
 
             Column::make('Comienza', 'start_date_formatted', 'start_date')
-                ->sortable(),
+                ->sortable()
+                ->visibleInExport(false),
 
             Column::make('Finaliza', 'end_date_formatted', 'end_date')
-                ->sortable(),
+                ->sortable()
+                ->visibleInExport(false),
 
             Column::make('Promotor', 'sales_agent')
                 ->sortable()
-                ->hidden(isHidden: true, isForceHidden: false),
+                ->hidden(isHidden: true, isForceHidden: false)
+                ->visibleInExport(false),
 
-            Column::make('Estatus', 'status'),
+            Column::make('Estatus', 'status')
+                ->visibleInExport(false)
+                ->visibleInExport(false),
 
             Column::make('Fecha registro', 'created_at_formatted', 'created_at')
                 ->sortable()
-                ->hidden(isHidden: true, isForceHidden: false),
+                ->hidden(isHidden: true, isForceHidden: false)
+                ->visibleInExport(false),
 
             Column::action('Opciones')
+                ->visibleInExport(false),
+
+            // Export columns
+            Column::make('Id', 'id')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+
+            Column::make('No membresia', 'number')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+            
+            Column::make('Nombre', 'name')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+            
+            Column::make('Fecha inicio', 'start_date_formatted', 'start_date')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true), 
+            
+            Column::make('Fecha fin', 'end_date_formatted', 'end_date')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+
+            Column::make('Cel', 'phone')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+
+            Column::make('Tipo de membresía', 'type')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+            
+            Column::make('Plan', 'plan_name')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
+            
+            Column::make('Foto', 'photo')
+                ->hidden(isHidden: true, isForceHidden: true)
+                ->visibleInExport(true),
         ];
     }
 

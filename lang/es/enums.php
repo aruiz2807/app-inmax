@@ -6,4 +6,11 @@ return [
         'Hospital' => 'Hospital',
         'Lab' => 'Laboratorio',
     ],
+
+    'external_services_type' => [
+        'Prescription' => 'Receta',
+        'Diagnosis' => 'Diagnóstico',
+        'Analysis' => 'Análisis',
+        'Vaccine' => 'Vacuna',
+    ],
 ];
