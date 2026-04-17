@@ -56,29 +56,27 @@
             <x-ui.fieldset label="Informacion del usuario">
                 <x-ui.field required>
                     <x-ui.label>Nombre completo</x-ui.label>
-                    <x-ui.input wire:model="form.name" name="name" placeholder="Juan Perez" />
+                    <x-ui.input wire:model="form.name" name="name" placeholder="Nombre Apellido" />
                     <x-ui.error name="form.name" />
                 </x-ui.field>
 
                 <x-ui.field required>
-                    <x-ui.label>Correo electronico</x-ui.label>
-                    <x-ui.input wire:model="form.email" name="email" type="email" placeholder="juan.perez@mail.com" />
+                    <x-ui.label>Correo electrónico</x-ui.label>
+                    <x-ui.input wire:model="form.email" name="email" type="email" placeholder="nombre@correo.com" />
                     <x-ui.error name="form.email" />
                 </x-ui.field>
 
                 <x-ui.field required>
                     <x-ui.label>Celular</x-ui.label>
-                    <x-ui.input wire:model="form.phone" name="phone" placeholder="3310203040" />
+                    <x-ui.input wire:model="form.phone" name="phone" placeholder="3300000000" />
                     <x-ui.error name="form.phone" />
                 </x-ui.field>
 
                 <x-ui.field required>
                     <x-ui.label>Perfil</x-ui.label>
                     <x-ui.select wire:model="form.profile" placeholder="Selecciona un perfil">
-                        <x-ui.select.option value="Admin">Admin</x-ui.select.option>
-                        <x-ui.select.option value="Doctor">Doctor</x-ui.select.option>
-                        <x-ui.select.option value="Sales">Sales</x-ui.select.option>
-                        <x-ui.select.option value="User">User</x-ui.select.option>
+                        <x-ui.select.option value="Admin">Administrador</x-ui.select.option>
+                        <x-ui.select.option value="Sales">Vendedor</x-ui.select.option>
                     </x-ui.select>
                     <x-ui.error name="form.profile" />
                 </x-ui.field>

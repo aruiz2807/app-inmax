@@ -39,6 +39,22 @@ class NotesConfirmationPage extends Component
         );
     }
 
+    public function print_ticket()
+    {
+        $pdf = Pdf::loadView('pdf.ticket', [
+            'note' => $this->note,
+            'subtotal' => $this->getSubtotalProperty(),
+            'payment' => $this->getPaymentProperty(),
+            'commision' => $this->getCommissionProperty(),
+            'total' => $this->getTotalProperty(),
+        ])->setPaper([0, 0, 226, 567], 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "ticket-{$this->note->id}.pdf"
+        );
+    }
+
     public function getSubtotalProperty()
     {
         return number_format($this->note->appointment->subtotal, 2);

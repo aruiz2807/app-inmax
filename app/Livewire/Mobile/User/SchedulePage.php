@@ -101,16 +101,16 @@ class SchedulePage extends Component
         }
 
         $usedSlots = Appointment::whereDate('date', $this->selectedDate)
+            ->where('office_id', $this->selectedOffice)
+            ->where('status', 'Booked')
             ->pluck('time')
             ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
             ->toArray();
 
-        $slots = [
-            '09:20 AM','10:00 AM','10:40 AM','11:20 AM',
-            '12:00 PM','12:40 PM','01:20 PM','03:20 PM',
-            '04:00 PM','04:40 PM','05:20 PM','06:00 PM',
-            '06:40 PM','07:20 PM'
-        ];
+        $slots = Office::find($this->selectedOffice)->officeHours
+            ->sortBy(fn ($item) => Carbon::createFromFormat('h:i A', $item->slot))
+            ->pluck('slot')
+            ->toArray();
 
         return collect($slots)
             ->map(function ($slot) use ($usedSlots) {

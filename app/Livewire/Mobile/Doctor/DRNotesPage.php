@@ -8,13 +8,12 @@ use App\Enums\DoctorType;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\PolicyService;
+use App\Services\Appointments\AppointmentCompletedNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use App\Models\WhatsAppSetting;
-use App\Services\WhatsApp\WhatsAppCloudApiService;
 
 class DRNotesPage extends Component
 {
@@ -58,10 +57,23 @@ class DRNotesPage extends Component
     public function updatedSubtotal($value)
     {
         $subtotal = floatval(str_replace(',', '', $value));
-        $discount = round($subtotal * ($this->appointment->doctor->discount/100), 2);
+
+        if($this->appointment->doctor)
+        {
+            $doc_discount = $this->appointment->doctor->discount/100;
+            $doc_commision = $this->appointment->doctor->commission/100;
+        }
+        else
+        {
+            $doc_discount = $this->user->doctor->discount/100;
+            $doc_commision = $this->user->doctor->commission/100;
+        }
+
+        $discount = round($subtotal * $doc_discount, 2);
         $this->user_payment = number_format($subtotal - $discount, 2);
-        $this->commision = number_format($subtotal * ($this->appointment->doctor->commission / 100), 2);
+        $this->commision = number_format($subtotal * $doc_commision, 2);
         $this->total = number_format($subtotal - $discount - floatval(str_replace(',', '', $this->commision)), 2);
+
     }
 
     public function confirmNotes()
@@ -124,23 +136,6 @@ class DRNotesPage extends Component
             'status' => 'Completed',
         ]);
 
-        //enviar whatsapp
-        $service = app(WhatsAppCloudApiService::class);
-        $params = [$this->appointment->user->name, $this->appointment->note->created_at->format('d/m/Y'), $this->appointment->doctor->user->name ];
-        $this->sendWhatsApp($service, $this->appointment->user->phone, $params);
-    }
-
-    public function sendWhatsApp(WhatsAppCloudApiService $service, $to, $params)
-    {
-        $setting = WhatsAppSetting::query()->firstOrFail();
-
-        $result = $service->sendTemplateMessage(
-            setting: $setting,
-            to: '+52'.$to,
-            templateName: $setting->appointment_completed_template_name,
-            languageCode: $setting->default_language ?: 'es_MX',
-            parameters: $params,
-            buttonUrlParameters: [],
-        );
+        app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
     }
 }

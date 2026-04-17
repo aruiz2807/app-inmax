@@ -27,7 +27,7 @@ class GroupPolicyCapacityService
         $policy = $query->first();
 
         if (! $policy) {
-            throw new InvalidArgumentException('La poliza colectiva seleccionada no esta disponible para preregistro.');
+            throw new InvalidArgumentException('La membresía colectiva seleccionada no esta disponible para preregistro.');
         }
 
         return $policy;
@@ -49,10 +49,13 @@ class GroupPolicyCapacityService
             ? $groupPolicy
             : $this->resolveGroupPolicy($groupPolicy);
 
-        $registeredMembers = Policy::query()
+        $registeredChildMembers = Policy::query()
             ->where('parent_policy_id', $policy->id)
             ->where('status', 'Active')
             ->count();
+
+        // The collective holder consumes one seat as long as the root policy exists.
+        $registeredMembers = 1 + $registeredChildMembers;
 
         $pendingPreregistrations = PolicyPreregistration::query()
             ->where('preregistration_type', PolicyPreregistration::TYPE_GROUP_MEMBER)
@@ -84,7 +87,7 @@ class GroupPolicyCapacityService
         $summary = $this->summary($groupPolicy, $ignorePreregistrationId);
 
         if ($summary['available_slots'] < 1) {
-            throw new InvalidArgumentException('La poliza colectiva seleccionada ya no tiene lugares disponibles.');
+            throw new InvalidArgumentException('La membresía colectiva seleccionada ya no tiene lugares disponibles.');
         }
 
         return $summary;

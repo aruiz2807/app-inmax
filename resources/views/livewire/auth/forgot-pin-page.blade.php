@@ -13,12 +13,12 @@
         <x-validation-errors class="mb-4" />
 
         <div class="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
-            Ingresa tu telefono para validar tu cuenta y generar un enlace temporal para restablecer tu PIN.
+            Ingresa tu teléfono para validar tu cuenta y generar un enlace temporal para restablecer tu PIN.
         </div>
 
         <form wire:submit="sendResetLink">
             <div>
-                <x-label for="phone" value="Telefono" />
+                <x-label for="phone" value="Teléfono" />
                 <x-input
                     id="phone"
                     class="block mt-1 w-full"
@@ -29,7 +29,7 @@
                     maxlength="10"
                     autofocus
                     autocomplete="tel"
-                    placeholder="3310203040"
+                    placeholder="3300000000"
                 />
                 <x-ui.error name="phone" />
             </div>

@@ -39,18 +39,36 @@
 
         <div class="flex flex-col w-full">
         @foreach($services as $service)
-            <div class="flex items-center justify-between pb-2">
-                <x-ui.text class="text-base pr-1">{{$service->service->name}}</x-ui.text>
-                <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>{{$service->covered_text}}</x-ui.badge>
-                <x-ui.switch
-                    wire:model.live="form.services.{{ $service->id }}"
-                    label="Realizado"
-                    onClass="bg-teal"
-                    iconOff="x-mark"
-                    iconOn="check"
-                />
+            <div class="grid grid-cols-12 items-center gap-2 pb-2">
+                <div class="col-span-5">
+                    <x-ui.text class="text-base pr-1">
+                        {{ $service->service->name }}
+                    </x-ui.text>
+                </div>
+
+                <div class="col-span-3 flex justify-center">
+                    <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
+                        {{$service->covered_text}}
+                    </x-ui.badge>
+                </div>
+
+                <div class="col-span-4 flex justify-end">
+                    <x-ui.switch
+                        wire:model.live="form.services.{{ $service->id }}"
+                        label="Realizado"
+                        onClass="bg-teal"
+                        iconOff="x-mark"
+                        iconOn="check"
+                    />
+                </div>
             </div>
         @endforeach
+
+        @if(!collect($form->services ?? [])->contains(true))
+            <span class="mt-2 text-sm text-red-500">
+                Ningun servicio ha sido marcado como realizado.
+            </span>
+        @endif
         </div>
     </x-ui.card>
 
@@ -105,13 +123,20 @@
         <div class="flex flex-col w-full">
         @foreach($services as $service)
             @if(!empty($form->services[$service->id]))
-            <div class="flex items-center justify-between pb-2">
-                <x-ui.text class="text-base pr-2">{{$service->service->name}}</x-ui.text>
-                <input type="file" wire:model="form.attachments.{{ $service->id }}" placeholder="Seleccione un archivo para adjuntar" class="pt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
-                <x-ui.error name="form.attachments.{{ $service->id }}" />
-                <div wire:loading wire:target="form.attachments.{{ $service->id }}">
-                    Subiendo archivo...
+            <div class="grid grid-cols-5 items-center gap-2 pb-2">
+                <div class="col-span-2">
+                    <x-ui.text class="text-base pr-2">{{$service->service->name}}</x-ui.text>
                 </div>
+
+                <div class="col-span-3">
+                    <input type="file" wire:model="form.attachments.{{ $service->id }}" placeholder="Seleccione un archivo para adjuntar" class="pt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
+                </div>
+            </div>
+
+            <x-ui.error name="form.attachments.{{ $service->id }}" />
+
+            <div class="w-full" wire:loading wire:target="form.attachments.{{ $service->id }}">
+                <x-ui.text>Subiendo archivo...</x-ui.text>
             </div>
             @endif
         @endforeach
@@ -146,9 +171,9 @@
         </x-ui.field>
 
         <x-ui.field class="mt-2">
-            <x-ui.label>Pago miembro</x-ui.label>
-            <x-ui.alerts variant="info" icon="currency-dollar">
-                <x-ui.alerts.description>{{$user_payment}}</x-ui.alerts.description>
+            <x-ui.label>Cobro al paciente (Pago miembro)</x-ui.label>
+            <x-ui.alerts variant="success" icon="currency-dollar">
+                <x-ui.alerts.heading>{{$user_payment}}</x-ui.alerts.heading>
             </x-ui.alerts>
         </x-ui.field>
 
@@ -160,15 +185,17 @@
         </x-ui.field>
 
         <x-ui.field class="mt-2">
-            <x-ui.label>Total</x-ui.label>
-            <x-ui.alerts variant="success" icon="currency-dollar">
-                <x-ui.alerts.heading>{{$total}}</x-ui.alerts.heading>
+            <x-ui.label>Ganancia del proveedor</x-ui.label>
+            <x-ui.alerts variant="info" icon="currency-dollar">
+                <x-ui.alerts.description>{{$total}}</x-ui.alerts.description>
             </x-ui.alerts>
         </x-ui.field>
     </x-ui.card>
 
     <div class="flex justify-center mt-4">
-        <x-ui.button class="w-40 mr-1" wire:click="save" variant="outline" color="blue" icon="clipboard">
+        <x-ui.button class="w-40 mr-1" wire:click="save" variant="outline" color="blue" icon="clipboard"
+            :disabled="!collect($form->services ?? [])->contains(true)"
+        >
             Guardar
         </x-ui.button>
     </div>

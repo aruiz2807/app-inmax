@@ -54,10 +54,30 @@ class WhatsAppSettingsTest extends TestCase
             ->set('apiVersion', 'v22.0')
             ->set('phoneNumberId', '113206948334320')
             ->set('accessToken', 'meta_test_token_12345')
+            ->set('systemUserActivationTemplateName', 'system_user_pin_template')
+            ->set('systemUserActivationLanguageCode', 'es')
+            ->set('systemUserActivationBodyParameters', ['user_name', 'user_phone'])
+            ->set('systemUserActivationButtonParameters', ['pin_token'])
             ->set('activationTemplateName', 'activation_pin_template')
+            ->set('activationLanguageCode', 'es_MX')
+            ->set('activationBodyParameters', ['user_name', 'policy_number', 'sales_user_name'])
+            ->set('activationButtonParameters', ['pin_token'])
             ->set('pinResetTemplateName', 'reset_pin_template')
+            ->set('pinResetLanguageCode', 'es')
+            ->set('pinResetBodyParameters', ['user_name'])
+            ->set('pinResetButtonParameters', ['pin_token'])
             ->set('preregistrationTemplateName', 'policy_preregistration_template')
+            ->set('preregistrationLanguageCode', 'en_US')
+            ->set('preregistrationBodyParameters', ['promoter_name', 'plan_name'])
+            ->set('preregistrationButtonParameters', ['preregistration_token'])
             ->set('appointmentRequestTemplateName', 'appointment_request_template')
+            ->set('appointmentRequestLanguageCode', 'es_MX')
+            ->set('appointmentRequestBodyParameters', ['member_name', 'appointment_date', 'appointment_time'])
+            ->set('appointmentRequestButtonParameters', [])
+            ->set('appointmentCompletedTemplateName', 'appointment_completed_template')
+            ->set('appointmentCompletedLanguageCode', 'en')
+            ->set('appointmentCompletedBodyParameters', ['member_name', 'completed_date', 'doctor_name'])
+            ->set('appointmentCompletedButtonParameters', [])
             ->set('defaultLanguage', 'es_MX')
             ->call('saveSettings')
             ->assertHasNoErrors();
@@ -65,10 +85,18 @@ class WhatsAppSettingsTest extends TestCase
         $this->assertDatabaseHas('whatsapp_settings', [
             'api_version' => 'v22.0',
             'phone_number_id' => '113206948334320',
+            'system_user_activation_template_name' => 'system_user_pin_template',
+            'system_user_activation_language_code' => 'es',
             'activation_template_name' => 'activation_pin_template',
+            'activation_language_code' => 'es_MX',
             'pin_reset_template_name' => 'reset_pin_template',
+            'pin_reset_language_code' => 'es',
             'preregistration_template_name' => 'policy_preregistration_template',
+            'preregistration_language_code' => 'en_US',
             'appointment_request_template_name' => 'appointment_request_template',
+            'appointment_request_language_code' => 'es_MX',
+            'appointment_completed_template_name' => 'appointment_completed_template',
+            'appointment_completed_language_code' => 'en',
             'default_language' => 'es_MX',
         ]);
 
@@ -76,6 +104,12 @@ class WhatsAppSettingsTest extends TestCase
 
         $this->assertSame('meta_test_token_12345', $setting->access_token);
         $this->assertNotSame('meta_test_token_12345', (string) $setting->getRawOriginal('access_token'));
+        $this->assertSame(['user_name', 'user_phone'], $setting->system_user_activation_body_parameters);
+        $this->assertSame(['pin_token'], $setting->system_user_activation_button_parameters);
+        $this->assertSame(['user_name', 'policy_number', 'sales_user_name'], $setting->activation_body_parameters);
+        $this->assertSame(['pin_token'], $setting->activation_button_parameters);
+        $this->assertSame(['promoter_name', 'plan_name'], $setting->preregistration_body_parameters);
+        $this->assertSame(['preregistration_token'], $setting->preregistration_button_parameters);
     }
 
     public function test_admin_can_send_template_test_message(): void
@@ -90,10 +124,18 @@ class WhatsAppSettingsTest extends TestCase
             'api_version' => 'v22.0',
             'phone_number_id' => '113206948334320',
             'access_token' => 'meta_test_token_12345',
+            'system_user_activation_template_name' => 'system_user_pin_template',
+            'system_user_activation_language_code' => 'es',
             'activation_template_name' => 'activation_pin_template',
+            'activation_language_code' => 'es_MX',
             'pin_reset_template_name' => 'reset_pin_template',
+            'pin_reset_language_code' => 'es_MX',
             'preregistration_template_name' => 'policy_preregistration_template',
+            'preregistration_language_code' => 'es_MX',
             'appointment_request_template_name' => 'appointment_request_template',
+            'appointment_request_language_code' => 'es_MX',
+            'appointment_completed_template_name' => 'appointment_completed_template',
+            'appointment_completed_language_code' => 'es_MX',
             'default_language' => 'es_MX',
         ]);
 

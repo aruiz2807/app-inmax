@@ -22,16 +22,16 @@
                         Tus datos han sido registrados correctamente en el sistema de INMAX.
                     </p>
                     <p class="mt-3">
-                        Tu membresia esta a un paso de quedar activa. Para comenzar a disfrutar de tus beneficios y recibir tu kit de bienvenida, te esperamos en nuestra sucursal para realizar tu pago.
+                        Tu membresía esta a un paso de quedar activa. Para comenzar a disfrutar de tus beneficios y recibir tu kit de bienvenida, te esperamos en nuestra sucursal para realizar tu pago.
                     </p>
                     <p class="mt-3">
-                        Horarios de atencion (Caja): Lunes a Viernes: 9:00 AM - 6:00 PM. Sabados: 9:00 AM - 2:00 PM.
+                        Horarios de atención (Caja): Lunes a Viernes: 9:00 AM - 6:00 PM. Sabados: 9:00 AM - 2:00 PM.
                     </p>
                     <p class="mt-3">
-                        Al llegar, solo menciona que ya completaste tu registro en linea. Te esperamos para activar tu Membresia INMAX.
+                        Al llegar, solo menciona que ya completaste tu registro en linea. Te esperamos para activar tu membresía INMAX.
                     </p>
                     <p class="mt-3">
-                        Ubicacion: Torre Medica, Av. Plan de San Luis #1831, Col. San Bernardo, C.P. 44260.
+                        Ubicación: Torre Medica, Av. Plan de San Luis #1831, Col. San Bernardo, C.P. 44260.
                     </p>
                 </div>
 
@@ -59,10 +59,15 @@
 
         @if ($preregistration)
             <div class="mb-4 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700">
-                <p><span class="font-semibold">Telefono:</span> {{ $preregistration->phone }}</p>
+                <p><span class="font-semibold">Teléfono:</span> {{ $preregistration->phone }}</p>
                 <p><span class="font-semibold">Tipo:</span> {{ $preregistration->type_label }}</p>
-                <p><span class="font-semibold">Plan:</span> {{ $preregistration->plan?->name }}</p>
+                <p><span class="font-semibold">Plan:</span> {{ $preregistration->plan?->name ?: 'Se definira durante el registro' }}</p>
                 <p><span class="font-semibold">Membresía principal:</span> {{ $preregistration->parentPolicy?->number ?: 'Sin membresía principal' }}</p>
+                @if($preregistration->isGroupOwner())
+                    <p><span class="font-semibold">Colectivo:</span> {{ $preregistration->company_name }}</p>
+                    <p><span class="font-semibold">Razon social:</span> {{ $preregistration->company_legal_name }}</p>
+                    <p><span class="font-semibold">RFC:</span> {{ $preregistration->company_rfc }}</p>
+                @endif
                 <p><span class="font-semibold">Promotor:</span> {{ $preregistration->salesUser?->name }}</p>
             </div>
         @endif
@@ -81,24 +86,48 @@
 
         @if ($this->canRegister() && ! $registrationCompleted)
             <form wire:submit="save">
-                @include('livewire.policies.partials.individual-customer-fields', ['phoneReadonly' => true])
+                @if($preregistration?->isGroupOwner())
+                    @include('livewire.policies.partials.group-collective-fields', [
+                        'statePath' => 'groupForm',
+                        'readonly' => true,
+                    ])
 
-                <x-ui.fieldset label="Informacion de la membresía" class="mt-2">
-                    <x-ui.field>
-                        <x-ui.label>Plan</x-ui.label>
-                        <x-ui.input :value="$preregistration?->plan?->name" readonly copyable="false" />
-                    </x-ui.field>
+                    @include('livewire.policies.partials.group-representative-fields', [
+                        'statePath' => 'groupForm',
+                        'age' => $this->groupAge,
+                        'phoneReadonly' => true,
+                    ])
 
-                    <x-ui.field>
-                        <x-ui.label>Membresía principal</x-ui.label>
-                        <x-ui.input :value="$preregistration?->parentPolicy?->number ?: 'Sin membresía principal'" readonly copyable="false" />
-                    </x-ui.field>
+                    @include('livewire.policies.partials.group-membership-fields', [
+                        'statePath' => 'groupForm',
+                        'plans' => collect(),
+                        'salesAgents' => collect(),
+                        'planReadonly' => true,
+                        'planName' => $preregistration?->plan?->name,
+                        'membersReadonly' => true,
+                        'promoterReadonly' => true,
+                        'promoterName' => $preregistration?->salesUser?->name,
+                    ])
+                @else
+                    @include('livewire.policies.partials.individual-customer-fields', ['phoneReadonly' => true])
 
-                    <x-ui.field>
-                        <x-ui.label>Promotor</x-ui.label>
-                        <x-ui.input :value="$preregistration?->salesUser?->name" readonly copyable="false" />
-                    </x-ui.field>
-                </x-ui.fieldset>
+                    <x-ui.fieldset label="Informacion de la membresía" class="mt-2">
+                        <x-ui.field>
+                            <x-ui.label>Plan</x-ui.label>
+                            <x-ui.input :value="$preregistration?->plan?->name" readonly copyable="false" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Membresía principal</x-ui.label>
+                            <x-ui.input :value="$preregistration?->parentPolicy?->number ?: 'Sin membresía principal'" readonly copyable="false" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Promotor</x-ui.label>
+                            <x-ui.input :value="$preregistration?->salesUser?->name" readonly copyable="false" />
+                        </x-ui.field>
+                    </x-ui.fieldset>
+                @endif
 
                 <div class="mt-4 flex items-center justify-end">
                     <x-ui.button type="submit" color="teal" icon="check">

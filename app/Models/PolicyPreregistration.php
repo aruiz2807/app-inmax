@@ -11,6 +11,8 @@ class PolicyPreregistration extends Model
 {
     public const TYPE_INDIVIDUAL_POLICY = 'individual_policy';
 
+    public const TYPE_GROUP_OWNER = 'group_owner';
+
     public const TYPE_GROUP_MEMBER = 'group_member';
 
     /**
@@ -23,6 +25,11 @@ class PolicyPreregistration extends Model
         'plan_id',
         'parent_policy_id',
         'preregistration_type',
+        'company_name',
+        'company_type',
+        'company_legal_name',
+        'company_rfc',
+        'members',
         'phone',
         'token_hash',
         'expires_at',
@@ -94,9 +101,19 @@ class PolicyPreregistration extends Model
      */
     public function getTypeLabelAttribute(): string
     {
-        return $this->isGroupMember()
-            ? 'Miembro colectiva'
-            : 'Poliza individual';
+        return match (true) {
+            $this->isGroupOwner() => 'Titular colectiva',
+            $this->isGroupMember() => 'Miembro colectiva',
+            default => 'Membresía individual',
+        };
+    }
+
+    /**
+     * Determine whether the preregistration is for a collective owner policy.
+     */
+    public function isGroupOwner(): bool
+    {
+        return $this->preregistration_type === self::TYPE_GROUP_OWNER;
     }
 
     /**

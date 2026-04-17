@@ -79,7 +79,7 @@ final class DoctorsTable extends PowerGridComponent
                 ->searchable()
                 ->hidden(isHidden: true, isForceHidden: false),
 
-            Column::make('Telefono', 'phone'),
+            Column::make('Teléfono', 'phone'),
 
             Column::make('Rating', 'rating_stars'),
 

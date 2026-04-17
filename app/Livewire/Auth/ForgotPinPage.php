@@ -28,7 +28,7 @@ class ForgotPinPage extends Component
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'phone' => __('No existe un usuario con ese telefono.'),
+                'phone' => __('No existe un usuario con ese teléfono.'),
             ]);
         }
 

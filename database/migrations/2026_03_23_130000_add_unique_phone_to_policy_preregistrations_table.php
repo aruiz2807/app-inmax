@@ -20,7 +20,7 @@ return new class extends Migration
 
         if ($duplicatePhones->isNotEmpty()) {
             throw new RuntimeException(
-                'No se puede agregar el indice unico a policy_preregistrations.phone porque existen telefonos duplicados: '
+                'No se puede agregar el indice unico a policy_preregistrations.phone porque existen teléfonos duplicados: '
                 .$duplicatePhones->implode(', ')
             );
         }

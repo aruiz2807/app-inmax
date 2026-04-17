@@ -2,8 +2,8 @@
     id="activation-modal"
     animation="fade"
     width="2xl"
-    heading="Activar póliza"
-    description="Está seguro que desea activar esta póliza?"
+    heading="Activar membresía"
+    description="Está seguro que desea activar esta membresía?"
     x-on:open-activation-modal.window="$data.open()"
     x-on:close-activation-modal.window="$data.close()"
 >
@@ -24,6 +24,7 @@
                 icon="wallet"
                 wire:model="payment_method"
             >
+                <x-ui.select.option value="CS">Efectivo</x-ui.select.option>
                 <x-ui.select.option value="CC">Tarjeta de credito</x-ui.select.option>
                 <x-ui.select.option value="DC">Tarjeta de debito</x-ui.select.option>
                 <x-ui.select.option value="TR">Transferencia</x-ui.select.option>

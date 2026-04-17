@@ -43,7 +43,7 @@ class PolicyPreregistrationTest extends TestCase
             ->call('savePreregistration')
             ->assertHasNoErrors()
             ->assertSet('lastPreregistrationPhone', '3310000001')
-            ->assertSet('lastPreregistrationPlanName', 'Plan Individual');
+            ->assertSet('lastPreregistrationReference', 'Plan Individual');
 
         $this->assertDatabaseHas('policy_preregistrations', [
             'sales_user_id' => $salesUser->id,
@@ -187,7 +187,7 @@ class PolicyPreregistrationTest extends TestCase
             ->call('savePreregistration')
             ->assertHasNoErrors()
             ->assertSet('lastPreregistrationPhone', '3310000011')
-            ->assertSet('lastPreregistrationPlanName', 'Plan Plus');
+            ->assertSet('lastPreregistrationReference', 'Plan Plus');
 
         $preregistration->refresh();
 
@@ -426,7 +426,7 @@ class PolicyPreregistrationTest extends TestCase
             ->call('savePreregistration')
             ->assertHasNoErrors()
             ->assertSet('lastPreregistrationPhone', '3310000050')
-            ->assertSet('lastPreregistrationPlanName', $groupPlan->name);
+            ->assertSet('lastPreregistrationReference', $groupPlan->name);
 
         $this->assertDatabaseHas('policy_preregistrations', [
             'sales_user_id' => $salesUser->id,
@@ -473,7 +473,7 @@ class PolicyPreregistrationTest extends TestCase
             'profile' => 'Sales',
         ]);
 
-        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 2);
 
         $preregistration = PolicyPreregistration::query()->create([
             'sales_user_id' => $salesUser->id,
@@ -512,7 +512,7 @@ class PolicyPreregistrationTest extends TestCase
             'profile' => 'Sales',
         ]);
 
-        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 2);
 
         $inactiveMember = $this->createGroupMemberPolicy($groupPolicy, $groupPlan, '3310000058');
         $inactiveMember->update([
@@ -533,6 +533,24 @@ class PolicyPreregistrationTest extends TestCase
             'phone' => '3310000059',
             'preregistration_type' => PolicyPreregistration::TYPE_GROUP_MEMBER,
         ]);
+    }
+
+    public function test_collective_holder_consumes_one_slot_for_group_member_capacity(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        [$groupPlan, $groupPolicy] = $this->createGroupRootPolicy($salesUser, members: 1);
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PolicyPreregistrationsPage::class)
+            ->set('preregistrationType', PolicyPreregistration::TYPE_GROUP_MEMBER)
+            ->set('preregistrationPhone', '3310000069')
+            ->set('preregistrationParentPolicy', (string) $groupPolicy->id)
+            ->call('savePreregistration')
+            ->assertHasErrors(['preregistrationParentPolicy']);
     }
 
     public function test_group_member_preregistration_page_creates_member_policy_under_collective_parent(): void
@@ -580,6 +598,130 @@ class PolicyPreregistrationTest extends TestCase
         $preregistration->refresh();
 
         $this->assertNotNull($preregistration->used_at);
+    }
+
+    public function test_sales_user_can_create_group_owner_preregistration(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        $groupPlan = Plan::query()->create([
+            'name' => 'Plan Colectivo Preregistro',
+            'price' => 2500.00,
+            'type' => 'Group',
+            'status' => 'Active',
+        ]);
+
+        $this->actingAs($salesUser);
+
+        Livewire::test(PolicyPreregistrationsPage::class)
+            ->set('preregistrationType', PolicyPreregistration::TYPE_GROUP_OWNER)
+            ->set('preregistrationPhone', '3310000060')
+            ->set('preregistrationPlan', (string) $groupPlan->id)
+            ->set('preregistrationCompanyName', 'Inmax Colectivo')
+            ->set('preregistrationCompanyType', 'PM')
+            ->set('preregistrationCompanyLegalName', 'Inmax Colectivo SA de CV')
+            ->set('preregistrationCompanyRfc', 'XAXX010101111')
+            ->set('preregistrationMembers', 12)
+            ->call('savePreregistration')
+            ->assertHasNoErrors()
+            ->assertSet('lastPreregistrationPhone', '3310000060')
+            ->assertSet('lastPreregistrationReference', 'Inmax Colectivo');
+
+        $this->assertDatabaseHas('policy_preregistrations', [
+            'sales_user_id' => $salesUser->id,
+            'preregistration_type' => PolicyPreregistration::TYPE_GROUP_OWNER,
+            'plan_id' => $groupPlan->id,
+            'parent_policy_id' => null,
+            'phone' => '3310000060',
+            'company_name' => 'Inmax Colectivo',
+            'company_type' => 'PM',
+            'company_legal_name' => 'Inmax Colectivo SA de CV',
+            'company_rfc' => 'XAXX010101111',
+            'members' => 12,
+        ]);
+    }
+
+    public function test_group_owner_preregistration_page_creates_collective_policy_and_company(): void
+    {
+        $salesUser = User::factory()->create([
+            'profile' => 'Sales',
+        ]);
+
+        $groupPlan = Plan::query()->create([
+            'name' => 'Plan Colectivo Landing',
+            'price' => 2800.00,
+            'type' => 'Group',
+            'status' => 'Active',
+        ]);
+
+        $service = Service::query()->create([
+            'name' => 'Consulta colectiva',
+            'type' => 'Event',
+        ]);
+
+        PlanBenefit::query()->create([
+            'plan_id' => $groupPlan->id,
+            'service_id' => $service->id,
+            'events' => 4,
+        ]);
+
+        $token = 'group-owner-token';
+
+        $preregistration = PolicyPreregistration::query()->create([
+            'sales_user_id' => $salesUser->id,
+            'plan_id' => $groupPlan->id,
+            'preregistration_type' => PolicyPreregistration::TYPE_GROUP_OWNER,
+            'phone' => '3310000061',
+            'company_name' => 'Colectivo Demo',
+            'company_type' => 'PM',
+            'company_legal_name' => 'Colectivo Demo SA de CV',
+            'company_rfc' => 'DEM010101ABC',
+            'members' => 10,
+            'token_hash' => hash('sha256', $token),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        Livewire::test(PolicyPreregistrationPage::class, ['token' => $token])
+            ->set('groupForm.name', 'Representante Demo')
+            ->set('groupForm.email', 'representante.demo@example.com')
+            ->set('groupForm.birth', '1988-03-14')
+            ->set('groupForm.curp', 'DEMR880314HMCLPN09')
+            ->set('groupForm.insurance', ['imss'])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('registrationCompleted', true)
+            ->assertSet('registeredMemberName', 'Representante Demo');
+
+        $user = User::query()->where('phone', '3310000061')->firstOrFail();
+        $policy = Policy::query()->where('user_id', $user->id)->firstOrFail();
+
+        $this->assertSame('Group', $policy->type);
+        $this->assertSame($salesUser->id, $policy->sales_user_id);
+        $this->assertSame($groupPlan->id, $policy->plan_id);
+        $this->assertSame(10, $policy->members);
+        $this->assertSame('Inactive', $policy->status);
+        $this->assertSame($preregistration->id, $policy->policy_preregistration_id);
+
+        $this->assertDatabaseHas('companies', [
+            'id' => $user->company_id,
+            'name' => 'Colectivo Demo',
+            'type' => 'PM',
+            'legal_name' => 'Colectivo Demo SA de CV',
+            'rfc' => 'DEM010101ABC',
+        ]);
+
+        $this->assertDatabaseHas('policy_services', [
+            'policy_id' => $policy->id,
+            'service_id' => $service->id,
+            'included' => 20,
+        ]);
+
+        $preregistration->refresh();
+
+        $this->assertNotNull($preregistration->used_at);
+        $this->assertSame(0, UserPinSetupToken::query()->where('user_id', $user->id)->count());
     }
 
     public function test_manual_group_member_creation_is_blocked_when_pending_preregistrations_fill_capacity(): void

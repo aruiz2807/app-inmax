@@ -22,7 +22,7 @@
             @csrf
 
             <div>
-                <x-label for="phone" value="Telefono" />
+                <x-label for="phone" value="Teléfono" />
                 <x-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone')" required autofocus inputmode="numeric" autocomplete="tel" />
             </div>
 

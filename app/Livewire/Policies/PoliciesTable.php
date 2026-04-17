@@ -109,7 +109,7 @@ final class PoliciesTable extends PowerGridComponent
                 ->hidden(isHidden: true, isForceHidden: false)
                 ->visibleInExport(false),
 
-            Column::make('Cobertura', 'plan_name')
+            Column::make('Plan', 'plan_name')
                 ->sortable()
                 ->hidden(isHidden: true, isForceHidden: false)
                 ->visibleInExport(false),
@@ -228,7 +228,7 @@ final class PoliciesTable extends PowerGridComponent
             return [
 
                 Rule::button('activate')
-                    ->when(fn($model) => $model->status === 'Active' || $model->status === 'Cancelled')
+                    ->when(fn($model) => true)
                     ->hide(),
 
                 Rule::button('inactive')

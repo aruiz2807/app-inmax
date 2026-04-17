@@ -6,13 +6,15 @@ use App\Models\Appointment;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Services\WhatsApp\WhatsAppDestinationResolver;
+use App\Services\WhatsApp\WhatsAppTemplateParameterResolver;
 use Illuminate\Support\Facades\Log;
 
 class AppointmentRequestNotificationService
 {
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService,
-        private readonly WhatsAppDestinationResolver $destinationResolver
+        private readonly WhatsAppDestinationResolver $destinationResolver,
+        private readonly WhatsAppTemplateParameterResolver $parameterResolver
     ) {}
 
     /**
@@ -65,12 +67,22 @@ class AppointmentRequestNotificationService
             ];
         }
 
-        $languageCode = $setting->default_language ?: 'es_MX';
-        $parameters = [
-            (string) $appointment->user?->name,
-            $appointment->date->format('d/m/Y'),
-            $appointment->time->format('h:i A'),
+        $languageCode = $setting->appointment_request_language_code ?: ($setting->default_language ?: 'es_MX');
+        $parameterContext = [
+            'appointment' => $appointment,
+            'member' => $appointment->user,
+            'doctor_name' => $doctorUser->name,
         ];
+        $parameters = $this->parameterResolver->resolve(
+            $setting->appointment_request_body_parameters,
+            WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BODY,
+            $parameterContext
+        );
+        $buttonParameters = $this->parameterResolver->resolve(
+            $setting->appointment_request_button_parameters,
+            WhatsAppTemplateParameterResolver::APPOINTMENT_REQUEST_BUTTON,
+            $parameterContext
+        );
 
         $lastResponse = null;
 
@@ -81,7 +93,7 @@ class AppointmentRequestNotificationService
                 templateName: $setting->appointment_request_template_name,
                 languageCode: $languageCode,
                 parameters: $parameters,
-                buttonUrlParameters: [],
+                buttonUrlParameters: $buttonParameters,
             );
 
             if ($lastResponse['ok']) {

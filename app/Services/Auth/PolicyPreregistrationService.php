@@ -10,6 +10,7 @@ use App\Models\WhatsAppSetting;
 use App\Services\Policies\GroupPolicyCapacityService;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Services\WhatsApp\WhatsAppDestinationResolver;
+use App\Services\WhatsApp\WhatsAppTemplateParameterResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,12 +32,14 @@ class PolicyPreregistrationService
     public function __construct(
         private readonly WhatsAppCloudApiService $whatsAppService,
         private readonly WhatsAppDestinationResolver $destinationResolver,
-        private readonly GroupPolicyCapacityService $groupPolicyCapacityService
+        private readonly GroupPolicyCapacityService $groupPolicyCapacityService,
+        private readonly WhatsAppTemplateParameterResolver $parameterResolver
     ) {}
 
     /**
      * Create a preregistration invitation and optionally deliver it by WhatsApp.
      *
+     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null, members?: int|null}  $collectiveData
      * @return array{
      *     preregistration: PolicyPreregistration,
      *     url: string,
@@ -47,9 +50,10 @@ class PolicyPreregistrationService
     public function createInvitation(
         User $salesUser,
         string $phone,
-        int $planId,
+        ?int $planId,
         ?int $parentPolicyId = null,
         string $preregistrationType = PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
+        array $collectiveData = [],
         bool $deliverWhatsApp = true
     ): array {
         $normalizedPhone = $this->normalizePhone($phone);
@@ -60,6 +64,7 @@ class PolicyPreregistrationService
             planId: $planId,
             parentPolicyId: $parentPolicyId,
             preregistrationType: $preregistrationType,
+            collectiveData: $collectiveData,
         );
 
         return $this->buildInvitationResponse(
@@ -75,6 +80,7 @@ class PolicyPreregistrationService
     /**
      * Update a preregistration and rotate its token/link.
      *
+     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null, members?: int|null}  $collectiveData
      * @return array{
      *     preregistration: PolicyPreregistration,
      *     url: string,
@@ -86,9 +92,10 @@ class PolicyPreregistrationService
         PolicyPreregistration $preregistration,
         User $salesUser,
         string $phone,
-        int $planId,
+        ?int $planId,
         ?int $parentPolicyId = null,
         string $preregistrationType = PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
+        array $collectiveData = [],
         bool $deliverWhatsApp = true
     ): array {
         $this->assertCanManage($preregistration, 'editar');
@@ -102,6 +109,7 @@ class PolicyPreregistrationService
             planId: $planId,
             parentPolicyId: $parentPolicyId,
             preregistrationType: $preregistrationType,
+            collectiveData: $collectiveData,
         );
 
         return $this->buildInvitationResponse(
@@ -206,22 +214,28 @@ class PolicyPreregistrationService
      */
     private function createToken(
         User $salesUser,
-        Plan $plan,
+        ?Plan $plan,
         ?Policy $parentPolicy,
         string $phone,
-        string $preregistrationType
+        string $preregistrationType,
+        array $collectiveData = []
     ): array
     {
         $now = now();
         $expiresAt = $now->copy()->addMinutes((int) config('auth.policy_preregistration.ttl', 10080));
         $plainTextToken = Str::random(64);
 
-        $preregistration = DB::transaction(function () use ($salesUser, $plan, $parentPolicy, $phone, $expiresAt, $plainTextToken, $preregistrationType) {
+        $preregistration = DB::transaction(function () use ($salesUser, $plan, $parentPolicy, $phone, $expiresAt, $plainTextToken, $preregistrationType, $collectiveData) {
             return PolicyPreregistration::query()->create([
                 'sales_user_id' => $salesUser->id,
-                'plan_id' => $plan->id,
+                'plan_id' => $plan?->id,
                 'parent_policy_id' => $parentPolicy?->id,
                 'preregistration_type' => $preregistrationType,
+                'company_name' => $collectiveData['company_name'] ?? null,
+                'company_type' => $collectiveData['company_type'] ?? null,
+                'company_legal_name' => $collectiveData['company_legal_name'] ?? null,
+                'company_rfc' => $collectiveData['company_rfc'] ?? null,
+                'members' => $collectiveData['members'] ?? null,
                 'phone' => $phone,
                 'token_hash' => hash('sha256', $plainTextToken),
                 'expires_at' => $expiresAt,
@@ -243,19 +257,25 @@ class PolicyPreregistrationService
     private function refreshToken(
         PolicyPreregistration $preregistration,
         User $salesUser,
-        Plan $plan,
+        ?Plan $plan,
         ?Policy $parentPolicy,
         string $phone,
-        string $preregistrationType
+        string $preregistrationType,
+        array $collectiveData = []
     ): array {
         $expiresAt = now()->addMinutes((int) config('auth.policy_preregistration.ttl', 10080));
         $plainTextToken = Str::random(64);
 
         $preregistration->forceFill([
             'sales_user_id' => $salesUser->id,
-            'plan_id' => $plan->id,
+            'plan_id' => $plan?->id,
             'parent_policy_id' => $parentPolicy?->id,
             'preregistration_type' => $preregistrationType,
+            'company_name' => $collectiveData['company_name'] ?? null,
+            'company_type' => $collectiveData['company_type'] ?? null,
+            'company_legal_name' => $collectiveData['company_legal_name'] ?? null,
+            'company_rfc' => $collectiveData['company_rfc'] ?? null,
+            'members' => $collectiveData['members'] ?? null,
             'phone' => $phone,
             'token_hash' => hash('sha256', $plainTextToken),
             'expires_at' => $expiresAt,
@@ -275,6 +295,8 @@ class PolicyPreregistrationService
      */
     private function sendWhatsAppTemplate(PolicyPreregistration $preregistration, string $plainTextToken): array
     {
+        $preregistration->loadMissing('salesUser', 'plan', 'parentPolicy.user.company');
+
         $setting = WhatsAppSetting::query()->first();
 
         if (! $setting || ! filled($setting->access_token) || ! filled($setting->phone_number_id)) {
@@ -303,9 +325,25 @@ class PolicyPreregistrationService
             ];
         }
 
-        $languageCode = $setting->default_language ?: 'es_MX';
+        $languageCode = $setting->preregistration_language_code ?: ($setting->default_language ?: 'es_MX');
         $lastResponse = null;
-        $promoterName = $preregistration->salesUser?->name ?: 'Inmax-Sure';
+        $parameterContext = [
+            'preregistration' => $preregistration,
+            'promoter' => $preregistration->salesUser,
+            'plan' => $preregistration->plan,
+            'parent_policy' => $preregistration->parentPolicy,
+            'preregistration_token' => $plainTextToken,
+        ];
+        $bodyParameters = $this->parameterResolver->resolve(
+            $setting->preregistration_body_parameters,
+            WhatsAppTemplateParameterResolver::PREREGISTRATION_BODY,
+            $parameterContext
+        );
+        $buttonParameters = $this->parameterResolver->resolve(
+            $setting->preregistration_button_parameters,
+            WhatsAppTemplateParameterResolver::PREREGISTRATION_BUTTON,
+            $parameterContext
+        );
 
         foreach ($destinations as $destination) {
             $lastResponse = $this->whatsAppService->sendTemplateMessage(
@@ -313,8 +351,8 @@ class PolicyPreregistrationService
                 to: $destination,
                 templateName: $setting->preregistration_template_name,
                 languageCode: $languageCode,
-                parameters: [$promoterName],
-                buttonUrlParameters: [$plainTextToken]
+                parameters: $bodyParameters,
+                buttonUrlParameters: $buttonParameters
             );
 
             if ($lastResponse['ok']) {
@@ -337,13 +375,37 @@ class PolicyPreregistrationService
     }
 
     /**
-     * Validate that the selected plan is active and individual.
+     * Validate that the selected plan is active.
      */
-    private function resolvePlan(int $planId): Plan
+    private function resolvePlan(?int $planId): Plan
     {
+        if (! $planId) {
+            throw new InvalidArgumentException('La membresía seleccionada no esta disponible para preregistro.');
+        }
+
         $plan = Plan::query()
             ->whereKey($planId)
-            ->where('type', 'Individual')
+            ->where('status', 'Active')
+            ->first();
+
+        if (! $plan) {
+            throw new InvalidArgumentException('La membresía seleccionada no esta disponible para preregistro.');
+        }
+
+        return $plan;
+    }
+
+    /**
+     * Validate that the selected plan is active for collective owner preregistration.
+     */
+    private function resolveGroupOwnerPlan(?int $planId): Plan
+    {
+        if (! $planId) {
+            throw new InvalidArgumentException('La cobertura seleccionada no esta disponible para preregistro.');
+        }
+
+        $plan = Plan::query()
+            ->whereKey($planId)
             ->where('status', 'Active')
             ->first();
 
@@ -355,6 +417,49 @@ class PolicyPreregistrationService
     }
 
     /**
+     * Validate and normalize collective owner data captured by the sales user.
+     *
+     * @param  array{company_name?: string|null, company_type?: string|null, company_legal_name?: string|null, company_rfc?: string|null, members?: int|null}  $collectiveData
+     * @return array{company_name: string, company_type: string, company_legal_name: string, company_rfc: string, members: int}
+     */
+    private function normalizeCollectiveData(array $collectiveData): array
+    {
+        $companyName = trim((string) ($collectiveData['company_name'] ?? ''));
+        $companyType = trim((string) ($collectiveData['company_type'] ?? ''));
+        $companyLegalName = trim((string) ($collectiveData['company_legal_name'] ?? ''));
+        $companyRfc = strtoupper(trim((string) ($collectiveData['company_rfc'] ?? '')));
+        $members = (int) ($collectiveData['members'] ?? 0);
+
+        if ($companyName === '') {
+            throw new InvalidArgumentException('El nombre del colectivo es obligatorio.');
+        }
+
+        if (! in_array($companyType, ['PF', 'PM', 'PFA'], true)) {
+            throw new InvalidArgumentException('Selecciona el tipo de persona del colectivo.');
+        }
+
+        if ($companyLegalName === '') {
+            throw new InvalidArgumentException('La razon social del colectivo es obligatoria.');
+        }
+
+        if (! preg_match('/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/', $companyRfc)) {
+            throw new InvalidArgumentException('El RFC del colectivo no es valido.');
+        }
+
+        if ($members < 1 || $members > 99) {
+            throw new InvalidArgumentException('La cantidad de miembros del colectivo no es valida.');
+        }
+
+        return [
+            'company_name' => $companyName,
+            'company_type' => $companyType,
+            'company_legal_name' => $companyLegalName,
+            'company_rfc' => $companyRfc,
+            'members' => $members,
+        ];
+    }
+
+    /**
      * Resolve a group-member preregistration target and validate its capacity.
      *
      * @return array{0: Plan, 1: Policy}
@@ -362,7 +467,7 @@ class PolicyPreregistrationService
     private function resolveGroupMemberTarget(?int $parentPolicyId, ?int $ignorePreregistrationId = null): array
     {
         if (! $parentPolicyId) {
-            throw new InvalidArgumentException('Selecciona la poliza colectiva a la que pertenece el miembro.');
+            throw new InvalidArgumentException('Selecciona la membresía colectiva a la que pertenece el miembro.');
         }
 
         $groupPolicy = $this->groupPolicyCapacityService->resolveGroupPolicy($parentPolicyId, true);
@@ -386,7 +491,7 @@ class PolicyPreregistrationService
             ->first();
 
         if (! $policy) {
-            throw new InvalidArgumentException('La poliza principal seleccionada no es valida.');
+            throw new InvalidArgumentException('La membresía principal seleccionada no es valida.');
         }
 
         return $policy;
@@ -395,14 +500,15 @@ class PolicyPreregistrationService
     /**
      * Prepare individual or collective preregistration creation.
      *
-     * @return array{0: Plan, 1: Policy|null, 2: array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}}
+     * @return array{0: Plan|null, 1: Policy|null, 2: array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}}
      */
     private function prepareInvitationCreation(
         User $salesUser,
         string $phone,
-        int $planId,
+        ?int $planId,
         ?int $parentPolicyId,
-        string $preregistrationType
+        string $preregistrationType,
+        array $collectiveData = []
     ): array {
         if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_MEMBER) {
             return DB::transaction(function () use ($salesUser, $phone, $parentPolicyId, $preregistrationType) {
@@ -420,6 +526,24 @@ class PolicyPreregistrationService
                     ),
                 ];
             });
+        }
+
+        if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER) {
+            $normalizedCollectiveData = $this->normalizeCollectiveData($collectiveData);
+            $plan = $this->resolveGroupOwnerPlan($planId);
+
+            return [
+                $plan,
+                null,
+                $this->createToken(
+                    salesUser: $salesUser,
+                    plan: $plan,
+                    parentPolicy: null,
+                    phone: $phone,
+                    preregistrationType: $preregistrationType,
+                    collectiveData: $normalizedCollectiveData
+                ),
+            ];
         }
 
         $plan = $this->resolvePlan($planId);
@@ -441,15 +565,16 @@ class PolicyPreregistrationService
     /**
      * Prepare individual or collective preregistration update.
      *
-     * @return array{0: Plan, 1: Policy|null, 2: array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}}
+     * @return array{0: Plan|null, 1: Policy|null, 2: array{preregistration: PolicyPreregistration, plain_text_token: string, expires_at: Carbon}}
      */
     private function prepareInvitationUpdate(
         PolicyPreregistration $preregistration,
         User $salesUser,
         string $phone,
-        int $planId,
+        ?int $planId,
         ?int $parentPolicyId,
-        string $preregistrationType
+        string $preregistrationType,
+        array $collectiveData = []
     ): array {
         if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_MEMBER) {
             return DB::transaction(function () use ($preregistration, $salesUser, $phone, $parentPolicyId, $preregistrationType) {
@@ -468,6 +593,25 @@ class PolicyPreregistrationService
                     ),
                 ];
             });
+        }
+
+        if ($preregistrationType === PolicyPreregistration::TYPE_GROUP_OWNER) {
+            $normalizedCollectiveData = $this->normalizeCollectiveData($collectiveData);
+            $plan = $this->resolveGroupOwnerPlan($planId);
+
+            return [
+                $plan,
+                null,
+                $this->refreshToken(
+                    preregistration: $preregistration,
+                    salesUser: $salesUser,
+                    plan: $plan,
+                    parentPolicy: null,
+                    phone: $phone,
+                    preregistrationType: $preregistrationType,
+                    collectiveData: $normalizedCollectiveData
+                ),
+            ];
         }
 
         $plan = $this->resolvePlan($planId);
@@ -495,7 +639,7 @@ class PolicyPreregistrationService
         $normalizedPhone = preg_replace('/\D+/', '', $phone) ?? '';
 
         if (strlen($normalizedPhone) !== 10) {
-            throw new InvalidArgumentException('El telefono debe contener 10 digitos.');
+            throw new InvalidArgumentException('El teléfono debe contener 10 digitos.');
         }
 
         return $normalizedPhone;
@@ -507,7 +651,7 @@ class PolicyPreregistrationService
     private function assertPhoneAvailable(string $phone, ?int $ignorePreregistrationId = null): void
     {
         if (User::query()->where('phone', $phone)->exists()) {
-            throw new InvalidArgumentException('Ya existe un usuario registrado con ese telefono.');
+            throw new InvalidArgumentException('Ya existe un usuario registrado con ese teléfono.');
         }
 
         $query = PolicyPreregistration::query()->where('phone', $phone);
@@ -517,7 +661,7 @@ class PolicyPreregistrationService
         }
 
         if ($query->exists()) {
-            throw new InvalidArgumentException('Ya existe un preregistro registrado con ese telefono.');
+            throw new InvalidArgumentException('Ya existe un preregistro registrado con ese teléfono.');
         }
     }
 
@@ -549,7 +693,7 @@ class PolicyPreregistrationService
     private function buildInvitationResponse(
         array $token,
         User $actor,
-        Plan $plan,
+        ?Plan $plan,
         ?Policy $parentPolicy,
         bool $deliverWhatsApp,
         string $logEvent
@@ -563,8 +707,10 @@ class PolicyPreregistrationService
             'policy_preregistration_id' => $token['preregistration']->id,
             'sales_user_id' => $actor->id,
             'phone' => $token['preregistration']->phone,
-            'plan_id' => $plan->id,
+            'plan_id' => $plan?->id,
             'parent_policy_id' => $parentPolicy?->id,
+            'preregistration_type' => $token['preregistration']->preregistration_type,
+            'company_name' => $token['preregistration']->company_name,
             'url' => $url,
             'expires_at' => $token['expires_at']->toDateTimeString(),
             'whatsapp' => $whatsAppDelivery,

@@ -11,6 +11,8 @@ class DRHomePage extends Component
 {
     public $todayAppointments = null;
     public $user;
+    public $pendingRequestsCount = 0;
+    public $showRequestsAlert = true;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -21,6 +23,7 @@ class DRHomePage extends Component
     public function mount()
     {
         $this->loadTodayAppointments();
+        $this->checkPendingRequests();
     }
 
     public function loadTodayAppointments()
@@ -33,5 +36,18 @@ class DRHomePage extends Component
             ->whereDate('date', today())
             ->orderBy('time')
             ->get();
+    }
+
+    public function checkPendingRequests()
+    {
+        $this->pendingRequestsCount = Appointment::where([
+                ['status', 'Requested'],
+                ['doctor_id', Auth::user()->doctor->id],
+            ])->count();
+    }
+
+    public function dismissRequestsAlert()
+    {
+        $this->showRequestsAlert = false;
     }
 }

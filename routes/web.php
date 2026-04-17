@@ -1,47 +1,80 @@
 <?php
 
+// Facades
+use Illuminate\Support\Facades\Route;
+
+// Controllers
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Http\Controllers\AttachmentController;
+
+// Livewire - Appointments
+use App\Livewire\Appointments\AppointmentsPage;
+
+// Livewire - Auth
 use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
-use App\Livewire\Mobile\Doctor\DRHomePage;
-use App\Livewire\Mobile\Doctor\DRHistoryPage;
+
+// Livewire - Doctors
+use App\Livewire\Doctors\DoctorsPage;
+
+// Livewire - Home
+use App\Livewire\Home\DashboardPage;
+
+// Livewire - Offices
+use App\Livewire\Offices\OfficesPage;
+
+// Livewire - Plans
+use App\Livewire\Plans\PlansPage;
+
+// Livewire - Policies
+use App\Livewire\Policies\PolicyPreregistrationPage;
+use App\Livewire\Policies\PolicyPreregistrationsPage;
+use App\Livewire\Policies\PoliciesPage;
+
+// Livewire - Services
+use App\Livewire\Services\ServicesPage;
+
+// Livewire - Settings
+use App\Livewire\Settings\LegalSettingsPage;
+use App\Livewire\Settings\ParametersPage;
+use App\Livewire\Settings\WhatsAppSettingsPage;
+
+// Livewire - Specialties
+use App\Livewire\Specialties\SpecialtiesPage;
+
+// Livewire - Users
+use App\Livewire\Users\UsersPage;
+
+// Livewire - Mobile
+use App\Livewire\Mobile\ContactPage;
+
+// Livewire - Mobile - Doctor
+use App\Livewire\Mobile\Doctor\AcceptConfirmationPage;
 use App\Livewire\Mobile\Doctor\DRHistoryNotePage;
+use App\Livewire\Mobile\Doctor\DRHistoryPage;
+use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
 use App\Livewire\Mobile\Doctor\DRRecordPage;
 use App\Livewire\Mobile\Doctor\DRRequestsPage;
-use App\Livewire\Mobile\Doctor\DRSchedulePage;
 use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
+use App\Livewire\Mobile\Doctor\DRSchedulePage;
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
-use App\Livewire\Mobile\Doctor\AcceptConfirmationPage;
-use App\Livewire\Mobile\Doctor\RejectConfirmationPage;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
-use App\Livewire\Mobile\ContactPage;
+use App\Livewire\Mobile\Doctor\RejectConfirmationPage;
+
+// Livewire - Mobile - User
 use App\Livewire\Mobile\User\HistoryPage;
+use App\Livewire\Mobile\User\HomePage;
+use App\Livewire\Mobile\User\NotesPage;
 use App\Livewire\Mobile\User\PolicyStatusPage;
 use App\Livewire\Mobile\User\ProfilePage;
-use App\Livewire\Mobile\User\RatingPage;
 use App\Livewire\Mobile\User\RatingConfirmationPage;
+use App\Livewire\Mobile\User\RatingPage;
 use App\Livewire\Mobile\User\RecordPage;
-use App\Livewire\Mobile\User\NotesPage;
 use App\Livewire\Mobile\User\ScheduleCancellationPage;
 use App\Livewire\Mobile\User\ScheduleConfirmationPage;
 use App\Livewire\Mobile\User\SchedulePage;
-use App\Livewire\Appointments\AppointmentsPage;
-use App\Livewire\Doctors\DoctorsPage;
-use App\Livewire\Plans\PlansPage;
-use App\Livewire\Policies\PolicyPreregistrationPage;
-use App\Livewire\Policies\PolicyPreregistrationsPage;
-use App\Livewire\Policies\PoliciesPage;
-use App\Livewire\Services\ServicesPage;
-use App\Livewire\Offices\OfficesPage;
-use App\Livewire\Settings\LegalSettingsPage;
-use App\Livewire\Settings\ParametersPage;
-use App\Livewire\Settings\WhatsAppSettingsPage;
-use App\Livewire\Specialties\SpecialtiesPage;
-use App\Livewire\Users\UsersPage;
-use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -65,9 +98,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->middleware('profile:Admin,Sales')->name('dashboard');
+    Route::get('/dashboard', DashboardPage::class)->middleware('profile:Admin,Sales')->name('dashboard');
 
     Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
     Route::get('/external-service/{external_service_id}', [AttachmentController::class, 'downloadExternalService'])->name('external-service.download');
@@ -85,7 +116,7 @@ Route::middleware([
         Route::get('/appointments', AppointmentsPage::class)->name('appointments');
 
         Route::get('/offices', OfficesPage::class)->name('offices');
-        
+
         Route::get('/services', ServicesPage::class)->name('services');
 
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
@@ -99,10 +130,7 @@ Route::middleware([
     });
 
     Route::prefix('user')->middleware('profile:User,Admin')->group(function () {
-
-        Route::get('/home', function () {
-            return view('livewire.mobile.user.home');
-        })->name('user.home');
+        Route::get('/home', HomePage::class)->name('user.home');
 
         Route::get('/schedule', SchedulePage::class)->name('user.schedule');
         Route::get('/schedule-confirmation', ScheduleConfirmationPage::class)->name('user.schedule-confirmation');
@@ -120,7 +148,6 @@ Route::middleware([
         Route::get('/rating-confirmation', RatingConfirmationPage::class)->name('user.rating-confirmation');
 
         Route::get('/my-profile', ProfilePage::class)->name('user.my-profile');
-
     });
 
     Route::prefix('doctor')->middleware('profile:Doctor,Admin')->group(function () {
@@ -146,5 +173,4 @@ Route::middleware([
 
         Route::get('/my-profile', DRProfilePage::class)->name('doctor.my-profile');
     });
-
 });

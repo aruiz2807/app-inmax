@@ -113,7 +113,7 @@ class PoliciesPage extends Component
             $this->dispatch(
                 'notify',
                 type: 'info',
-                content: 'La poliza ya estaba activa. No se envio un nuevo enlace de PIN.',
+                content: 'La membresía ya estaba activa. No se envio un nuevo enlace de PIN.',
                 duration: 4000
             );
 
@@ -126,10 +126,15 @@ class PoliciesPage extends Component
         {
             $start = Carbon::now()->addDays(5);
             $end = Carbon::now()->addDays(5)->addYear();
+            $path = null;
+            $originalName = null;
 
-            $file = $this->payment_attachment;
-            $path = $file->store('attachments');
-            $originalName = $file->getClientOriginalName();
+            if($this->payment_attachment)
+            {
+                $file = $this->payment_attachment;
+                $path = $file->store('attachments');
+                $originalName = $file->getClientOriginalName();
+            }
 
             $policy->update([
                 'status' => 'Active',
@@ -152,9 +157,9 @@ class PoliciesPage extends Component
             $this->lastPinSetupPhone = $policy->user->phone;
 
             $content = match (true) {
-                ($result['whatsapp']['ok'] ?? false) => 'Poliza activada y enlace de PIN enviado por WhatsApp.',
-                ($result['whatsapp']['attempted'] ?? false) => 'Poliza activada. No se pudo enviar WhatsApp, enlace disponible para prueba.',
-                default => 'Poliza activada. Falta configurar WhatsApp, enlace disponible para prueba.',
+                ($result['whatsapp']['ok'] ?? false) => 'Membresía activada y enlace de PIN enviado por WhatsApp.',
+                ($result['whatsapp']['attempted'] ?? false) => 'Membresía activada. No se pudo enviar WhatsApp, enlace disponible para prueba.',
+                default => 'Membresía activada. Falta configurar WhatsApp, enlace disponible para prueba.',
             };
         }
         else
@@ -163,7 +168,7 @@ class PoliciesPage extends Component
                 'status' => 'Active',
             ]);
 
-            $content = 'Poliza reactivada exitosamente!';
+            $content = 'Membresía reactivada exitosamente!';
         }
 
         $this->dispatch(
@@ -192,7 +197,7 @@ class PoliciesPage extends Component
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Poliza desactivada exitosamente!',
+            content: 'Membresía desactivada exitosamente!',
             duration: 4000
         );
 
@@ -212,7 +217,7 @@ class PoliciesPage extends Component
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Poliza cancelada exitosamente!',
+            content: 'Membresía cancelada exitosamente!',
             duration: 4000
         );
 

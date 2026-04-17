@@ -124,7 +124,7 @@ class PinSetupPage extends Component
 
         return redirect()
             ->route('login')
-            ->with('status', __('PIN configurado correctamente. Inicia sesion con tu telefono y PIN.'));
+            ->with('status', __('PIN configurado correctamente. Inicia sesion con tu teléfono y PIN.'));
     }
 
     public function canSetPin(): bool
