@@ -1,7 +1,7 @@
 # INMAX
 
 ## Requisitos
-- PHP `>= 8.2`
+- PHP `>= 8.3`
 - Composer `2.x`
 - Node.js `^20.19.0` o `>= 22.12.0` (Vite 7)
 - npm
@@ -11,7 +11,7 @@
 A. Instalar dependencias
 ```bash
 composer install
-npm install
+yarn install
 ```
 
 B. Configurar entorno
@@ -24,7 +24,7 @@ Edita `.env` y configura la base de datos.
 C. Migraciones y front
 ```bash
 php artisan migrate
-npm run dev
+yarn dev
 ```
 
 ## Alternativa rapida
@@ -35,16 +35,16 @@ composer run setup
 ## Desarrollo
 ```bash
 php artisan serve
-npm run dev
+yarn dev
 ```
 
 ## Build
 ```bash
-npm run build
+yarn run build
 ```
 
 ## Deploy / Plesk
-Este proyecto usa `npm` como gestor de paquetes para frontend. No mezcles `npm` y `yarn` en el mismo deploy.
+Este proyecto usa `yarn` como gestor de paquetes para frontend. No mezcles `npm` y `yarn` en el mismo deploy.
 
 Instalacion limpia recomendada:
 ```bash

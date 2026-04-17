@@ -102,7 +102,7 @@ class SchedulePage extends Component
 
         $usedSlots = Appointment::whereDate('date', $this->selectedDate)
             ->where('office_id', $this->selectedOffice)
-            ->where('status', 'Booked')
+            ->where('status', \App\Enums\AppointmentStatus::BOOKED)
             ->pluck('time')
             ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
             ->toArray();
@@ -139,7 +139,7 @@ class SchedulePage extends Component
             'office_id' => $this->selectedOffice,
             'date' => $this->selectedDate,
             'time' => $this->selectedTime,
-            'status' => 'Booked',
+            'status' => \App\Enums\AppointmentStatus::BOOKED,
         ]);
 
         AppointmentService::create([

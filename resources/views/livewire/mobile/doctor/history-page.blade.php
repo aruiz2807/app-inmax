@@ -128,7 +128,7 @@
                             <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
 
                             <div class="flex flex-col w-full">
-                            @if($past->status === 'Completed')
+                            @if($past->status === \App\Enums\AppointmentStatus::COMPLETED)
                                 @foreach($past->services as $service)
                                     @if($service->status === 'Completed')
                                     <div class="flex items-center justify-between pl-4 pb-2">
@@ -137,7 +137,7 @@
                                     </div>
                                     @endif
                                 @endforeach
-                            @elseif($past->status === 'Cancelled' || $past->status === 'No-show')
+                            @elseif($past->status === \App\Enums\AppointmentStatus::CANCELLED || $past->status === \App\Enums\AppointmentStatus::NO_SHOW)
                                 @foreach($past->services as $service)
                                 <div class="flex items-center justify-between pl-4 pb-2">
                                     <x-ui.text class="text-base pr-1">{{$service->service->name}}</x-ui.text>
@@ -147,7 +147,7 @@
                             </div>
                         </div>
 
-                        @if($past->status === 'Completed')
+                        @if($past->status === \App\Enums\AppointmentStatus::COMPLETED)
                         <x-ui.separator class="mt-2 mb-2"/>
 
                         <div class="flex justify-center">

@@ -30,6 +30,7 @@ class Appointment extends Model
     protected $casts = [
         'date' => 'date',
         'time' => 'datetime:H:i:s',
+        'status' => \App\Enums\AppointmentStatus::class,
     ];
 
     /**
@@ -37,22 +38,7 @@ class Appointment extends Model
      */
     protected function getStatusIconAttribute()
     {
-        $icon = '';
-
-        if($this->status === 'Cancelled')
-        {
-            $icon = "x-circle";
-        }
-        else if($this->status === 'No-show')
-        {
-            $icon = "eye-slash";
-        }
-        else
-        {
-            $icon = "shield-check";
-        }
-
-        return $icon;
+        return $this->status?->icon() ?? 'information-circle';
     }
 
     /**
@@ -60,22 +46,7 @@ class Appointment extends Model
      */
     protected function getStatusColorAttribute()
     {
-        $color = '';
-
-        if($this->status === 'Cancelled')
-        {
-            $color = "red";
-        }
-        else if($this->status === 'No-show')
-        {
-            $color = "red";
-        }
-        else
-        {
-            $color = "teal";
-        }
-
-        return $color;
+        return $this->status?->color() ?? 'gray';
     }
 
     /**
@@ -83,22 +54,7 @@ class Appointment extends Model
      */
     protected function getFormattedStatusAttribute()
     {
-        $status = '';
-
-        if($this->status === 'Cancelled')
-        {
-            $status = "Cancelada";
-        }
-        else if($this->status === 'No-show')
-        {
-            $status = "No se presento";
-        }
-        else
-        {
-            $status = "Atendida";
-        }
-
-        return $status;
+        return $this->status?->label() ?? '';
     }
 
     /**

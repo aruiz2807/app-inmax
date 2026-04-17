@@ -30,7 +30,7 @@ class DRHomePage extends Component
     {
         $this->user = Auth::user();
         $this->todayAppointments = Appointment::where([
-                ['status', 'Booked'],
+                ['status', \App\Enums\AppointmentStatus::BOOKED],
                 ['doctor_id', Auth::user()->doctor->id],
             ])
             ->whereDate('date', today())
@@ -41,7 +41,7 @@ class DRHomePage extends Component
     public function checkPendingRequests()
     {
         $this->pendingRequestsCount = Appointment::where([
-                ['status', 'Requested'],
+                ['status', \App\Enums\AppointmentStatus::REQUESTED],
                 ['doctor_id', Auth::user()->doctor->id],
             ])->count();
     }

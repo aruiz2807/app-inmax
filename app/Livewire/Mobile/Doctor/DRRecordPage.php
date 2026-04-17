@@ -27,12 +27,12 @@ class DRRecordPage extends Component
 
         $this->appointments = Appointment::where([
             ['user_id', $this->user->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])->get();
 
         $this->doctorAppointments  = Appointment::where([
             ['user_id', $this->user->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])
         ->whereHas('doctor', function ($query) {
             $query->where('type', DoctorType::Doctor);
@@ -41,7 +41,7 @@ class DRRecordPage extends Component
 
         $this->exams = Appointment::where([
             ['user_id', $this->user->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])
         ->whereHas('note', function ($query) {
             $query->whereNotNull('attachment_path');

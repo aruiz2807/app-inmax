@@ -1,6 +1,8 @@
 @props(['status'])
 
 @php
+    $statusValue = $status instanceof \UnitEnum ? $status->value : $status;
+
     $colors = [
         'Active' => 'text-green-700 bg-green-100',
         'Inactive' => 'text-gray-700 bg-gray-100',
@@ -34,6 +36,6 @@
     ];
 @endphp
 
-<span class="px-2 py-1 text-xs font-bold rounded-full {{ $colors[$status] ?? 'text-gray-500 bg-gray-50' }}">
-    {{ $labels[$status] ?? __('Unknown') }}
+<span class="px-2 py-1 text-xs font-bold rounded-full {{ $colors[$statusValue] ?? 'text-gray-500 bg-gray-50' }}">
+    {{ $labels[$statusValue] ?? __('Unknown') }}
 </span>

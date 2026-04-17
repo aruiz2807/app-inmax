@@ -133,7 +133,7 @@ class DRNotesPage extends Component
         $this->appointment->update([
             'subtotal' => $this->subtotal ?: '0.00',
             'doctor_id' => $this->user->doctor->id,
-            'status' => 'Completed',
+            'status' => \App\Enums\AppointmentStatus::COMPLETED,
         ]);
 
         app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));

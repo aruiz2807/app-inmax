@@ -29,7 +29,7 @@ class HistoryPage extends Component
     public function loadAppointments()
     {
         $this->upcomingAppointments = Appointment::where([
-                ['status', 'Booked'],
+                ['status', \App\Enums\AppointmentStatus::BOOKED],
                 ['user_id', Auth::user()->id],
             ])
             ->whereDate('date', '>=', today())
@@ -38,7 +38,7 @@ class HistoryPage extends Component
             ->get();
 
         $this->pastAppointments = Appointment::where('user_id', Auth::user()->id)
-            ->whereIn('status', ['Completed', 'Cancelled', 'No-show'])
+            ->whereIn('status', [\App\Enums\AppointmentStatus::COMPLETED, \App\Enums\AppointmentStatus::CANCELLED, \App\Enums\AppointmentStatus::NO_SHOW])
             ->orderBy('date')
             ->orderBy('time')
             ->get();
@@ -64,7 +64,7 @@ class HistoryPage extends Component
         $appointment = Appointment::findOrFail($this->appointmentId);
 
         $appointment->update([
-            'status' => 'Cancelled',
+            'status' => \App\Enums\AppointmentStatus::CANCELLED,
         ]);
 
         //close modal
