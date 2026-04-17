@@ -25,6 +25,7 @@ class Appointment extends Model
         'comments',
         'status',
         'subtotal',
+        'status_prescription'
     ];
 
     protected $casts = [
