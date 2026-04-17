@@ -22,10 +22,10 @@ class NotesPage extends Component
 
     public function mount($appointment)
     {
-        $this->appointment = Appointment::findOrFail($appointment);
+        $this->appointment = Appointment::with(['note', 'prescriptions.medication', 'doctor.user', 'doctor.specialty'])->findOrFail($appointment);
         $this->services = AppointmentService::where([
             ['appointment_id', $this->appointment->id],
-            ['status', 'Completed'],
+            ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])->get();
         $this->isDoctor = $this->appointment->doctor->type === DoctorType::Doctor;
     }

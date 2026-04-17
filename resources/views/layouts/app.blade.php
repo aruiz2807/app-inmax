@@ -136,6 +136,14 @@
 
                             <x-ui.navlist.item
                                 icon="wallet"
+                                :label="__('app.medications')"
+                                href="{{ route('medications') }}"
+                                :active="request()->routeIs('medications')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
+                                icon="wallet"
                                 :label="__('app.specialties')"
                                 href="{{ route('specialties') }}"
                                 :active="request()->routeIs('specialties')"

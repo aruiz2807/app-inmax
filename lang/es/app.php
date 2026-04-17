@@ -18,6 +18,7 @@ return [
     'plans' => 'Planes',
     'parameters' => 'Parametros',
     'offices' => 'Consultorios',
+    'medications' => 'Medicamentos',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',

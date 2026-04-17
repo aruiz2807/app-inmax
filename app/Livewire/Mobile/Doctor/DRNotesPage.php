@@ -6,6 +6,8 @@ use App\Livewire\Forms\DoctorNotesForm;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Enums\DoctorType;
 use App\Models\Appointment;
+use App\Models\Medication;
+use App\Models\AppointmentPrescription;
 use App\Models\AppointmentService;
 use App\Models\PolicyService;
 use App\Services\Appointments\AppointmentCompletedNotificationService;
@@ -28,6 +30,15 @@ class DRNotesPage extends Component
     public $total;
     public $user;
 
+    // Medication selection
+    public $medications = [];
+    public $prescriptions = [];
+    public $medicationId = null;
+    public $quantity = 1;
+    public $dose = '';
+    public $frequency = '';
+    public $duration = '';
+
     #[Layout('layouts.mobile')]
     public function render()
     {
@@ -46,6 +57,50 @@ class DRNotesPage extends Component
             $this->form->services[$service->id] = false;
             $this->form->attachments[$service->id] = null;
         }
+
+        $this->loadMedications();
+        $this->loadPrescriptions();
+    }
+
+    public function loadMedications()
+    {
+        $this->medications = Medication::where('status', 'Active')->get();
+    }
+
+    public function loadPrescriptions()
+    {
+        $this->prescriptions = AppointmentPrescription::with('medication')
+            ->where('appointment_id', $this->appointment->id)
+            ->get();
+    }
+
+    public function addMedication()
+    {
+        $this->validate([
+            'medicationId' => 'required|exists:medications,id',
+            'quantity' => 'required|numeric|min:1',
+            'dose' => 'required|string|max:50',
+            'frequency' => 'required|string|max:50',
+            'duration' => 'required|string|max:50',
+        ]);
+
+        AppointmentPrescription::create([
+            'appointment_id' => $this->appointment->id,
+            'medication_id' => $this->medicationId,
+            'quantity' => $this->quantity,
+            'dose' => $this->dose,
+            'frequency' => $this->frequency,
+            'duration' => $this->duration,
+        ]);
+
+        $this->reset(['medicationId', 'quantity', 'dose', 'frequency', 'duration']);
+        $this->loadPrescriptions();
+    }
+
+    public function deletePrescription($id)
+    {
+        AppointmentPrescription::destroy($id);
+        $this->loadPrescriptions();
     }
 
     public function save()
@@ -133,8 +188,15 @@ class DRNotesPage extends Component
         $this->appointment->update([
             'subtotal' => $this->subtotal ?: '0.00',
             'doctor_id' => $this->user->doctor->id,
-            'status' => 'Completed',
+            'status' => \App\Enums\AppointmentStatus::COMPLETED,
         ]);
+
+        if (!empty($this->prescriptions)) // has at least one element
+        { 
+            $this->appointment->update([               
+                'status_prescription' => 'Pending',
+            ]);
+        }
 
         app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
     }

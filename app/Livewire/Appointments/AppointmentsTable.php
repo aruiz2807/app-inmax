@@ -54,7 +54,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('date_formatted', fn ($model) => $model->date?->format('d/m/Y'))
             ->add('time')
             ->add('time_formatted', fn ($model) => $model->time?->format('H:i A'))
-            ->add('status', fn ($model) => Blade::render('<x-status-badge status="' . $model->status . '" />'))
+            ->add('status_badge', fn ($model) => Blade::render('<x-status-badge status="' . ($model->status?->value ?? '') . '" />'))
             ->add('created_at');
     }
 
@@ -80,7 +80,7 @@ final class AppointmentsTable extends PowerGridComponent
                 ->sortable()
                 ->searchable(),
 
-            Column::make('Estatus', 'status')
+            Column::make('Estatus', 'status_badge', 'status')
                 ->sortable()
                 ->searchable(),
 
@@ -122,11 +122,21 @@ final class AppointmentsTable extends PowerGridComponent
         return [
 
             Rule::button('edit')
-                ->when(fn($model) => $model->status === 'Completed' || $model->status === 'Cancelled' || $model->status === 'No-show' || $model->status === 'Rejected')
+                ->when(fn($model) => in_array($model->status, [
+                    \App\Enums\AppointmentStatus::COMPLETED,
+                    \App\Enums\AppointmentStatus::CANCELLED,
+                    \App\Enums\AppointmentStatus::NO_SHOW,
+                    \App\Enums\AppointmentStatus::REJECTED,
+                ]))
                 ->hide(),
 
             Rule::button('cancel')
-                ->when(fn($model) => $model->status === 'Completed' || $model->status === 'Cancelled' || $model->status === 'No-show' || $model->status === 'Rejected')
+                ->when(fn($model) => in_array($model->status, [
+                    \App\Enums\AppointmentStatus::COMPLETED,
+                    \App\Enums\AppointmentStatus::CANCELLED,
+                    \App\Enums\AppointmentStatus::NO_SHOW,
+                    \App\Enums\AppointmentStatus::REJECTED,
+                ]))
                 ->hide(),
 
         ];

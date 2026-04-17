@@ -106,11 +106,71 @@
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
             <x-ui.icon name="clipboard-document-list" class="self-center" />
-            <x-ui.text class="text-base ml-2">Tratamiento</x-ui.text>
+            <x-ui.text class="text-base ml-2">Tratamiento / Receta</x-ui.text>
         </x-ui.heading>
 
-        <x-ui.textarea wire:model="form.treatment" placeholder="Ingrese los medicamentos para el paciente"/>
-        <x-ui.error name="form.treatment" />
+        <div class="flex flex-col gap-2">
+            <x-ui.field>
+                <x-ui.label>Medicamento</x-ui.label>
+                <x-ui.select wire:model="medicationId" placeholder="Seleccione un medicamento" searchable>
+                    @foreach($medications as $medication)
+                        <x-ui.select.option value="{{ $medication->id }}">
+                            {{ $medication->name }} ({{ $medication->trade_name }})
+                        </x-ui.select.option>
+                    @endforeach
+                </x-ui.select>
+                <x-ui.error name="medicationId" />
+            </x-ui.field>
+
+            <div class="grid grid-cols-2 gap-2">
+                <x-ui.field>
+                    <x-ui.label>Cantidad</x-ui.label>
+                    <x-ui.input type="number" wire:model="quantity" />
+                    <x-ui.error name="quantity" />
+                </x-ui.field>
+                <x-ui.field>
+                    <x-ui.label>Dosis</x-ui.label>
+                    <x-ui.input wire:model="dose" placeholder="Ej. 1 tableta" />
+                    <x-ui.error name="dose" />
+                </x-ui.field>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <x-ui.field>
+                    <x-ui.label>Frecuencia</x-ui.label>
+                    <x-ui.input wire:model="frequency" placeholder="Ej. Cada 8 horas" />
+                    <x-ui.error name="frequency" />
+                </x-ui.field>
+                <x-ui.field>
+                    <x-ui.label>Duración</x-ui.label>
+                    <x-ui.input wire:model="duration" placeholder="Ej. 7 días" />
+                    <x-ui.error name="duration" />
+                </x-ui.field>
+            </div>
+
+            <x-ui.button wire:click="addMedication" color="teal" icon="plus" class="w-full mt-2">
+                Agregar a receta
+            </x-ui.button>
+        </div>
+
+        @if(count($prescriptions) > 0)
+            <div class="mt-4 border-t pt-2">
+                <x-ui.text class="font-semibold mb-2">Medicamentos recetados:</x-ui.text>
+                <div class="flex flex-col gap-2">
+                    @foreach($prescriptions as $prescription)
+                        <div class="bg-gray-50 p-2 rounded-lg flex justify-between items-center shadow-sm border border-gray-100">
+                            <div class="flex-1">
+                                <x-ui.text class="font-bold text-sm">{{ $prescription->medication->name }}</x-ui.text>
+                                <x-ui.text class="text-xs text-gray-600">
+                                    {{ $prescription->quantity }} {{ $prescription->medication->packaging }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                                </x-ui.text>
+                            </div>
+                            <x-ui.button wire:click="deletePrescription({{ $prescription->id }})" icon="trash" variant="danger" size="sm" class="ml-2" />
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </x-ui.card>
     @endif
 

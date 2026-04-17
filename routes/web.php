@@ -20,6 +20,9 @@ use App\Livewire\Doctors\DoctorsPage;
 // Livewire - Home
 use App\Livewire\Home\DashboardPage;
 
+// Livewire - Medications
+use App\Livewire\Medications\MedicationsPage;
+
 // Livewire - Clerk
 use App\Livewire\Clerk\DashboardPage as ClerkDashboardPage;
 use App\Livewire\Clerk\DispensationPage;
@@ -123,6 +126,8 @@ Route::middleware([
         Route::get('/offices', OfficesPage::class)->name('offices');
 
         Route::get('/services', ServicesPage::class)->name('services');
+
+        Route::get('/medications', MedicationsPage::class)->name('medications');
 
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
 

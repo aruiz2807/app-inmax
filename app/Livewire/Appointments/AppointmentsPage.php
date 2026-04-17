@@ -40,7 +40,7 @@ class AppointmentsPage extends Component
     public function confirmCancel()
     {
         $this->appointment->update([
-            'status' => 'Cancelled',
+            'status' => \App\Enums\AppointmentStatus::CANCELLED,
         ]);
 
         // Show success toast

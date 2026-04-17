@@ -35,14 +35,14 @@ class DRHistoryPage extends Component
                 $query->where('doctor_id', $user->doctor->id)
                 ->orWhereIn('office_id', $offices);
             })
-            ->where('status', 'Booked')
+            ->where('status', \App\Enums\AppointmentStatus::BOOKED)
             ->whereDate('date', '>=', today())
             ->orderBy('date')
             ->orderBy('time')
             ->get();
 
         $this->pastAppointments = Appointment::where('doctor_id', $user->doctor->id)
-            ->whereIn('status', ['Completed', 'Cancelled', 'No-show'])
+            ->whereIn('status', [\App\Enums\AppointmentStatus::COMPLETED, \App\Enums\AppointmentStatus::CANCELLED, \App\Enums\AppointmentStatus::NO_SHOW])
             ->orderBy('date')
             ->orderBy('time')
             ->get();
@@ -61,7 +61,7 @@ class DRHistoryPage extends Component
         $appointment = Appointment::findOrFail($this->appointmentId);
 
         $appointment->update([
-            'status' => 'No-show',
+            'status' => \App\Enums\AppointmentStatus::NO_SHOW,
         ]);
 
         //close modal

@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             OfficesSeeder::class,
             SocialMediaParamsSeeder::class,
+            WhatsAppSettingSeeder::class,
         ]);
     }
 }
