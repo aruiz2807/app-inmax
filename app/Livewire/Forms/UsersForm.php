@@ -21,7 +21,7 @@ class UsersForm extends Form
     #[Validate('required|digits:10|unique:users,phone')]
     public string $phone = '';
 
-    #[Validate('required|in:Admin,Doctor,Sales,User')]
+    #[Validate('required|in:Admin,Doctor,Sales,Clerk,User')]
     public string $profile = 'User';
 
     /**
@@ -69,7 +69,7 @@ class UsersForm extends Form
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'phone' => ['required', 'digits:10', Rule::unique('users', 'phone')->ignore($userId)],
-            'profile' => ['required', Rule::in(['Admin', 'Doctor', 'Sales', 'User'])],
+            'profile' => ['required', Rule::in(['Admin', 'Doctor', 'Sales', 'Clerk', 'User'])],
         ])->validate();
 
         $user = User::findOrFail($userId);

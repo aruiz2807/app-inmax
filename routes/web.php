@@ -20,6 +20,11 @@ use App\Livewire\Doctors\DoctorsPage;
 // Livewire - Home
 use App\Livewire\Home\DashboardPage;
 
+// Livewire - Clerk
+use App\Livewire\Clerk\DashboardPage as ClerkDashboardPage;
+use App\Livewire\Clerk\DispensationPage;
+use App\Livewire\Clerk\InventoryPage;
+
 // Livewire - Offices
 use App\Livewire\Offices\OfficesPage;
 
@@ -172,5 +177,11 @@ Route::middleware([
         Route::get('/reject-confirmation', RejectConfirmationPage::class)->name('doctor.reject-confirmation');
 
         Route::get('/my-profile', DRProfilePage::class)->name('doctor.my-profile');
+    });
+
+    Route::prefix('clerk')->middleware('profile:Clerk')->group(function () {
+        Route::get('/dashboard', ClerkDashboardPage::class)->name('clerk.dashboard');
+        Route::get('/dispensation', DispensationPage::class)->name('clerk.dispensation');
+        Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
     });
 });

@@ -108,6 +108,7 @@ final class UsersTable extends PowerGridComponent
                     ['id' => 'Admin', 'name' => 'Admin'],
                     ['id' => 'Doctor', 'name' => 'Doctor'],
                     ['id' => 'Sales', 'name' => 'Sales'],
+                    ['id' => 'Clerk', 'name' => 'Clerk'],
                     ['id' => 'User', 'name' => 'User'],
                 ])
                 ->optionValue('id')
