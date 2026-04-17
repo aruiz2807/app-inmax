@@ -67,9 +67,27 @@
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
             <x-ui.icon name="clipboard-document-list" class="self-center" />
-            <x-ui.text class="text-base ml-2">Tratamiento</x-ui.text>
+            <x-ui.text class="text-base ml-2">Tratamiento / Receta</x-ui.text>
         </x-ui.heading>
-        <x-ui.text class="text-base">{{$appointment->note->treatment}}</x-ui.text>
+
+        @if(count($appointment->prescriptions) > 0)
+            <div class="flex flex-col gap-2">
+                @foreach($appointment->prescriptions as $prescription)
+                    <div class="bg-gray-50 p-2 rounded-lg shadow-sm border border-gray-100">
+                        <x-ui.text class="font-bold text-sm">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
+                        <x-ui.text class="text-xs text-gray-600">
+                            {{ $prescription->quantity }} {{ $prescription->medication->packaging }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                        </x-ui.text>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        @if($appointment->note->treatment)
+            <div class="@if(count($appointment->prescriptions) > 0) mt-2 pt-2 border-t @endif">
+                <x-ui.text class="text-base">{{$appointment->note->treatment}}</x-ui.text>
+            </div>
+        @endif
     </x-ui.card>
     @endif
 

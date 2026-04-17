@@ -23,7 +23,7 @@ class DRHistoryNotePage extends Component
 
     public function mount($appointment)
     {
-        $this->appointment = Appointment::findOrFail($appointment);
+        $this->appointment = Appointment::with(['note', 'prescriptions.medication', 'doctor', 'user.policy'])->findOrFail($appointment);
         $this->services = AppointmentService::where([
             ['appointment_id', $this->appointment->id],
             ['status', \App\Enums\AppointmentStatus::COMPLETED],

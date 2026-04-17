@@ -3,6 +3,8 @@
 namespace App\Livewire\Mobile\Doctor;
 
 use App\Enums\DoctorType;
+use App\Enums\ExternalServicesType;
+use App\Models\PolicyExternalService;
 use App\Models\Appointment;
 use App\Models\User;
 use Livewire\Component;
@@ -14,6 +16,9 @@ class DRRecordPage extends Component
     public $exams;
     public $user;
     public $doctorAppointments;
+    public $externalServices;
+    
+    public bool $showUploadForm = false;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -47,5 +52,14 @@ class DRRecordPage extends Component
             $query->whereNotNull('attachment_path');
         })
         ->get();
+
+        $policy_id = $this->user->policy->id;
+        if ($policy_id) {
+            $this->externalServices = PolicyExternalService::where('policy_id', $policy_id)
+                ->orderBy('date', 'desc')
+                ->get();
+        } else {
+            $this->externalServices = collect();
+        }
     }
 }

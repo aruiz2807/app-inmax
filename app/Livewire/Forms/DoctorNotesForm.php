@@ -31,7 +31,7 @@ class DoctorNotesForm extends Form
             'symptoms' => [$required, 'string'],
             'findings' => [$required, 'string'],
             'diagnosis' => [$required, 'string'],
-            'treatment' => [$required, 'string'],
+            'treatment' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'services' => ['nullable', 'array',
                 function ($attribute, $value, $fail) {

@@ -113,7 +113,19 @@
                                         <div class="flex flex-col justify-start ml-1" >
                                             <x-ui.text class="text-sm font-semibold">{{$record->date->format('d/m/Y')}}</x-ui.text>
                                             <x-ui.text class="text-sm"><b>Diagnostico :</b> {{$record->note->diagnosis}}</x-ui.text>
-                                            <x-ui.text class="text-sm"><b>Tratamiento :</b> {{$record->note->treatment}}</x-ui.text>
+                                            @if(count($record->prescriptions) > 0)
+                                                <x-ui.text class="text-sm"><b>Tratamiento / Receta :</b></x-ui.text>
+                                                <ul class="list-disc pl-5">
+                                                @foreach($record->prescriptions as $prescription)
+                                                    <li>
+                                                        <x-ui.text class="text-sm">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
+                                                    </li>
+                                                @endforeach
+                                                </ul>
+                                            @endif
+                                            @if($record->note->treatment)
+                                                <x-ui.text class="text-sm"><b>Tratamiento (Notas) :</b> {{$record->note->treatment}}</x-ui.text>
+                                            @endif
                                         </div>
                                     </div>
 

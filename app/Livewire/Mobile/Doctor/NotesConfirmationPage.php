@@ -24,7 +24,9 @@ class NotesConfirmationPage extends Component
 
         abort_unless($noteId, 404);
 
-        $this->note = AppointmentNote::where('id', $noteId)->firstOrFail();
+        $this->note = AppointmentNote::with(['appointment.prescriptions.medication', 'appointment.doctor.user', 'appointment.doctor.specialty', 'appointment.user'])
+            ->where('id', $noteId)
+            ->firstOrFail();
     }
 
     public function print()

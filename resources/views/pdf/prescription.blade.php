@@ -221,8 +221,20 @@
         </div>
 
         <div class="space-16">
-            <div class="block-title">Tratamiento:</div>
-            <div class="product-row">{!!nl2br(e($note->treatment))!!}</div>
+            <div class="block-title">Tratamiento / Receta:</div>
+            @if($note->appointment->prescriptions && count($note->appointment->prescriptions) > 0)
+                @foreach($note->appointment->prescriptions as $prescription)
+                    <div class="product-row" style="margin-bottom: 5px; font-weight: normal;">
+                        <strong>{{ $prescription->medication->name }}</strong> ({{ $prescription->medication->trade_name }})<br>
+                        Cantidad: {{ $prescription->quantity }} {{ $prescription->medication->packaging }}<br>
+                        Dosis: {{ $prescription->dose }} • Frecuencia: {{ $prescription->frequency }} • Duración: {{ $prescription->duration }}
+                    </div>
+                @endforeach
+            @endif
+
+            @if($note->treatment)
+                <div class="product-row" style="font-weight: normal;">{!!nl2br(e($note->treatment))!!}</div>
+            @endif
         </div>
 
         <div class="text-block">

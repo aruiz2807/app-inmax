@@ -146,4 +146,12 @@ class Appointment extends Model
     {
         return $this->hasMany(AppointmentService::class);
     }
+
+    /**
+    * An appointment can have many prescriptions.
+    */
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(AppointmentPrescription::class);
+    }
 }

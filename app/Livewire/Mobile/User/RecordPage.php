@@ -46,7 +46,8 @@ class RecordPage extends Component
             ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])->get();
 
-        $this->doctorAppointments  = Appointment::where([
+        $this->doctorAppointments  = Appointment::with(['note', 'prescriptions.medication'])
+        ->where([
             ['user_id', $user->id],
             ['status', \App\Enums\AppointmentStatus::COMPLETED],
         ])
@@ -58,6 +59,7 @@ class RecordPage extends Component
         $this->exams = AppointmentService::query()
             ->with('appointment')
             ->where('status', \App\Enums\AppointmentStatus::COMPLETED)
+            ->whereNotNull('attachment_path')
             ->whereHas('appointment', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->where('status', \App\Enums\AppointmentStatus::COMPLETED);
