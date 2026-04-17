@@ -13,7 +13,7 @@
                 <p><span class="font-semibold">Paciente:</span> {{ $selectedAppointment['patient_name'] }}</p>
                 <p><span class="font-semibold">No. Membresía:</span> {{ $selectedAppointment['membership_number'] }}</p>
                 <p><span class="font-semibold">Médico prescriptor:</span> {{ $selectedAppointment['prescriber_doctor'] }}</p>
-                <p><span class="font-semibold">Fecha appointment:</span> {{ $selectedAppointment['appointment_date_label'] }}</p>
+                <p><span class="font-semibold">Fecha consulta:</span> {{ $selectedAppointment['appointment_date_label'] }}</p>
                 <p><span class="font-semibold">Estatus:</span> {{ $selectedAppointment['is_dispensed'] ? 'Surtida' : 'Pendiente' }}</p>
                 <p><span class="font-semibold">Fecha de surtido:</span> {{ $selectedAppointment['dispensed_at_label'] }}</p>
             </div>
@@ -27,6 +27,7 @@
                             <th class="text-left px-3 py-2 font-semibold">Dosis</th>
                             <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
                             <th class="text-left px-3 py-2 font-semibold">Indicaciones</th>
+                            <th class="text-left px-3 py-2 font-semibold">Estatus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -37,6 +38,7 @@
                                 <td class="px-3 py-2">{{ $medication['dose'] }}</td>
                                 <td class="px-3 py-2">{{ $medication['quantity'] }}</td>
                                 <td class="px-3 py-2">{{ $medication['notes'] }}</td>
+                                <td class="px-3 py-2">{{ $medication['status'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>

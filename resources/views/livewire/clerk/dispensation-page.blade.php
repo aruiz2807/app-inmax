@@ -8,7 +8,7 @@
             <span>Dispensación de recetas</span>
         </x-ui.heading>
 
-        <p>Registros simulados de appointments con receta, basados en la bandera de surtido.</p>
+        <p>Prescripciones pendientes.</p>
 
         <div class="pt-4">
             <livewire:clerk.dispensation-table />
