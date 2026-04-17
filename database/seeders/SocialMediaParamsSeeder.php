@@ -18,7 +18,7 @@ class SocialMediaParamsSeeder extends Seeder
                 'type' => 'RS',
                 'key' => 'Instagram',
                 'description' => 'Instagram',
-                'value' => 'https://www.instagram.com/sureinmax?igsh=MWVrcHBlNmZ5YzFweg==',
+                'value' => 'https://www.instagram.com/inmaxsure?igsh=MW9kaHl0Mndibm4zMg==',
             ],
             [
                 'id' => 2,
