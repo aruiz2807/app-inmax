@@ -188,5 +188,6 @@ Route::middleware([
         Route::get('/dashboard', ClerkDashboardPage::class)->name('clerk.dashboard');
         Route::get('/dispensation', DispensationPage::class)->name('clerk.dispensation');
         Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
+        Route::get('/medications', MedicationsPage::class)->name('clerk.medications');
     });
 });

@@ -31,7 +31,7 @@
                         <div class="flex-1">
                             <x-ui.text class="font-bold text-base">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
                             <x-ui.text class="text-sm text-gray-600">
-                                {{ $prescription->quantity }} {{ $prescription->medication->packaging }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                                {{ $prescription->quantity }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
                             </x-ui.text>
                         </div>
                         <div class="flex items-center gap-4">
@@ -39,7 +39,7 @@
                                 <x-ui.input type="number" min="0" wire:model.live="deliveryQuantities.{{ $prescription->id }}" />
                             </div>
                             <div class="text-right min-w-[5rem]">
-                                <x-ui.text class="font-bold text-lg text-teal-600">${{ number_format(($deliveryQuantities[$prescription->id] ?? 0) * $prescription->medication->price_members, 2) }}</x-ui.text>
+                                <x-ui.text class="font-bold text-lg text-teal-600">${{ number_format(($deliveryQuantities[$prescription->id] ?? 0) * $prescription->medication->price_public, 2) }}</x-ui.text>
                             </div>
                         </div>
                     </div>
@@ -75,25 +75,39 @@
 
                 <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 flex-col items-end">
                     @php
-                        $subtotal = 0;
+                        $subtotalPublic = 0;
+                        $subtotalMembers = 0;
                         foreach ($prescriptions as $prescription) {
-                            $subtotal += ($deliveryQuantities[$prescription->id] ?? 0) * $prescription->medication->price_members;
+                            $qty = $deliveryQuantities[$prescription->id] ?? 0;
+                            $subtotalPublic += $qty * $prescription->medication->price_public;
+                            $subtotalMembers += $qty * $prescription->medication->price_members;
                         }
+                        
                         $discount = 0;
-                        if ($useCoupon && $hasCouponAvailable) {
+                        if ($useMembersDiscount && $isMembershipActive) {
+                            $discount = $subtotalPublic - $subtotalMembers;
+                        } elseif ($useCoupon && $hasCouponAvailable) {
                             $discount = $couponValue;
-                        } elseif ($useMembersDiscount && $isMembershipActive) {
-                            $discount = $subtotal * ($membersDiscountPercentage / 100);
                         }
                     @endphp
 
                     @if($discount > 0)
-                    <p class="text-sm text-gray-500 line-through">Subtotal: ${{ number_format($subtotal, 2) }}</p>
+                    <p class="text-sm text-gray-500 line-through">Subtotal: ${{ number_format($subtotalPublic, 2) }}</p>
                     <p class="text-sm {{ $useCoupon ? 'text-teal-600' : 'text-blue-600' }}">
                         Descuento: -${{ number_format($discount, 2) }}
                     </p>
                     @endif
                     <p class="text-xl font-bold">Total a pagar: <span class="text-teal-600">${{ number_format($this->total, 2) }}</span></p>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200">
+                    <x-ui.button x-on:click="$data.close();" icon="x-mark" variant="outline">
+                        Cancelar
+                    </x-ui.button>
+
+                    <x-ui.button wire:click="dispense" icon="check" variant="primary" color="teal" :disabled="!$this->canDispense">
+                        Surtir
+                    </x-ui.button>
                 </div>
             </div>
         </div>

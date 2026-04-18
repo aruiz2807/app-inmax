@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Medications;
+namespace App\Livewire\Clerk;
 
 use App\Models\Appointment;
 use App\Models\Parameter;
@@ -26,7 +26,7 @@ class CheckoutModal extends Component
 
     public function render()
     {
-        return view('livewire.medications.checkout-modal');
+        return view('livewire.clerk.checkout-modal');
     }
 
     public function mount()
@@ -50,27 +50,40 @@ class CheckoutModal extends Component
 
     public function getTotalProperty()
     {
-        $subtotal = 0;
+        $subtotalPublic = 0;
+        $subtotalMembers = 0;
+
         foreach ($this->prescriptions as $prescription) {
             $quantity = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
-            $subtotal += $quantity * $prescription->medication->price_members;
+            $subtotalPublic += $quantity * $prescription->medication->price_public;
+            $subtotalMembers += $quantity * $prescription->medication->price_members;
         }
 
-        $total = $subtotal;
+        if ($this->useMembersDiscount && $this->isMembershipActive) {
+            $total = $subtotalMembers;
+        } else {
+            $total = $subtotalPublic;
 
-        if ($this->useCoupon && $this->hasCouponAvailable) {
-            $total -= $this->couponValue;
-        } elseif ($this->useMembersDiscount && $this->isMembershipActive) {
-            $total -= ($subtotal * ($this->membersDiscountPercentage / 100));
+            if ($this->useCoupon && $this->hasCouponAvailable) {
+                $total -= $this->couponValue;
+            }
         }
 
         return max(0, $total);
     }
 
-    #[On('openPrescription')]
-    public function open_prescription($appointment_id)
+    public function getCanDispenseProperty()
     {
-        $this->appointmentId = $appointment_id;
+        $hasQuantity = collect($this->deliveryQuantities)->sum() > 0;
+        $hasBenefitSelected = $this->useCoupon || $this->useMembersDiscount;
+
+        return $hasQuantity && $hasBenefitSelected;
+    }
+
+    #[On('openPrescription')]
+    public function open_prescription($appointmentId)
+    {
+        $this->appointmentId = $appointmentId;
 
         $appointment = Appointment::with(['user.policy', 'prescriptions.medication'])->find($this->appointmentId);
         $this->user = $appointment?->user;
@@ -130,5 +143,59 @@ class CheckoutModal extends Component
         if ($discountParam && is_numeric($discountParam->value)) {
             $this->membersDiscountPercentage = (float) $discountParam->value;
         }
+    }
+
+    public function dispense()
+    {
+        if (!$this->appointmentId) {
+            return;
+        }
+
+        $appointment = Appointment::with('prescriptions')->find($this->appointmentId);
+        
+        $totalPrescriptions = count($this->prescriptions);
+        $dispensedCount = 0;
+
+        foreach ($this->prescriptions as $prescription) {
+            $qty = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
+            
+            if ($qty > 0) {
+                $prescription->update([
+                    'status' => 'Dispensed',
+                    'delivered_quantity' => $qty,
+                ]);
+                $dispensedCount++;
+            }
+        }
+
+        if ($dispensedCount > 0) {
+            if ($dispensedCount === $totalPrescriptions) {
+                $appointment->update(['status_prescription' => 'Filled']);
+            } else {
+                $appointment->update(['status_prescription' => 'Partial']);
+            }
+
+            if ($this->useCoupon && $this->hasCouponAvailable) {
+                $param = Parameter::where('type', 'CP')->where('key', 'Medicamentos')->first();
+                if ($param && !empty($param->value)) {
+                    $policyId = $this->user->policy->type === 'Member' 
+                        ? $this->user->policy->parent_policy_id 
+                        : $this->user->policy->id;
+
+                    $policyService = PolicyService::where('policy_id', $policyId)
+                        ->where('service_id', $param->value)
+                        ->first();
+
+                    if ($policyService) {
+                        $policyService->increment('used');
+                    }
+                }
+            }
+
+            $this->dispatch('notify', type: 'success', content: 'Medicamentos surtidos correctamente.');
+            $this->dispatch('pg:eventRefresh-AppointmentsTable'); // General refresh event
+        }
+
+        $this->dispatch('close-checkout-modal');
     }
 }

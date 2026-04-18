@@ -160,7 +160,7 @@ final class DispensationTable extends PowerGridComponent
                 ->slot('Ver detalles')
                 ->id()
                 ->class('bg-teal-600 text-white px-3 py-1 rounded')
-                ->dispatch('showDispensationDetails', ['appointmentId' => (int) data_get($row, 'id')]),
+                ->dispatch('openPrescription', ['appointmentId' => (int) data_get($row, 'id')]),
         ];
     }
 }

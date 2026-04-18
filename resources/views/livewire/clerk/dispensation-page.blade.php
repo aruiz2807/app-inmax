@@ -15,5 +15,5 @@
         </div>
     </x-ui.card>
 
-    @include('livewire.clerk.dispensation-details-modal')
+    <livewire:clerk.checkout-modal />
 </div>

@@ -50,8 +50,16 @@
                         />
 
                         <x-ui.navlist.item
+                            icon="wallet"
+                            :label="__('app.medications')"
+                            href="{{ route('clerk.medications') }}"
+                            :active="request()->routeIs('clerk.medications')"
+                            x-on:click="closeSidebar()"
+                        />
+
+                        <x-ui.navlist.item
                             icon="beaker"
-                            :label="__('Dispensación')"
+                            :label="__('Surtir')"
                             href="{{ route('clerk.dispensation') }}"
                             :active="request()->routeIs('clerk.dispensation')"
                             x-on:click="closeSidebar()"
