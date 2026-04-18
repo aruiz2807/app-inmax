@@ -124,7 +124,13 @@ final class MedicationsTable extends PowerGridComponent
                 ->slot('Editar')
                 ->id()
                 ->class('bg-teal-600 text-white px-3 py-1 rounded')
-                ->dispatch('editMedication', ['medicationId' => $row->id])
+                ->dispatch('editMedication', ['medicationId' => $row->id]),
+
+            Button::add('openPrescription')
+                ->slot('Receta')
+                ->id()
+                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->dispatch('openPrescription', ['appointment_id' => $row->id]),
         ];
     }
 

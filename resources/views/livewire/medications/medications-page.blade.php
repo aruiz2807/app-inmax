@@ -103,4 +103,6 @@
             </div>
         </form>
     </x-ui.modal>
+
+    <livewire:medications.checkout-modal />
 </div>
