@@ -24,41 +24,72 @@
     <body class="font-sans antialiased text-neutral-900 bg-neutral-50 dark:text-neutral-50 dark:bg-neutral-950">
         <x-banner />
 
+        @php
+            $profile = auth()->user()?->profile;
+            $isClerk = $profile === 'Clerk';
+            $homeRoute = $isClerk ? 'clerk.dashboard' : 'dashboard';
+        @endphp
+
         <x-ui.layout variant="sidebar-main" collapsable>
             <x-ui.sidebar>
                 <x-slot name="brand">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-2 py-2">
+                    <a href="{{ route($homeRoute) }}" class="flex items-center gap-2 px-2 py-2">
                         <!-- Logo -->
                         <x-application-mark class="block h-8 w-auto" />
                     </a>
                 </x-slot>
 
                 <x-ui.navlist class="mt-2">
-                    <x-ui.navlist.item
-                        icon="home"
-                        :label="__('app.home')"
-                        href="{{ route('dashboard') }}"
-                        :active="request()->routeIs('dashboard')"
-                        x-on:click="closeSidebar()"
-                    />
+                    @if ($isClerk)
+                        <x-ui.navlist.item
+                            icon="home"
+                            :label="__('app.home')"
+                            href="{{ route('clerk.dashboard') }}"
+                            :active="request()->routeIs('clerk.dashboard')"
+                            x-on:click="closeSidebar()"
+                        />
 
-                    <x-ui.navlist.item
-                        icon="paper-airplane"
-                        :label="__('app.preregistration')"
-                        href="{{ route('preregistrations') }}"
-                        :active="request()->routeIs('preregistrations')"
-                        x-on:click="closeSidebar()"
-                    />
+                        <x-ui.navlist.item
+                            icon="beaker"
+                            :label="__('Dispensación')"
+                            href="{{ route('clerk.dispensation') }}"
+                            :active="request()->routeIs('clerk.dispensation')"
+                            x-on:click="closeSidebar()"
+                        />
 
-                    <x-ui.navlist.item
-                        icon="identification"
-                        :label="__('app.policies')"
-                        href="{{ route('policies') }}"
-                        :active="request()->routeIs('policies')"
-                        x-on:click="closeSidebar()"
-                    />
+                        <x-ui.navlist.item
+                            icon="archive-box"
+                            :label="__('Inventario')"
+                            href="{{ route('clerk.inventory') }}"
+                            :active="request()->routeIs('clerk.inventory')"
+                            x-on:click="closeSidebar()"
+                        />
+                    @else
+                        <x-ui.navlist.item
+                            icon="home"
+                            :label="__('app.home')"
+                            href="{{ route('dashboard') }}"
+                            :active="request()->routeIs('dashboard')"
+                            x-on:click="closeSidebar()"
+                        />
 
-                    @if (auth()->user()?->profile === 'Admin')
+                        <x-ui.navlist.item
+                            icon="paper-airplane"
+                            :label="__('app.preregistration')"
+                            href="{{ route('preregistrations') }}"
+                            :active="request()->routeIs('preregistrations')"
+                            x-on:click="closeSidebar()"
+                        />
+
+                        <x-ui.navlist.item
+                            icon="identification"
+                            :label="__('app.policies')"
+                            href="{{ route('policies') }}"
+                            :active="request()->routeIs('policies')"
+                            x-on:click="closeSidebar()"
+                        />
+
+                        @if (auth()->user()?->profile === 'Admin')
                         <x-ui.navlist.item
                             icon="calendar"
                             :label="__('app.appointments')"
@@ -161,6 +192,7 @@
                                 />
                             @endif
                         </x-ui.navlist.group>
+                        @endif
                     @endif
                 </x-ui.navlist>
 

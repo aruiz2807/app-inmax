@@ -77,6 +77,7 @@
                     <x-ui.select wire:model="form.profile" placeholder="Selecciona un perfil">
                         <x-ui.select.option value="Admin">Administrador</x-ui.select.option>
                         <x-ui.select.option value="Sales">Vendedor</x-ui.select.option>
+                        <x-ui.select.option value="Clerk">Clerk</x-ui.select.option>
                     </x-ui.select>
                     <x-ui.error name="form.profile" />
                 </x-ui.field>
