@@ -19,6 +19,9 @@ return [
     'parameters' => 'Parametros',
     'offices' => 'Consultorios',
     'medications' => 'Medicamentos',
+    'clerk' => 'Mostrador',
+    'dispensation' => 'Surtir',
+    'inventory' => 'Inventario',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',

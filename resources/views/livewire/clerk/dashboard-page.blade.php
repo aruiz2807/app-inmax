@@ -4,7 +4,7 @@
     </x-ui.text>
 
     <x-ui.text class="mt-2 text-lg text-neutral-600">
-        Panel de Clerk
+        Panel de {{ __('app.clerk') }}
     </x-ui.text>
 
     <div class="mt-6 rounded-xl border border-dashed border-neutral-300 p-6">

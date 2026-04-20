@@ -59,7 +59,7 @@
 
                         <x-ui.navlist.item
                             icon="beaker"
-                            :label="__('Surtir')"
+                            :label="__('app.dispensation')"
                             href="{{ route('clerk.dispensation') }}"
                             :active="request()->routeIs('clerk.dispensation')"
                             x-on:click="closeSidebar()"
@@ -67,7 +67,7 @@
 
                         <x-ui.navlist.item
                             icon="archive-box"
-                            :label="__('Inventario')"
+                            :label="__('app.inventory')"
                             href="{{ route('clerk.inventory') }}"
                             :active="request()->routeIs('clerk.inventory')"
                             x-on:click="closeSidebar()"
