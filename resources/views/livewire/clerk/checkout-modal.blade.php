@@ -1,4 +1,4 @@
-<div>
+<div x-on:print-checkout-ticket.window="$wire.print_ticket()">
     <x-ui.modal
         id="checkout-modal"
         animation="fade"

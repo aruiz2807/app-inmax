@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -151,6 +152,8 @@ class CheckoutModal extends Component
             return;
         }
 
+        $shouldPrintTicket = false;
+
         $appointment = Appointment::with('prescriptions')->find($this->appointmentId);
         
         $totalPrescriptions = count($this->prescriptions);
@@ -193,9 +196,103 @@ class CheckoutModal extends Component
             }
 
             $this->dispatch('notify', type: 'success', content: 'Medicamentos surtidos correctamente.');
-            $this->dispatch('pg:eventRefresh-AppointmentsTable'); // General refresh event
+            $this->dispatch('pg:eventRefresh-dispensationTable');
+            $shouldPrintTicket = true;
         }
 
         $this->dispatch('close-checkout-modal');
+
+        if ($shouldPrintTicket) {
+            $this->dispatch('print-checkout-ticket');
+        }
+    }
+
+    public function print_ticket()
+    {
+        if (! $this->appointmentId) {
+            return;
+        }
+
+        $appointment = Appointment::query()
+            ->with(['user', 'doctor.user', 'prescriptions.medication'])
+            ->find($this->appointmentId);
+
+        if (! $appointment) {
+            return;
+        }
+
+        $rows = collect($appointment->prescriptions)
+            ->map(function ($prescription) {
+                if ((string) $prescription->status !== 'Dispensed') {
+                    return null;
+                }
+
+                $quantity = (int) ($prescription->delivered_quantity ?? 0);
+
+                if ($quantity <= 0) {
+                    return null;
+                }
+
+                $pricePublic = (float) $prescription->medication->price_public;
+                $priceMembers = (float) $prescription->medication->price_members;
+
+                $unitPrice = ($this->useMembersDiscount && $this->isMembershipActive)
+                    ? $priceMembers
+                    : $pricePublic;
+
+                return [
+                    'name' => (string) $prescription->medication->name,
+                    'trade_name' => (string) $prescription->medication->trade_name,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'line_total' => $unitPrice * $quantity,
+                    'line_total_public' => $pricePublic * $quantity,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $subtotalPublic = (float) $rows->sum('line_total_public');
+        $subtotalCharged = (float) $rows->sum('line_total');
+
+        $discount = 0.0;
+        $discountLabel = null;
+
+        if ($this->useMembersDiscount && $this->isMembershipActive) {
+            $discount = max(0, $subtotalPublic - $subtotalCharged);
+            $discountLabel = 'Descuento membresia';
+        } elseif ($this->useCoupon && $this->hasCouponAvailable) {
+            $discount = min((float) $this->couponValue, $subtotalPublic);
+            $discountLabel = 'Cupon';
+        }
+
+        $total = ($this->useMembersDiscount && $this->isMembershipActive)
+            ? $subtotalCharged
+            : max(0, $subtotalPublic - $discount);
+
+        $discountApplied = $discount > 0;
+        $discountType = $discountApplied ? $discountLabel : 'Sin descuento';
+
+        $pdf = Pdf::loadView('pdf.checkout-ticket', [
+            'appointment' => $appointment,
+            'rows' => $rows,
+            'subtotalPublic' => number_format($subtotalPublic, 2),
+            'subtotalCharged' => number_format($subtotalCharged, 2),
+            'discount' => number_format($discount, 2),
+            'discountLabel' => $discountLabel,
+            'discountApplied' => $discountApplied,
+            'discountType' => $discountType,
+            'total' => number_format($total, 2),
+            'benefitLabel' => $this->useMembersDiscount ? 'Membresia' : ($this->useCoupon ? 'Cupon' : 'Sin beneficio'),
+        ])->setPaper([0, 0, 226, 567], 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "ticket-receta-{$appointment->id}.pdf"
+        );
     }
 }

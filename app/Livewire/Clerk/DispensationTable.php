@@ -16,6 +16,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 final class DispensationTable extends PowerGridComponent
 {
     public string $tableName = 'dispensationTable';
+    public string $sortField = 'date';
+    public string $sortDirection = 'desc';
 
     public function setUp(): array
     {
@@ -32,10 +34,10 @@ final class DispensationTable extends PowerGridComponent
     public function datasource(): Builder
     {
         return Appointment::query()
+            ->leftJoin('appointment_notes', 'appointment_notes.appointment_id', '=', 'appointments.id')
+            ->select('appointments.*', 'appointment_notes.id as appointment_note_id')
             ->with(['user.policy', 'doctor.user'])
-            ->whereNotNull('status_prescription')
-            ->orderByDesc('date')
-            ->orderByDesc('time');
+            ->whereNotNull('status_prescription');
     }
 
     public function relationSearch(): array
@@ -46,7 +48,7 @@ final class DispensationTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+            ->add('appointment_note_id', fn ($row) => data_get($row, 'appointment_note_id'))
             ->add('patient_name', fn ($row): string => data_get($row, 'user.name', 'Sin paciente'))
             ->add('patient_display', function ($row): string {
                 return Blade::render(
@@ -97,41 +99,80 @@ final class DispensationTable extends PowerGridComponent
                 return Carbon::createFromFormat('Y-m-d H:i:s', $datePart.' '.$timePart)->format('d/m/Y H:i');
             })
             ->add('status_label', function ($row): string {
-                return in_array((string) data_get($row, 'status_prescription'), ['Filled', 'Partial'], true)
-                    ? 'Surtida'
-                    : 'Pendiente';
+                return match ((string) data_get($row, 'status_prescription')) {
+                    'Filled' => 'Surtida',
+                    'Partial' => 'Surtida Parcial',
+                    'Cancelled' => 'Vencida',
+                    default => 'Pendiente',
+                };
             })
             ->add('status_badge', function ($row): string {
-                $isDispensed = in_array((string) data_get($row, 'status_prescription'), ['Filled', 'Partial'], true);
-
-                return $isDispensed
-                    ? Blade::render('<x-ui.badge variant="outline" color="green" pill>Surtida</x-ui.badge>')
-                    : Blade::render('<x-ui.badge variant="outline" color="yellow" pill>Pendiente</x-ui.badge>');
+                return match ((string) data_get($row, 'status_prescription')) {
+                    'Filled' => Blade::render('<x-ui.badge variant="outline" color="green" pill>Surtida</x-ui.badge>'),
+                    'Partial' => Blade::render('<x-ui.badge variant="outline" color="blue" pill>Surtida Parcial</x-ui.badge>'),
+                    'Cancelled' => Blade::render('<x-ui.badge variant="outline" color="red" pill>Vencida</x-ui.badge>'),
+                    default => Blade::render('<x-ui.badge variant="outline" color="yellow" pill>Pendiente</x-ui.badge>'),
+                };
             });
     }
 
     public function columns(): array
     {
         return [
+            Column::make('Receta', 'appointment_note_id', 'appointment_note_id')
+                ->searchable()
+                ->sortable()
+                ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy('appointment_notes.id', $direction)),
+
             Column::make('Nombre paciente', 'patient_display', 'patient_name')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
+                    \App\Models\User::query()
+                        ->select('name')
+                        ->whereColumn('users.id', 'appointments.user_id')
+                        ->limit(1),
+                    $direction
+                )),
 
             Column::make('Membresía', 'membership_status_badge', 'membership_status')
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
+                    \App\Models\Policy::query()
+                        ->select('status')
+                        ->whereColumn('policies.user_id', 'appointments.user_id')
+                        ->limit(1),
+                    $direction
+                ))
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('No. Membresía', 'membership_number')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
+                    \App\Models\Policy::query()
+                        ->select('number')
+                        ->whereColumn('policies.user_id', 'appointments.user_id')
+                        ->limit(1),
+                    $direction
+                )),
 
             Column::make('Médico prescriptor', 'prescriber_doctor_display', 'prescriber_doctor')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
+                    \App\Models\Doctor::query()
+                        ->select('users.name')
+                        ->join('users', 'users.id', '=', 'doctors.user_id')
+                        ->whereColumn('doctors.id', 'appointments.doctor_id')
+                        ->limit(1),
+                    $direction
+                )),
 
             Column::make('Fecha consulta', 'appointment_at_formatted', 'date')
                 ->sortable(),
 
-            Column::make('Estatus', 'status_badge', 'status_label')
+            Column::make('Estatus', 'status_badge', 'status_prescription')
                 ->sortable(),
 
             Column::action('Opciones'),
@@ -145,8 +186,8 @@ final class DispensationTable extends PowerGridComponent
                 ->dataSource([
                     ['id' => 'Pending', 'name' => 'Pendiente'],
                     ['id' => 'Filled', 'name' => 'Surtida'],
-                    ['id' => 'Partial', 'name' => 'Surtida parcial'],
-                    ['id' => 'Cancelled', 'name' => 'Cancelada'],
+                    ['id' => 'Partial', 'name' => 'Surtida Parcial'],
+                    ['id' => 'Cancelled', 'name' => 'Vencida'],
                 ])
                 ->optionValue('id')
                 ->optionLabel('name'),
