@@ -43,11 +43,9 @@
     <div class="line"></div>
 
     <div class="small-text">
-        <strong>Cita:</strong> {{ $appointment->id }}<br>
         <strong>Fecha:</strong> {{ now()->format('d/m/Y H:i') }}<br>
         <strong>Paciente:</strong> {{ $appointment->user?->name ?? 'Sin paciente' }}<br>
-        <strong>Atiende:</strong> {{ $appointment->doctor?->user?->name ?? 'Sin medico' }}<br>
-        <strong>Beneficio:</strong> {{ $benefitLabel }}
+        <strong>Médico:</strong> {{ $appointment->doctor?->user?->name ?? 'Sin medico' }}<br>
     </div>
 
     <div class="line"></div>
@@ -57,7 +55,7 @@
             <tr>
                 <td class="qty">{{ $row['quantity'] }}</td>
                 <td class="desc">{{ $row['name'] }} ({{ $row['trade_name'] }})</td>
-                <td class="price">${{ number_format($row['line_total'], 2) }}</td>
+                <td class="price">${{ number_format($row['line_total_public'], 2) }}</td>
             </tr>
         @endforeach
     </table>
@@ -78,11 +76,6 @@
         <tr>
             <td class="label">Tipo descuento:</td>
             <td class="value">{{ $discountType }}</td>
-        </tr>
-
-        <tr>
-            <td class="label">Subtotal con beneficio:</td>
-            <td class="value">${{ $subtotalCharged }}</td>
         </tr>
 
         <tr>

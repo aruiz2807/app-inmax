@@ -264,10 +264,10 @@ class CheckoutModal extends Component
 
         if ($this->useMembersDiscount && $this->isMembershipActive) {
             $discount = max(0, $subtotalPublic - $subtotalCharged);
-            $discountLabel = 'Descuento membresia';
+            $discountLabel = 'Precio preferencial';
         } elseif ($this->useCoupon && $this->hasCouponAvailable) {
             $discount = min((float) $this->couponValue, $subtotalPublic);
-            $discountLabel = 'Cupon';
+            $discountLabel = 'Cupon aplicado';
         }
 
         $total = ($this->useMembersDiscount && $this->isMembershipActive)
@@ -292,7 +292,7 @@ class CheckoutModal extends Component
 
         return response()->streamDownload(
             fn () => print($pdf->output()),
-            "ticket-receta-{$appointment->id}.pdf"
+            "ticket-receta-" . str_pad((string) (int) $appointment->id, 5, '0', STR_PAD_LEFT) . ".pdf"
         );
     }
 }

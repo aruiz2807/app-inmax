@@ -48,7 +48,15 @@ final class DispensationTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('appointment_note_id', fn ($row) => data_get($row, 'appointment_note_id'))
+            ->add('appointment_note_id', function ($row): string {
+                $appointmentNoteId = data_get($row, 'appointment_note_id');
+
+                if (! is_numeric($appointmentNoteId)) {
+                    return '-';
+                }
+
+                return str_pad((string) (int) $appointmentNoteId, 5, '0', STR_PAD_LEFT);
+            })
             ->add('patient_name', fn ($row): string => data_get($row, 'user.name', 'Sin paciente'))
             ->add('patient_display', function ($row): string {
                 return Blade::render(
