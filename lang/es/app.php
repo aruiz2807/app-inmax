@@ -15,7 +15,7 @@ return [
     'settings' => 'Configuraciones',
     'services' => 'Servicios',
     'specialties' => 'Especialidades',
-    'plans' => 'Planes',
+    'plans' => 'Beneficios',
     'parameters' => 'Parametros',
     'offices' => 'Consultorios',
     'medications' => 'Medicamentos',
