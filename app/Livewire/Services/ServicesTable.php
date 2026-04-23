@@ -45,6 +45,7 @@ final class ServicesTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('name')
+            ->add('code')
             ->add('type')
             ->add('type_formatted', fn ($model) => $model->type === 'Event' ? 'Evento' : 'Importe')
             ->add('status')
@@ -61,6 +62,10 @@ final class ServicesTable extends PowerGridComponent
             Column::make('Id', 'id'),
 
             Column::make('Nombre', 'name')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('Codigo', 'code')
                 ->sortable()
                 ->searchable(),
 
