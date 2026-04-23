@@ -226,8 +226,7 @@
                 @foreach($note->appointment->prescriptions as $prescription)
                     <div class="product-row" style="margin-bottom: 5px; font-weight: normal;">
                         <strong>{{ $prescription->medication->name }}</strong> ({{ $prescription->medication->trade_name }})<br>
-                        Cantidad: {{ $prescription->quantity }} {{ $prescription->medication->packaging }}<br>
-                        Dosis: {{ $prescription->dose }} • Frecuencia: {{ $prescription->frequency }} • Duración: {{ $prescription->duration }}
+                        {{ $prescription->quantity }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
                     </div>
                 @endforeach
             @endif

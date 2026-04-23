@@ -91,8 +91,16 @@ class CheckoutModal extends Component
         $this->prescriptions = $appointment?->prescriptions ?? [];
 
         $this->deliveryQuantities = [];
-        foreach ($this->prescriptions as $prescription) {
-            $this->deliveryQuantities[$prescription->id] = $prescription->quantity;
+        foreach ($this->prescriptions as $prescription) 
+        {
+            if($prescription->status === 'Dispensed')
+            {
+                $this->deliveryQuantities[$prescription->id] = $prescription->delivered_quantity;
+            }
+            else
+            {
+                $this->deliveryQuantities[$prescription->id] = 1;
+            }
         }
 
         $this->checkDiscountsAvailability();

@@ -28,7 +28,7 @@
             <!-- Profile -->
             <div class="text-center mb-8">
                 <img src="/img/logo.png" class="w-20 h-20 rounded-full shadow-lg mx-auto mb-4 object-cover">
-                <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">INMAX - SURE</h1>
+                <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">INMAX</h1>
                 <p class="text-neutral-600 dark:text-neutral-400">
                     Sistema privado de gestión en atención medica
                 </p>

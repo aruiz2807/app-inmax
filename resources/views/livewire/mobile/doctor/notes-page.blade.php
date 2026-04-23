@@ -162,7 +162,7 @@
                             <div class="flex-1">
                                 <x-ui.text class="font-bold text-sm">{{ $prescription->medication->name }}</x-ui.text>
                                 <x-ui.text class="text-xs text-gray-600">
-                                    {{ $prescription->quantity }} {{ $prescription->medication->packaging }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                                    {{ $prescription->quantity }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
                                 </x-ui.text>
                             </div>
                             <x-ui.button wire:click="deletePrescription({{ $prescription->id }})" icon="trash" variant="danger" size="sm" class="ml-2" />
