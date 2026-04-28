@@ -249,7 +249,7 @@
 
         <table class="footer-table">
             <tr>
-                <td class="footer-left">INMAX</td>
+                <td class="footer-left"></td>
                 <td class="footer-right">
                     TEL: 3313666626<br>
                     DIR: Torre Médica <br>
