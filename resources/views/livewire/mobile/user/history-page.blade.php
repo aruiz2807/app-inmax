@@ -25,7 +25,7 @@
                     @endif
 
                     @foreach($upcomingAppointments as $upcoming)
-                    <div class="flex flex-col p-2 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="flex flex-col p-2 mb-6 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
 
                         <div class="flex mt-4 mb-4 mx-auto w-fit">
                             <div class="bg-[#FFFFFF] rounded-xl text-white mr-4">
@@ -86,7 +86,7 @@
                     @endif
 
                     @foreach($pastAppointments as $past)
-                    <div class="flex flex-col p-2 mb-4 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="flex flex-col p-2 mb-6 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
 
                         <div class="flex justify-center">
                             <x-ui.badge :icon="$past->status_icon" variant="outline" :color="$past->status_color" pill>{{$past->formatted_status}}</x-ui.badge>

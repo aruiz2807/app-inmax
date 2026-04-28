@@ -3,6 +3,7 @@
 namespace App\Services\Policies;
 
 use App\Models\PlanBenefit;
+use App\Models\PlanCoverage;
 use App\Models\Policy;
 use App\Models\PolicyService;
 use App\Models\User;
@@ -66,16 +67,31 @@ class IndividualPolicyRegistrationService
             ]);
 
             if (! $payload['adding_member']) {
+                $coverages = PlanCoverage::query()
+                    ->where('plan_id', $payload['plan_id'])
+                    ->get();
+
+                foreach ($coverages as $coverage) {
+                    PolicyService::query()->create([
+                        'policy_id' => $policy->id,
+                        'service_id' => $coverage->service_id,
+                        'doctor_service_id' => null,
+                        'doctor_coupon_id' => null,
+                        'included' => $coverage->events ?? 0,
+                    ]);
+                }
+
                 $benefits = PlanBenefit::query()
                     ->where('plan_id', $payload['plan_id'])
-                    ->orderBy('service_id')
                     ->get();
 
                 foreach ($benefits as $benefit) {
                     PolicyService::query()->create([
                         'policy_id' => $policy->id,
-                        'service_id' => $benefit->service_id,
-                        'included' => $benefit->events,
+                        'service_id' => null,
+                        'doctor_service_id' => $benefit->doctor_service_id,
+                        'doctor_coupon_id' => $benefit->doctor_coupon_id,
+                        'included' => $benefit->events ?? 0,
                     ]);
                 }
             }

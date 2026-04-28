@@ -219,6 +219,26 @@
             <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
         </x-ui.heading>
 
+        @if($hasCouponAvailable)
+        <div class="flex items-center justify-between p-4 bg-teal-50 rounded-xl border border-teal-100 mb-4">
+            <div class="flex items-center gap-3">
+                <x-ui.icon name="ticket" class="w-6 h-6 text-teal-600" />
+                <div>
+                    <p class="font-bold text-teal-900">Cupón disponible</p>
+                    <p class="text-xs text-teal-700">
+                        {{ $availableCouponBenefit->doctorCoupon->coupon->name }}
+                        @if($availableCouponBenefit->doctorCoupon->coupon->type === 'Amount')
+                            (${{ number_format($availableCouponBenefit->doctorCoupon->coupon->value, 2) }})
+                        @else
+                            ({{ $availableCouponBenefit->doctorCoupon->coupon->value }}%)
+                        @endif
+                    </p>
+                </div>
+            </div>
+            <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
+        </div>
+        @endif
+
         <x-ui.field>
             <x-ui.label>Monto total de la cuenta</x-ui.label>
             <x-ui.input
@@ -229,6 +249,15 @@
                 <x-slot name="prefix">$</x-slot>
             </x-ui.input>
         </x-ui.field>
+
+        @if($couponDiscountValue > 0)
+        <x-ui.field class="mt-2">
+            <x-ui.label>Descuento por cupón</x-ui.label>
+            <x-ui.alerts variant="success" icon="ticket">
+                <x-ui.alerts.heading>-{{$couponDiscountValue}}</x-ui.alerts.heading>
+            </x-ui.alerts>
+        </x-ui.field>
+        @endif
 
         <x-ui.field class="mt-2">
             <x-ui.label>Cobro al paciente (Pago miembro)</x-ui.label>

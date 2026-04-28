@@ -14,6 +14,9 @@ use App\Livewire\Appointments\AppointmentsPage;
 use App\Livewire\Auth\ForgotPinPage;
 use App\Livewire\Auth\PinSetupPage;
 
+// Livewire - Coupons
+use App\Livewire\Coupons\CouponsPage;
+
 // Livewire - Doctors
 use App\Livewire\Doctors\DoctorsPage;
 
@@ -113,7 +116,15 @@ Route::middleware([
 
     Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
 
+        Route::get('/appointments', AppointmentsPage::class)->name('appointments');
+
+        Route::get('/coupons', CouponsPage::class)->name('coupons');
+        
         Route::get('/doctors', DoctorsPage::class)->name('doctors');
+
+        Route::get('/medications', MedicationsPage::class)->name('medications');
+
+        Route::get('/offices', OfficesPage::class)->name('offices');
 
         Route::get('/plans', PlansPage::class)->name('plans');
 
@@ -121,13 +132,7 @@ Route::middleware([
 
         Route::get('/policies', PoliciesPage::class)->name('policies');
 
-        Route::get('/appointments', AppointmentsPage::class)->name('appointments');
-
-        Route::get('/offices', OfficesPage::class)->name('offices');
-
         Route::get('/services', ServicesPage::class)->name('services');
-
-        Route::get('/medications', MedicationsPage::class)->name('medications');
 
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
 

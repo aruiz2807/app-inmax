@@ -6,7 +6,7 @@ use App\Models\Parameter;
 use App\Models\Service;
 use Illuminate\Database\Seeder;
 
-class ParameterDiscountMedicationsSeeder extends Seeder
+class ParameterPrimaryCareSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -14,16 +14,16 @@ class ParameterDiscountMedicationsSeeder extends Seeder
     public function run(): void
     {
         $service = Service::updateOrCreate(
-            ['name' => 'Surtido de medicamentos'],
+            ['name' => 'Consulta medico general'],
             [
                 'type' => 'Event',
             ]
         );
 
         Parameter::updateOrCreate(
-            ['type' => 'CP', 'key' => 'Medicamentos'],
+            ['type' => 'MG', 'key' => 'Consulta'],
             [
-                'description' => 'Cupon descuento de medicamentos',
+                'description' => 'Consulta medico general',
                 'value' => $service->id,
             ]
         );

@@ -30,6 +30,12 @@ class DRNotesPage extends Component
     public $total;
     public $user;
 
+    // Coupon logic
+    public bool $useCoupon = false;
+    public bool $hasCouponAvailable = false;
+    public $availableCouponBenefit = null;
+    public float $couponDiscountValue = 0;
+
     // Medication selection
     public $medications = [];
     public $prescriptions = [];
@@ -48,7 +54,7 @@ class DRNotesPage extends Component
     public function mount($appointment)
     {
         $this->user = Auth::user();
-        $this->appointment = Appointment::findOrFail($appointment);
+        $this->appointment = Appointment::with(['user.policy', 'doctor'])->findOrFail($appointment);
         $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
         $this->form->isDoctor = $this->user->doctor->type === DoctorType::Doctor;
 
@@ -60,6 +66,7 @@ class DRNotesPage extends Component
 
         $this->loadMedications();
         $this->loadPrescriptions();
+        $this->checkCouponAvailability();
     }
 
     public function loadMedications()
@@ -72,6 +79,38 @@ class DRNotesPage extends Component
         $this->prescriptions = AppointmentPrescription::with('medication')
             ->where('appointment_id', $this->appointment->id)
             ->get();
+    }
+
+    public function checkCouponAvailability()
+    {
+        $this->hasCouponAvailable = false;
+        $this->availableCouponBenefit = null;
+
+        $policy = $this->appointment->user->policy;
+        if (!$policy) return;
+
+        $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
+        $doctorId = $this->user->doctor->id;
+        $serviceIds = $this->services->pluck('service_id')->toArray();
+
+        // Search for an available coupon for this doctor and the services in the appointment
+        $this->availableCouponBenefit = PolicyService::with('doctorCoupon.coupon')
+            ->where('policy_id', $policyId)
+            ->whereNotNull('doctor_coupon_id')
+            ->whereColumn('used', '<', 'included')
+            ->whereHas('doctorCoupon', function ($q) use ($doctorId, $serviceIds) {
+                $q->where('doctor_id', $doctorId)
+                  ->whereHas('coupon', function ($q2) use ($serviceIds) {
+                      // Universal coupon (no service_id) or specific to one of the appointment services
+                      $q2->whereNull('service_id')
+                         ->orWhereIn('service_id', $serviceIds);
+                  });
+            })
+            ->first();
+
+        if ($this->availableCouponBenefit) {
+            $this->hasCouponAvailable = true;
+        }
     }
 
     public function addMedication()
@@ -111,24 +150,53 @@ class DRNotesPage extends Component
 
     public function updatedSubtotal($value)
     {
-        $subtotal = floatval(str_replace(',', '', $value));
+        $this->calculateTotals();
+    }
 
-        if($this->appointment->doctor)
-        {
-            $doc_discount = $this->appointment->doctor->discount/100;
-            $doc_commision = $this->appointment->doctor->commission/100;
-        }
-        else
-        {
-            $doc_discount = $this->user->doctor->discount/100;
-            $doc_commision = $this->user->doctor->commission/100;
+    public function updatedUseCoupon($value)
+    {
+        $this->calculateTotals();
+    }
+
+    private function calculateTotals()
+    {
+        $subtotal = floatval(str_replace(',', '', $this->subtotal));
+        
+        $doctor = $this->appointment->doctor ?: $this->user->doctor;
+        $doc_discount = $doctor->discount / 100;
+        $doc_commision = $doctor->commission / 100;
+
+        // By default, the patient discount is calculated based on the doctor's profile discount
+        $memberDiscount = round($subtotal * $doc_discount, 2);
+        
+        $this->couponDiscountValue = 0;
+        if ($this->useCoupon && $this->availableCouponBenefit) {
+            $coupon = $this->availableCouponBenefit->doctorCoupon->coupon;
+            if ($coupon->type === 'Amount') {
+                $this->couponDiscountValue = (float) $coupon->value;
+            } elseif ($coupon->type === 'Percentage') {
+                $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
+            }
         }
 
-        $discount = round($subtotal * $doc_discount, 2);
-        $this->user_payment = number_format($subtotal - $discount, 2);
+        // If a coupon is used, it completely overrides the standard member discount for the user payment calculation
+        if ($this->useCoupon) {
+            $effectiveSubtotal = max(0, $subtotal - $this->couponDiscountValue);
+        } else {
+            $effectiveSubtotal = max(0, $subtotal - $memberDiscount);
+        }
+        
+        $this->user_payment = number_format($effectiveSubtotal, 2);
+        
+        // The commission Inmax charges the doctor is usually based on the full subtotal
         $this->commision = number_format($subtotal * $doc_commision, 2);
-        $this->total = number_format($subtotal - $discount - floatval(str_replace(',', '', $this->commision)), 2);
-
+        
+        // Total for the doctor: Subtotal - Platform Commission - Coupon (or member discount) 
+        if ($this->useCoupon) {
+            $this->total = number_format($subtotal - $this->couponDiscountValue - floatval(str_replace(',', '', $this->commision)), 2);
+        } else {
+            $this->total = number_format($subtotal - $memberDiscount - floatval(str_replace(',', '', $this->commision)), 2);
+        }
     }
 
     public function confirmNotes()
@@ -140,6 +208,7 @@ class DRNotesPage extends Component
         catch (ValidationException $e)
         {
             $this->setErrorBag($e->validator->errors());
+            return;
         }
 
         //reedem the corresponding cupon and mark the appointment as 'completed'
@@ -157,6 +226,7 @@ class DRNotesPage extends Component
     {
         $policy = $this->appointment->user->policy;
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
+        $doctorId = $this->user->doctor->id;
 
         foreach($this->services as $service)
         {
@@ -165,14 +235,23 @@ class DRNotesPage extends Component
                 continue;
             }
 
-            $benefit = PolicyService::where([
-                ['policy_id', $policyId],
-                ['service_id', $service->service_id],
-            ])->first();
+            $serviceId = $service->service_id;
+
+            // Search for a benefit that covers this service (excluding coupons)
+            $benefit = PolicyService::where('policy_id', $policyId)
+                ->where(function ($query) use ($serviceId, $doctorId) {
+                    $query->where('service_id', $serviceId)
+                          ->orWhereHas('doctorService', function ($q) use ($serviceId, $doctorId) {
+                              $q->where('doctor_id', $doctorId)
+                                ->where('service_id', $serviceId);
+                          });
+                })
+                ->orderByRaw('used < included DESC') // Prioritize ones with remaining space
+                ->first();
 
             if($benefit)
             {
-                if($service->covered)
+                if($benefit->used < $benefit->included)
                 {
                     $benefit->increment('used');
                 }
@@ -183,11 +262,20 @@ class DRNotesPage extends Component
             }
         }
 
+        // Redeem coupon if used
+        if ($this->useCoupon && $this->availableCouponBenefit) {
+            $this->availableCouponBenefit->increment('used');
+        }
+
         $this->subtotal = str_replace(',', '', $this->subtotal);
 
         $this->appointment->update([
             'subtotal' => $this->subtotal ?: '0.00',
-            'doctor_id' => $this->user->doctor->id,
+            'coupon_discount' => $this->couponDiscountValue ?: '0.00',
+            'user_payment' => str_replace(',', '', $this->user_payment) ?: '0.00',
+            'commission' => str_replace(',', '', $this->commision) ?: '0.00',
+            'total' => str_replace(',', '', $this->total) ?: '0.00',
+            'doctor_id' => $doctorId,
             'status' => \App\Enums\AppointmentStatus::COMPLETED,
         ]);
 

@@ -13,6 +13,7 @@ use App\Models\PolicyService;
 use App\Services\Appointments\AppointmentRequestNotificationService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -34,8 +35,6 @@ class AppointmentFormPage extends Component
     public $doctors;
     public $policies;
     public $offices;
-    public $services;
-    public $servicesData = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -55,7 +54,7 @@ class AppointmentFormPage extends Component
         else
         {
             $this->selectedDate = $this->availableDates[0]['id'];
-            $this->selectedTime = $this->availableHours[0]['id'];
+            $this->selectedTime = $this->availableHours[0]['id'] ?? null;
         }
     }
 
@@ -67,39 +66,11 @@ class AppointmentFormPage extends Component
     public function updatedSelectedDoctor($value)
     {
         $this->reset([
-            'services',
             'selectedServices',
-            'servicesData',
         ]);
 
         $this->doctor = Doctor::find($value);
-        $this->offices = $this->doctor->offices;
-        $this->services = $this->doctor->specialty->services;
-    }
-
-    public function updatedSelectedServices($value)
-    {
-        $policyId = $this->user->policy->type === 'Member' ? $this->user->policy->parent_policy_id : $this->user->policy->id;
-        $includedServices = PolicyService::query()
-            ->where('policy_id', $policyId)
-            ->whereColumn('used', '<', 'included')
-            ->pluck('service_id')
-            ->toArray();
-
-        $services = Service::whereIn('id', $this->selectedServices)
-            ->get()
-            ->keyBy('id');
-
-        $this->servicesData = collect($this->selectedServices)->map(function ($serviceId) use ($services, $includedServices)
-        {
-            $service = $services->get($serviceId);
-
-            return [
-                'id' => $serviceId,
-                'name' => $service?->name,
-                'included' => in_array($serviceId, $includedServices),
-            ];
-        })->values()->toArray();
+        $this->offices = $this->doctor?->offices ?? collect();
     }
 
     public function clear()
@@ -111,16 +82,22 @@ class AppointmentFormPage extends Component
             'selectedServices',
             'selectedDate',
             'selectedTime',
-            'servicesData',
             'offices',
         ]);
 
         $this->selectedDate = $this->availableDates[0]['id'];
-        $this->selectedTime = $this->availableHours[0]['id'];
+        $this->selectedTime = $this->availableHours[0]['id'] ?? null;
     }
 
     public function schedule(AppointmentRequestNotificationService $appointmentNotificationService)
     {
+        $this->validate([
+            'selectedServices' => 'required|array|min:1',
+        ], [
+            'selectedServices.required' => 'Debe seleccionar al menos un servicio.',
+            'selectedServices.min' => 'Debe seleccionar al menos un servicio.',
+        ]);
+
         $notificationResult = null;
 
         if($this->appointment)
@@ -205,52 +182,58 @@ class AppointmentFormPage extends Component
         $this->selectedDate = $this->appointment->date->format('Y-m-d');
         $this->selectedTime = $this->appointment->time->format('H:i');
 
-        $this->selectedServices = $appointmentServices->pluck('id')->toArray();
-        $this->servicesData = $appointmentServices->map(fn ($appointmentService) => [
-            'id' => $appointmentService->service_id,
-            'name' => $appointmentService->service->name,
-            'included' => $appointmentService->covered,
-        ])->values()->toArray();
-        $this->services = Service::whereIn('id', $this->selectedServices)
-            ->get()
-            ->keyBy('id');
+        $this->selectedServices = $appointmentServices->pluck('service_id')->toArray();
     }
 
-    public function getServicesProperty()
+    #[Computed]
+    public function services()
     {
         if (!$this->selectedDoctor) {
             return collect();
         }
 
-        return Doctor::with('specialty.services')
-            ->find($this->selectedDoctor)?->specialty?->services ?? collect();
+        return Doctor::with('doctorServices.service')
+            ->find($this->selectedDoctor)
+            ?->doctorServices
+            ->map(fn($ds) => $ds->service)
+            ->filter()
+            ->values() ?? collect();
     }
 
-    public function getServicesDataProperty()
+    #[Computed]
+    public function servicesData()
     {
-        if (!$this->selectedUser || !$this->selectedServices) {
+        if (!$this->selectedUser || !$this->selectedServices || empty($this->selectedServices)) {
             return [];
         }
 
         $user = User::with('policy')->find($this->selectedUser);
+        if (!$user?->policy) return [];
 
         $policyId = $user->policy->type === 'Member'
             ? $user->policy->parent_policy_id
             : $user->policy->id;
 
-        $included = PolicyService::where('policy_id', $policyId)
-            ->whereColumn('used', '<', 'included')
-            ->pluck('service_id')
-            ->toArray();
+        $services = Service::whereIn('id', $this->selectedServices)->get();
 
-        $services = Service::whereIn('id', $this->selectedServices)
-            ->get();
+        return $services->map(function ($service) use ($policyId) {
+            $isCovered = PolicyService::where('policy_id', $policyId)
+                ->whereColumn('used', '<', 'included')
+                ->where(function ($query) use ($service) {
+                    $query->where('service_id', $service->id)
+                          ->orWhereHas('doctorService', function ($q) use ($service) {
+                              $q->where('doctor_id', $this->selectedDoctor)
+                                ->where('service_id', $service->id);
+                          });
+                })
+                ->exists();
 
-        return $services->map(fn ($service) => [
-            'id' => $service->id,
-            'name' => $service->name,
-            'included' => in_array($service->id, $included)
-        ])->toArray();
+            return [
+                'id' => $service->id,
+                'name' => $service->name,
+                'included' => $isCovered,
+            ];
+        })->toArray();
     }
 
     public function getAvailableDatesProperty()

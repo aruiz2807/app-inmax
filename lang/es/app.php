@@ -11,7 +11,7 @@ return [
     'policy' => 'Membresía',
     'user' => 'Miembro',
 
-
+    'coupons' => 'Cupones',
     'settings' => 'Configuraciones',
     'services' => 'Servicios',
     'specialties' => 'Especialidades',

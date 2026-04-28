@@ -14,7 +14,8 @@ class PlanBenefit extends Model
      */
     protected $fillable = [
         'plan_id',
-        'service_id',
+        'doctor_service_id',
+        'doctor_coupon_id',
         'events',
         'amount',
     ];
@@ -28,10 +29,18 @@ class PlanBenefit extends Model
     }
 
     /**
-     * Each benefit can have or be one kind of service.
+     * Each benefit can belong to a doctor service.
      */
-    public function service(): BelongsTo
+    public function doctorService(): BelongsTo
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(DoctorService::class);
+    }
+
+    /**
+     * Each benefit can belong to a doctor coupon.
+     */
+    public function doctorCoupon(): BelongsTo
+    {
+        return $this->belongsTo(DoctorCoupon::class);
     }
 }
