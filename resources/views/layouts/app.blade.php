@@ -19,6 +19,7 @@
 
         <!-- Styles -->
         @livewireStyles
+        @livewireChartsScripts
     </head>
 
     <body class="font-sans antialiased text-neutral-900 bg-neutral-50 dark:text-neutral-50 dark:bg-neutral-950">
@@ -131,6 +132,14 @@
                                 :label="__('app.offices')"
                                 href="{{ route('offices') }}"
                                 :active="request()->routeIs('offices')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
+                                icon="ticket"
+                                :label="__('app.coupons')"
+                                href="{{ route('coupons') }}"
+                                :active="request()->routeIs('coupons')"
                                 x-on:click="closeSidebar()"
                             />
 

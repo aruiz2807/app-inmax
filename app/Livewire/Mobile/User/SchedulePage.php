@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\Office;
+use App\Models\Parameter;
 use App\Models\PolicyService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,7 @@ class SchedulePage extends Component
     public $isIncluded;
     public $user;
     public $offices;
+    public ?int $mgServiceId = null;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -43,15 +45,27 @@ class SchedulePage extends Component
             $policy_id  = $this->user->policy->id;
         }
 
-        $this->isIncluded = PolicyService::query()
-            ->where('policy_id', $policy_id)
-            ->where('service_id', 1) //consulta medico general, revisar como no pasar hardcodeado
-            ->whereColumn('used', '<', 'included')
-            ->exists();
+        // Fetch Consulta Medico General param
+        $param = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
+
+        if ($param && !empty($param->value)) 
+        {
+            $this->mgServiceId = (int) $param->value;
+        }
+
+        $this->isIncluded = false;
+
+        if ($this->mgServiceId) {
+            $this->isIncluded = PolicyService::query()
+                ->where('policy_id', $policy_id)
+                ->where('service_id', $this->mgServiceId)  
+                ->whereColumn('used', '<', 'included')
+                ->exists();
+        }
 
         $this->selectedOffice = 1;
         $this->selectedDate = $this->availableDates[0]['id'];
-        $this->selectedTime = $this->availableHours[0]['id'];
+        $this->selectedTime = $this->availableHours[0]['id'] ?? null;
     }
 
     public function getAvailableOfficesProperty()
@@ -142,11 +156,13 @@ class SchedulePage extends Component
             'status' => \App\Enums\AppointmentStatus::BOOKED,
         ]);
 
-        AppointmentService::create([
-            'appointment_id' => $appointment->id,
-            'service_id' => 1, //revisar como no pasar hardcodeado
-            'covered' => $this->isIncluded,
-        ]);
+        if ($this->mgServiceId) {
+            AppointmentService::create([
+                'appointment_id' => $appointment->id,
+                'service_id' => $this->mgServiceId,
+                'covered' => $this->isIncluded,
+            ]);
+        }
 
         session()->flash('appointment_confirmation_id', $appointment->id);
 

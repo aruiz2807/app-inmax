@@ -1,263 +1,244 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Receta Medica</title>
-    <style>
-        @page {
-            size: letter;
-            margin: 14mm;
-        }
+<meta charset="utf-8">
+<title>Receta {{ $note->folio ?? $note->id }}</title>
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     OPTIMIZED FOR DOMPDF
+     ───────────────────────────────────────────────────────────── */
+  @page { 
+    margin: 14mm 12mm; 
+    size: letter portrait;
+  }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            color: #111111;
-        }
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0; padding: 0;
+    font-family: 'DejaVu Sans', sans-serif;
+    color: #0F1F38;
+    font-size: 10pt;
+    line-height: 1.4;
+    background: #FFFFFF;
+  }
 
-        .sheet {
-            width: 100%;
-        }
+  /* Force page breaks to avoid cutting medication cards in half */
+  .med-container { page-break-inside: avoid; }
 
-        .line {
-            border-top: 2px solid #000000;
-            height: 0;
-        }
+  table.layout { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  table.layout td { vertical-align: top; padding: 0; }
 
-        .space-10 { margin-top: 10px; }
-        .space-12 { margin-top: 12px; }
-        .space-16 { margin-top: 16px; }
-        .space-20 { margin-top: 20px; }
-        .space-28 { margin-top: 28px; }
+  .sheet {
+    border: 1px solid #E5E9F2;
+    border-radius: 12px;
+    background: #FFFFFF;
+    min-height: auto;
+  }
 
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
+  /* === HEADER === */
+  .header {
+    background-color: #1B365D;
+    color: #FFFFFF;
+    padding: 16px 22px;
+    border-bottom: 3px solid #4FD1C5;
+  }
+  .brand-name { font-size: 20pt; font-weight: bold; color: #FFFFFF; }
+  .folio-label { font-size: 7pt; text-transform: uppercase; color: #4FD1C5; font-weight: bold; }
+  .folio-num { font-size: 16pt; font-weight: bold; color: #FFFFFF; }
 
-        .header-table td {
-            vertical-align: top;
-        }
+  /* === DOCTOR + PATIENT CARD === */
+  .meta-card {
+    margin: 15px 22px 0 22px;
+    background: #FFFFFF;
+    border: 1px solid #E5E9F2;
+    border-radius: 10px;
+    padding: 12px 15px;
+    /* dompdf handles box-shadow poorly, using border instead */
+  }
+  .meta-label { color: #6B7689; font-size: 7pt; text-transform: uppercase; font-weight: bold; }
+  .meta-name  { color: #1B365D; font-size: 11pt; font-weight: bold; }
+  .meta-sub   { color: #3D4A63; font-size: 8.5pt; }
+  .meta-pill  {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #F5F7FB;
+    border-radius: 4px;
+    font-size: 7.5pt;
+    color: #3D4A63;
+  }
 
-        .header-logo {
-            width: 28%;
-        }
+  /* === SECTIONS === */
+  .section { padding: 0 22px; margin-top: 15px; }
+  .eyebrow { font-size: 7.5pt; text-transform: uppercase; color: #6B7689; font-weight: bold; border-bottom: 1px solid #E5E9F2; padding-bottom: 3px; margin-bottom: 8px; }
 
-        .header-center {
-            width: 52%;
-            text-align: center;
-            line-height: 1.35;
-        }
+  /* === MEDICATION CARDS === */
+  .med-table {
+    width: 100%;
+    margin-bottom: 8px;
+    border: 1px solid #E5E9F2;
+    border-radius: 10px;
+  }
+  .med-row td { padding: 10px; }
+  .med-idx {
+    width: 24px;
+    height: 24px;
+    line-height: 24px; 
+    background: #1B365D;
+    color: #FFFFFF;
+    border-radius: 5px;
+    margin: 0 auto; /* Keeps it centered horizontally within the TD */
+  }
+  
+  .med-title { color: #1B365D; font-weight: bold; font-size: 10.5pt; }
+  .med-details { color: #6B7689; font-size: 8.5pt; margin-top: 2px; }
+  .v-teal { color: #2C9A95; font-weight: bold; }
 
-        .header-right {
-            width: 20%;
-        }
+  .route-tag {
+    background: #E6F8F6;
+    color: #2C9A95;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 7pt;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .signature-block {
+    margin: 40px 22px 0 22px;
+    text-align: center;
+    page-break-inside: avoid;
+  }
 
-        .logo {
-            width: 145px;
-            height: auto;
-        }
+  .signature-line {
+    width: 260px;
+    margin: 0 auto;
+    border-top: 1px solid #0F1F38;
+    height: 1px;
+  }
 
-        .doctor-name {
-            font-size: 15px;
-            font-weight: 700;
-        }
+  .signature-name {
+    margin-top: 6px;
+    font-size: 9pt;
+    font-weight: bold;
+    color: #1B365D;
+  }
 
-        .doctor-sub {
-            font-size: 11px;
-            font-weight: 600;
-        }
+  .signature-meta {
+    font-size: 8pt;
+    color: #6B7689;
+  }
 
-        .doctor-text {
-            font-size: 10px;
-        }
-
-        .patient-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            border: 1px solid #000000;
-        }
-
-        .patient-table td {
-            width: 33.33%;
-            border-right: 1px solid #cccccc;
-            padding: 7px 10px;
-            vertical-align: top;
-            word-break: break-word;
-        }
-
-        .patient-table td:last-child {
-            border-right: 0;
-        }
-
-        .label {
-            font-weight: 700;
-        }
-
-        .block-title {
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .product-row {
-            border: 1px solid #000000;
-            padding: 8px 10px;
-            font-weight: 700;
-            line-height: 1.35;
-            margin-bottom: 8px;
-            word-break: break-word;
-            page-break-inside: avoid;
-        }
-
-        .text-block {
-            margin-top: 12px;
-            page-break-inside: avoid;
-        }
-
-        .text-title {
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .state {
-            border: 1px solid #000000;
-            padding: 2px 8px;
-            font-size: 9px;
-            font-weight: 700;
-            display: inline-block;
-            margin-left: 8px;
-        }
-
-        .text-content {
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        .signature {
-            margin-top: 42px;
-            text-align: center;
-            page-break-inside: avoid;
-        }
-
-        .signature-line {
-            width: 210px;
-            margin: 0 auto;
-            border-top: 2px solid #000000;
-            height: 0;
-        }
-
-        .signature-label {
-            margin-top: 6px;
-            font-weight: 700;
-        }
-
-        .footer-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            margin-top: 24px;
-        }
-
-        .footer-left {
-            width: 20%;
-            font-size: 22px;
-            font-weight: 800;
-            color: #0C385A;
-        }
-
-        .footer-right {
-            width: 80%;
-            text-align: right;
-            color: #0C385A;
-            font-size: 10px;
-            font-weight: 600;
-            line-height: 1.45;
-            word-break: break-word;
-        }
-    </style>
+  /* === FOOTER === */
+  .footer {
+    osition: static;
+    margin-top: 20px;
+    
+    background: #F8FAFC;
+    border-top: 1px solid #E5E9F2;
+    padding: 15px 22px;
+    color: #6B7689;
+    font-size: 7.5pt;
+  }
+</style>
 </head>
 <body>
-    <div class="sheet">
-        <div class="line"></div>
 
-        <table class="header-table space-12">
-            <tr>
-                <td class="header-logo">
-                    <img class="logo" src="{{ public_path('/img/LogoINMAXSUP.png') }}" alt="Logo">
-                </td>
-                <td class="header-center">
-                    <div class="doctor-name">{{$note->appointment->doctor->user->name}}</div>
-                    <div class="doctor-sub">{{$note->appointment->doctor->specialty->name}}</div>
-                    <div class="doctor-sub">CEDULA PROFESIONAL: {{$note->appointment->doctor->license}}</div>
-                    <div class="doctor-text">{{$note->appointment->doctor->university}}</div>
-                    <div class="doctor-sub space-10"></div>
-                    <div class="doctor-text">{{$note->appointment->doctor->address}}</div>
-                    <div class="doctor-sub">TEL. {{$note->appointment->doctor->user->phone}}</div>
-                </td>
-                <td class="header-right"></td>
-            </tr>
-        </table>
+<div class="sheet">
+  <div class="header">
+    <table class="layout">
+      <tr>
+        <td><span class="brand-name">INMAX</span></td>
+        <td style="text-align:right;">
+          <div class="folio-label">Folio de Receta</div>
+          <div class="folio-num">#{{ str_pad($note->folio ?? $note->id, 5, '0', STR_PAD_LEFT) }}</div>
+          <div class="folio-label">Fecha: {{ $note->created_at->format('d/m/Y') }}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
 
-        <div class="line space-10"></div>
+  <div class="meta-card">
+    <table class="layout">
+      <tr>
+        <td style="width: 50%; border-right: 1px solid #E5E9F2; padding-right: 15px;">
+          <div class="meta-label">Médico</div>
+          <div class="meta-name">{{ $note->appointment->doctor->user->name }}</div>
+          <div class="meta-sub">{{ $note->appointment->doctor->university }}</div>
+          <div class="meta-sub">Cedula: {{ $note->appointment->doctor->license }}</div>
+        </td>
+        <td style="width: 50%; padding-left: 15px;">
+          <div class="meta-label">Paciente</div>
+          <div class="meta-name">{{ $note->appointment->user->name }}</div>
+          <div class="meta-sub">{{ $note->appointment->user->age }} años</div>
+        </td>
+      </tr>
+    </table>
+  </div>
 
-        <table class="patient-table space-16">
-            <tr>
-                <td><span class="label">Folio:</span> <br>{{$note->id}}</td>
-                <td><span class="label">Fecha:</span> <br>{{$note->created_at}}</td>
-                <td><span class="label">Nombre:</span> <br>{{$note->appointment->user->name}}</td>
-                <td><span class="label">Edad:</span> <br>{{$note->appointment->user->age}}</td>
-            </tr>
-        </table>
-
-        <div class="space-16">
-            <div class="block-title">Diagnostico:</div>
-            <div class="product-row">{!!nl2br(e($note->diagnosis))!!}</div>
-        </div>
-
-        <div class="space-16">
-            <div class="block-title">Tratamiento / Receta:</div>
-            @if($note->appointment->prescriptions && count($note->appointment->prescriptions) > 0)
-                @foreach($note->appointment->prescriptions as $prescription)
-                    <div class="product-row" style="margin-bottom: 5px; font-weight: normal;">
-                        <strong>{{ $prescription->medication->name }}</strong> ({{ $prescription->medication->trade_name }})<br>
-                        Cantidad: {{ $prescription->quantity }} {{ $prescription->medication->packaging }}<br>
-                        Dosis: {{ $prescription->dose }} • Frecuencia: {{ $prescription->frequency }} • Duración: {{ $prescription->duration }}
-                    </div>
-                @endforeach
-            @endif
-
-            @if($note->treatment)
-                <div class="product-row" style="font-weight: normal;">{!!nl2br(e($note->treatment))!!}</div>
-            @endif
-        </div>
-
-        <div class="text-block">
-            <div class="text-title">Notas:</div>
-            <div class="text-content">{!!nl2br(e($note->notes))!!}</div>
-        </div>
-
-        <div class="signature">
-            <div class="signature-line"></div>
-            <div class="signature-label">Firma</div>
-        </div>
-
-        <table class="footer-table">
-            <tr>
-                <td class="footer-left"></td>
-                <td class="footer-right">
-                    TEL: 3313666626<br>
-                    DIR: Torre Médica <br>
-                    Av. Plan de San Luis #1831 Col. San Bernardo, C.P. 44260<br>
-                    EMAIL: contacto@inmax-sure.com<br>
-                </td>
-            </tr>
-        </table>
+  <div class="section">
+    <div class="eyebrow">Diagnóstico</div>
+    <div style="font-weight: bold; color: #1B365D;">
+      {{ $note->diagnosis }} 
+      @if($note->diagnosis_code) <small style="color: #6B7689; font-weight: normal;">({{ $note->diagnosis_code }})</small> @endif
     </div>
+  </div>
+
+  <div class="section">
+    <div class="eyebrow">Tratamiento</div>
+    @foreach ($note->appointment->prescriptions as $i => $med)
+      <div class="med-container">
+        <table class="med-table">
+          <tr class="med-row">            
+            <td>
+              <div class="med-title">{{ $med->medication->name }} ({{ $med->medication->active_substance }})</div>
+              <div class="med-details">
+                Tomar <span class="v-teal">{{ $med->quantity }} {{ $med->dose }}</span> cada <span class="v-teal"> {{ $med->frequency }}</span> durante <span class="v-teal">{{ $med->duration }}</span>.
+              </div>
+            </td>
+            <td style="width: 100px; text-align: right; vertical-align: middle;">
+              <span class="route-tag">{{ $med->route ?? 'Oral' }}</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    @endforeach
+  </div>
+
+  @if($note->notes)
+  <div class="section">
+    <div class="eyebrow">Indicaciones Adicionales</div>
+    <div style="font-size: 9pt; color: #3D4A63;">{!! nl2br(e($note->notes)) !!}</div>
+  </div>
+  @endif
+
+  <div class="section signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">
+      {{ $note->appointment->doctor->user->name }}
+    </div>
+    <div class="signature-meta">
+      Cédula profesional: {{ $note->appointment->doctor->license }}
+    </div>
+  </div>
+  
+  <div class="footer">
+    <table class="layout">
+      <tr>
+        <td>
+          <strong>INMAX</strong><br>
+          Av. Plan de San Luis #1831, Col. San Bernardo<br>
+          Guadalajara, Jal. CP 44260
+        </td>
+        <td style="text-align: right;">
+          <strong>Contacto</strong><br>
+          +52 33 1366 6626<br>
+          contacto@inmax-sure.mx
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
 </body>
 </html>

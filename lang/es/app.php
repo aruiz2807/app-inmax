@@ -11,11 +11,11 @@ return [
     'policy' => 'Membresía',
     'user' => 'Miembro',
 
-
+    'coupons' => 'Cupones',
     'settings' => 'Configuraciones',
     'services' => 'Servicios',
     'specialties' => 'Especialidades',
-    'plans' => 'Planes',
+    'plans' => 'Beneficios',
     'parameters' => 'Parametros',
     'offices' => 'Consultorios',
     'medications' => 'Medicamentos',

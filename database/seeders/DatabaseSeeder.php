@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
             OfficesSeeder::class,
             SocialMediaParamsSeeder::class,
             WhatsAppSettingSeeder::class,
+            ParameterPrimaryCareSeeder::class,
             ParameterDiscountMedicationsSeeder::class,
             ParameterCouponValueSeeder::class,
             ParameterMembersDiscountSeeder::class,

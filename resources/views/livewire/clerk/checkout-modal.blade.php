@@ -27,19 +27,51 @@
             
             <div class="flex flex-col gap-2">
                 @foreach($prescriptions as $prescription)
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center gap-4">
+                    @php $disabled = $prescription->status === 'Dispensed'; @endphp
+
+                    <div 
+                        class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center gap-4
+                            {{ $disabled ? 'opacity-50 border-gray-300' : 'border-gray-100' }}"
+                        aria-disabled="{{ $disabled ? 'true' : 'false' }}"
+                    >
                         <div class="flex-1">
-                            <x-ui.text class="font-bold text-base">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
+                            <x-ui.text class="font-bold text-base">
+                                {{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})
+                            </x-ui.text>
+
                             <x-ui.text class="text-sm text-gray-600">
                                 {{ $prescription->quantity }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
                             </x-ui.text>
+
+                            @if($disabled)
+                                <x-ui.text class="text-xs text-gray-500 mt-1">
+                                    Surtida
+                                </x-ui.text>
+                            @endif
                         </div>
+
                         <div class="flex items-center gap-4">
                             <div class="w-24">
-                                <x-ui.input type="number" min="0" wire:model.live="deliveryQuantities.{{ $prescription->id }}" />
+                                @if($disabled)
+                                    <x-ui.input 
+                                        type="number" 
+                                        min="0"
+                                        wire:model.live="deliveryQuantities.{{ $prescription->id }}"
+                                        disabled
+                                    />
+                                @else
+                                    <x-ui.input 
+                                        type="number" 
+                                        min="0"
+                                        wire:model.live="deliveryQuantities.{{ $prescription->id }}"
+                                    />
+                                @endif
                             </div>
+
                             <div class="text-right min-w-[5rem]">
-                                <x-ui.text class="font-bold text-lg text-teal-600">${{ number_format(($deliveryQuantities[$prescription->id] ?? 0) * $prescription->medication->price_public, 2) }}</x-ui.text>
+                                <x-ui.text class="font-bold text-lg text-teal-600">
+                                    ${{ number_format(($deliveryQuantities[$prescription->id] ?? 0) * $prescription->medication->price_public, 2) }}
+                                </x-ui.text>
                             </div>
                         </div>
                     </div>

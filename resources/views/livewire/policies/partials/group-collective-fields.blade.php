@@ -1,7 +1,7 @@
 @php($statePath = $statePath ?? 'form')
 @php($readonly = $readonly ?? false)
 
-<x-ui.fieldset label="Información del colectivo">
+<x-ui.fieldset label="Información del grupo">
     <x-ui.field required>
         <x-ui.label>Nombre</x-ui.label>
         @if($readonly)

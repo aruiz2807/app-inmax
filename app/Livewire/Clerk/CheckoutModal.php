@@ -54,18 +54,23 @@ class CheckoutModal extends Component
         $subtotalPublic = 0;
         $subtotalMembers = 0;
 
-        foreach ($this->prescriptions as $prescription) {
+        foreach ($this->prescriptions as $prescription) 
+        {
             $quantity = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
             $subtotalPublic += $quantity * $prescription->medication->price_public;
             $subtotalMembers += $quantity * $prescription->medication->price_members;
         }
 
-        if ($this->useMembersDiscount && $this->isMembershipActive) {
+        if ($this->useMembersDiscount && $this->isMembershipActive) 
+        {
             $total = $subtotalMembers;
-        } else {
+        } 
+        else 
+        {
             $total = $subtotalPublic;
 
-            if ($this->useCoupon && $this->hasCouponAvailable) {
+            if ($this->useCoupon && $this->hasCouponAvailable) 
+            {
                 $total -= $this->couponValue;
             }
         }
@@ -91,8 +96,16 @@ class CheckoutModal extends Component
         $this->prescriptions = $appointment?->prescriptions ?? [];
 
         $this->deliveryQuantities = [];
-        foreach ($this->prescriptions as $prescription) {
-            $this->deliveryQuantities[$prescription->id] = $prescription->quantity;
+        foreach ($this->prescriptions as $prescription) 
+        {
+            if($prescription->status === 'Dispensed')
+            {
+                $this->deliveryQuantities[$prescription->id] = $prescription->delivered_quantity;
+            }
+            else
+            {
+                $this->deliveryQuantities[$prescription->id] = 1;
+            }
         }
 
         $this->checkDiscountsAvailability();
@@ -120,9 +133,13 @@ class CheckoutModal extends Component
 
         // Fetch Coupon Params
         $param = Parameter::where('type', 'CP')->where('key', 'Medicamentos')->first();
-        if ($param && !empty($param->value)) {
+        
+        if ($param && !empty($param->value)) 
+        {
             $valueParam = Parameter::where('type', 'CP')->where('key', 'Valor')->first();
-            if ($valueParam && is_numeric($valueParam->value)) {
+
+            if ($valueParam && is_numeric($valueParam->value)) 
+            {
                 $this->couponValue = (float) $valueParam->value;
             }
 
@@ -134,14 +151,17 @@ class CheckoutModal extends Component
                 ->where('service_id', $param->value)
                 ->first();
 
-            if ($policyService && ($policyService->included - $policyService->used) > 0) {
+            if ($policyService && ($policyService->included - $policyService->used) > 0) 
+            {
                 $this->hasCouponAvailable = true;
             }
         }
 
         // Fetch Members Discount Percentage
         $discountParam = Parameter::where('type', 'DM')->where('key', 'Descuento')->first();
-        if ($discountParam && is_numeric($discountParam->value)) {
+
+        if ($discountParam && is_numeric($discountParam->value)) 
+        {
             $this->membersDiscountPercentage = (float) $discountParam->value;
         }
     }
@@ -159,28 +179,38 @@ class CheckoutModal extends Component
         $totalPrescriptions = count($this->prescriptions);
         $dispensedCount = 0;
 
-        foreach ($this->prescriptions as $prescription) {
+        foreach ($this->prescriptions as $prescription) 
+        {
             $qty = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
             
-            if ($qty > 0) {
+            if ($qty > 0) 
+            {
                 $prescription->update([
                     'status' => 'Dispensed',
                     'delivered_quantity' => $qty,
                 ]);
+
                 $dispensedCount++;
             }
         }
 
-        if ($dispensedCount > 0) {
-            if ($dispensedCount === $totalPrescriptions) {
+        if ($dispensedCount > 0) 
+        {
+            if ($dispensedCount === $totalPrescriptions) 
+            {
                 $appointment->update(['status_prescription' => 'Filled']);
-            } else {
+            } 
+            else 
+            {
                 $appointment->update(['status_prescription' => 'Partial']);
             }
 
-            if ($this->useCoupon && $this->hasCouponAvailable) {
+            if ($this->useCoupon && $this->hasCouponAvailable) 
+            {
                 $param = Parameter::where('type', 'CP')->where('key', 'Medicamentos')->first();
-                if ($param && !empty($param->value)) {
+
+                if ($param && !empty($param->value)) 
+                {
                     $policyId = $this->user->policy->type === 'Member' 
                         ? $this->user->policy->parent_policy_id 
                         : $this->user->policy->id;
@@ -189,7 +219,8 @@ class CheckoutModal extends Component
                         ->where('service_id', $param->value)
                         ->first();
 
-                    if ($policyService) {
+                    if ($policyService) 
+                    {
                         $policyService->increment('used');
                     }
                 }
@@ -202,14 +233,16 @@ class CheckoutModal extends Component
 
         $this->dispatch('close-checkout-modal');
 
-        if ($shouldPrintTicket) {
+        if ($shouldPrintTicket) 
+        {
             $this->dispatch('print-checkout-ticket');
         }
     }
 
     public function print_ticket()
     {
-        if (! $this->appointmentId) {
+        if (! $this->appointmentId) 
+        {
             return;
         }
 
@@ -217,19 +250,22 @@ class CheckoutModal extends Component
             ->with(['user', 'doctor.user', 'prescriptions.medication'])
             ->find($this->appointmentId);
 
-        if (! $appointment) {
+        if (! $appointment) 
+        {
             return;
         }
 
         $rows = collect($appointment->prescriptions)
             ->map(function ($prescription) {
-                if ((string) $prescription->status !== 'Dispensed') {
+                if ((string) $prescription->status !== 'Dispensed') 
+                {
                     return null;
                 }
 
                 $quantity = (int) ($prescription->delivered_quantity ?? 0);
 
-                if ($quantity <= 0) {
+                if ($quantity <= 0) 
+                {
                     return null;
                 }
 
@@ -252,7 +288,8 @@ class CheckoutModal extends Component
             ->filter()
             ->values();
 
-        if ($rows->isEmpty()) {
+        if ($rows->isEmpty()) 
+        {
             return;
         }
 
@@ -262,10 +299,13 @@ class CheckoutModal extends Component
         $discount = 0.0;
         $discountLabel = null;
 
-        if ($this->useMembersDiscount && $this->isMembershipActive) {
+        if ($this->useMembersDiscount && $this->isMembershipActive) 
+        {
             $discount = max(0, $subtotalPublic - $subtotalCharged);
             $discountLabel = 'Precio preferencial';
-        } elseif ($this->useCoupon && $this->hasCouponAvailable) {
+        } 
+        elseif ($this->useCoupon && $this->hasCouponAvailable) 
+        {
             $discount = min((float) $this->couponValue, $subtotalPublic);
             $discountLabel = 'Cupon aplicado';
         }

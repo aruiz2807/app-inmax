@@ -99,6 +99,12 @@ final class PlansTable extends PowerGridComponent
                 ->class('bg-teal-600 text-white px-3 py-1 rounded')
                 ->dispatch('editPlan', ['planId' => $row->id]),
 
+            Button::add('editCoverage')
+                ->slot('Inmax')
+                ->id()
+                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->dispatch('editCoverage', ['planId' => $row->id]),
+
             Button::add('editBenefits')
                 ->slot('Beneficios')
                 ->id()
