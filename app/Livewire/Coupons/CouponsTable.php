@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Livewire\Doctors;
+namespace App\Livewire\Coupons;
 
-use Livewire\Livewire;
-use App\Models\Doctor;
+use App\Models\Coupon;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -14,9 +12,9 @@ use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 
-final class DoctorsTable extends PowerGridComponent
+final class CouponsTable extends PowerGridComponent
 {
-    public string $tableName = 'doctorsTable';
+    public string $tableName = 'couponsTable';
 
     public function setUp(): array
     {
@@ -34,7 +32,7 @@ final class DoctorsTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Doctor::query()->with(['specialty:id,name', 'user:id,name,email,phone']);
+        return Coupon::query();
     }
 
     public function relationSearch(): array
@@ -46,13 +44,11 @@ final class DoctorsTable extends PowerGridComponent
     {
         return PowerGrid::fields()
             ->add('id')
-            ->add('name', fn ($model) => e($model->user->name))
+            ->add('name')
             ->add('type')
-            ->add('type_translated', fn ($model) => e($model->type->label()))
-            ->add('email', fn ($model) => e($model->user->email))
-            ->add('phone', fn ($model) => e($model->user->phone))
-            ->add('specialty', fn ($model) => e($model->specialty->name))
-            ->add('rating_stars', fn ($model) => Blade::render('<livewire:star-rating rate="' . $model->rating . '"/>'))
+            ->add('type_formatted', fn ($model) => $model->type === 'Amount' ? 'Importe' : 'Porcentaje')
+            ->add('value')
+            ->add('status')
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
             ->add('created_at_formatted', function ($model) {
@@ -69,19 +65,11 @@ final class DoctorsTable extends PowerGridComponent
                 ->sortable()
                 ->searchable(),
 
-            Column::make('Tipo', 'type_translated', 'type')
+            Column::make('Tipo', 'type_formatted', 'type')
                 ->sortable(),
 
-            Column::make('Especialidad', 'specialty')
+            Column::make('Valor', 'value')
                 ->sortable(),
-
-            Column::make('Correo', 'email')
-                ->searchable()
-                ->hidden(isHidden: true, isForceHidden: false),
-
-            Column::make('Teléfono', 'phone'),
-
-            Column::make('Rating', 'rating_stars'),
 
             Column::make('Estatus', 'status_toggle', 'status')
                 ->toggleable(),
@@ -100,36 +88,24 @@ final class DoctorsTable extends PowerGridComponent
         ];
     }
 
-    public function actions(Doctor $row): array
+    public function actions(Coupon $row): array
     {
         return [
             Button::add('edit')
                 ->slot('Editar')
                 ->id()
                 ->class('bg-teal-600 text-white px-3 py-1 rounded')
-                ->dispatch('editDoctor', ['doctorId' => $row->id]),
-
-            Button::add('editServices')
-                ->slot('Servicios')
-                ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
-                ->dispatch('editServices', ['doctorId' => $row->id]),
-
-            Button::add('editCoupons')
-                ->slot('Cupones')
-                ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
-                ->dispatch('editCoupons', ['doctorId' => $row->id]),
+                ->dispatch('editCoupon', ['couponId' => $row->id])
         ];
     }
 
     public function onUpdatedToggleable($id, $field, $value): void
     {
-        $doctor = Doctor::find($id);
+        $coupon = Coupon::find($id);
 
         if ($field === 'status_toggle') {
-            $doctor->status = $value ? 'Active' : 'Inactive';
-            $doctor->save();
+            $coupon->status = $value ? 'Active' : 'Inactive';
+            $coupon->save();
         }
     }
 }

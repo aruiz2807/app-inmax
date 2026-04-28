@@ -25,6 +25,10 @@ class Appointment extends Model
         'comments',
         'status',
         'subtotal',
+        'coupon_discount',
+        'user_payment',
+        'commission',
+        'total',
         'status_prescription'
     ];
 

@@ -78,4 +78,5 @@
     </x-ui.modal>
 
     <livewire:plans.plan-benefits-modal />
+    <livewire:plans.plan-coverage-modal />
 </div>

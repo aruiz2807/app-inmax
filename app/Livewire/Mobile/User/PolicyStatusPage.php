@@ -28,24 +28,29 @@ class PolicyStatusPage extends Component
     {
         $user = Auth::user();
 
-        if($user->policy->type === 'Member')
-        {
-            $this->services = PolicyService::where('policy_id', $user->policy->parent_policy_id)->get();
-        }
-        else
-        {
-            $this->services = PolicyService::where('policy_id', $user->policy->id)->get();
-        }
+        $policyId = $user->policy->type === 'Member' 
+            ? $user->policy->parent_policy_id 
+            : $user->policy->id;
 
-        $sum = PolicyService::where('policy_id', $user->policy->id)
+        $this->services = PolicyService::with([
+                'service', 
+                'doctorService.service', 
+                'doctorService.doctor.user', 
+                'doctorCoupon.coupon', 
+                'doctorCoupon.doctor.user'
+            ])
+            ->where('policy_id', $policyId)
+            ->get();
+
+        $sum = PolicyService::where('policy_id', $policyId)
             ->selectRaw('SUM(included) as total_included, SUM(used) as total_used, SUM(extra) as total_extra')
             ->first();
 
         $this->policy_type = $user->policy->type === 'Individual' ? 'Individual' : 'Colectiva';
         $this->icon = $user->policy->type === 'Individual' ? 'user' : 'user-group';
-        $this->total_included = $sum->total_included;
-        $this->total_used = $sum->total_used;
-        $this->total_extra = $sum->total_extra;
+        $this->total_included = $sum->total_included ?? 0;
+        $this->total_used = $sum->total_used ?? 0;
+        $this->total_extra = $sum->total_extra ?? 0;
         $this->percentage = $this->total_included > 0 ? round(($this->total_used / $this->total_included) * 100) : 0;
     }
 }
