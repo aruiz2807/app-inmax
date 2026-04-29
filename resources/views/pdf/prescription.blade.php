@@ -140,6 +140,16 @@
     color: #6B7689;
     font-size: 7.5pt;
   }
+
+  .legal-note {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #E5E9F2;
+    font-size: 6.8pt;
+    line-height: 1.35;
+    color: #7D889A;
+    text-align: justify;
+  }
 </style>
 </head>
 <body>
@@ -223,20 +233,33 @@
   </div>
   
   <div class="footer">
+    @php
+      $appt        = $note->appointment;
+      $officeAddr  = $appt->office?->address;
+      $officePhone = $appt->office?->phone_number;
+      $footerAddr  = $officeAddr ?: $appt->doctor?->address;
+      $footerPhone = $officePhone ?? '';
+    @endphp
     <table class="layout">
       <tr>
         <td>
           <strong>INMAX</strong><br>
-          Av. Plan de San Luis #1831, Col. San Bernardo<br>
-          Guadalajara, Jal. CP 44260
+          @if($footerAddr)
+            {{ $footerAddr }}
+          @endif
         </td>
         <td style="text-align: right;">
           <strong>Contacto</strong><br>
-          +52 33 1366 6626<br>
+          @if($footerPhone)
+            {{ $footerPhone }}<br>
+          @endif
           contacto@inmax-sure.mx
         </td>
       </tr>
     </table>
+    <div class="legal-note">
+      El contenido de este documento es responsabilidad integral del médico o profesional de la salud que expide la presente orden/receta. INMAX no interviene en la elaboración de este documento, limitándose a facilitar la plataforma tecnológica para su generación digital. Los elementos visuales y logotipos de INMAX son de carácter informativo y publicitario, deslindando a la plataforma de cualquier responsabilidad derivada del acto clínico, diagnóstico o tratamiento prescrito.
+    </div>
   </div>
 </div>
 
