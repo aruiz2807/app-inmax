@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\Office;
+use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Models\Service;
 use App\Models\User;
