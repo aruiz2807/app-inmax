@@ -22,11 +22,20 @@ class NotesConfirmationPage extends Component
     {
         $noteId = session('appointment_note_id');
 
-        abort_unless($noteId, 404);
+        if (!$noteId) {
+            return redirect()->route('doctor.home');
+        }
 
         $this->note = AppointmentNote::with(['appointment.prescriptions.medication', 'appointment.doctor.user', 'appointment.doctor.specialty', 'appointment.user'])
             ->where('id', $noteId)
             ->firstOrFail();
+    }
+
+    public function schedule()
+    {
+        return $this->redirectRoute('doctor.schedule', [
+            'appointment' => $this->note->appointment->id,
+        ]);
     }
 
     public function print()

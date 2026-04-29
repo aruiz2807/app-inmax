@@ -19,4 +19,7 @@ import './../../vendor/power-components/livewire-powergrid/dist/powergrid'
 import ApexCharts from 'apexcharts';
 window.ApexCharts = ApexCharts;
 
+// Livewire Charts
+import '../../public/vendor/livewire-charts/app.js';
+
 Livewire.start();

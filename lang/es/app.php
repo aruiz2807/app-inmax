@@ -22,6 +22,8 @@ return [
     'clerk' => 'Mostrador',
     'dispensation' => 'Surtir',
     'inventory' => 'Inventario',
+    'reports' => 'Reportes',
+    'commissions' => 'Comisiones',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',

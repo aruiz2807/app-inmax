@@ -19,7 +19,6 @@
 
         <!-- Styles -->
         @livewireStyles
-        @livewireChartsScripts
     </head>
 
     <body class="font-sans antialiased text-neutral-900 bg-neutral-50 dark:text-neutral-50 dark:bg-neutral-950">
@@ -122,6 +121,19 @@
                             :active="request()->routeIs('users')"
                             x-on:click="closeSidebar()"
                         />
+
+                        <x-ui.navlist.group
+                            :label="__('app.reports')"
+                            :collapsable="true"
+                        >
+                            <x-ui.navlist.item
+                                icon="currency-dollar"
+                                :label="__('app.commissions')"
+                                href="{{ route('reports.commissions') }}"
+                                :active="request()->routeIs('reports.commissions')"
+                                x-on:click="closeSidebar()"
+                            />
+                        </x-ui.navlist.group>
 
                         <x-ui.navlist.group
                             :label="__('app.settings')"
@@ -299,6 +311,5 @@
         @stack('modals')
 
         @livewireScripts
-        @livewireChartsScripts
     </body>
 </html>

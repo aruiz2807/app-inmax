@@ -82,6 +82,10 @@
 
             @if($note->appointment->doctor->type === \App\Enums\DoctorType::Doctor)
             <div class="flex justify-center mt-4">
+                <x-ui.button class="w-40 mr-1" wire:click="schedule" variant="outline" color="blue" icon="calendar">
+                    Agendar
+                </x-ui.button>
+
                 <x-ui.button class="w-40 mr-1" wire:click="print" variant="outline" color="indigo" icon="document">
                     Receta digital
                 </x-ui.button>

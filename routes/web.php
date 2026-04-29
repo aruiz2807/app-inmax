@@ -87,6 +87,9 @@ use App\Livewire\Mobile\User\ScheduleCancellationPage;
 use App\Livewire\Mobile\User\ScheduleConfirmationPage;
 use App\Livewire\Mobile\User\SchedulePage;
 
+//Livewire - Reports - Commissions
+use App\Livewire\Reports\CommissionsPage;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -131,6 +134,8 @@ Route::middleware([
         Route::get('/preregistrations', PolicyPreregistrationsPage::class)->name('preregistrations');
 
         Route::get('/policies', PoliciesPage::class)->name('policies');
+
+        Route::get('/reports/commissions', CommissionsPage::class)->name('reports.commissions');
 
         Route::get('/services', ServicesPage::class)->name('services');
 
