@@ -35,8 +35,10 @@ final class DispensationTable extends PowerGridComponent
     {
         return Appointment::query()
             ->leftJoin('appointment_notes', 'appointment_notes.appointment_id', '=', 'appointments.id')
+            ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
             ->select('appointments.*', 'appointment_notes.id as appointment_note_id')
             ->with(['user.policy', 'doctor.user'])
+            ->where('doctors.type', 'Doctor')
             ->whereNotNull('status_prescription');
     }
 

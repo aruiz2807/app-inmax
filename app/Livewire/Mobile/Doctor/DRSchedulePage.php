@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mobile\Doctor;
 
+use App\Enums\DoctorType;
 use App\Livewire\Mobile\Doctor\DRScheduleConfirmationPage;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
@@ -42,7 +43,21 @@ class DRSchedulePage extends Component
     public function mount($appointment)
     {
         $this->appointment = Appointment::findOrFail($appointment);
-        $this->doctors = Doctor::where('status', 'Active')->get();
+        $doctorsQuery = Doctor::where('status', 'Active');
+
+        $currentDoctorId = Auth::user()?->doctor?->id;
+        $currentDoctorType = Auth::user()?->doctor?->type;
+        if (in_array($currentDoctorType, [DoctorType::Lab, DoctorType::Hospital], true)) {
+            $doctorsQuery->where(function ($query) use ($currentDoctorId) {
+                $query->where('type', DoctorType::Doctor);
+
+                if ($currentDoctorId) {
+                    $query->orWhere('id', $currentDoctorId);
+                }
+            });
+        }
+
+        $this->doctors = $doctorsQuery->get();
         $this->user = $this->appointment->user;
 
         $this->selectedDate = $this->availableDates[0]['id'];

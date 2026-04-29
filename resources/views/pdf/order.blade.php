@@ -1,248 +1,223 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Orden</title>
-    <style>
-        @page {
-            size: letter;
-            margin: 14mm;
-        }
+<meta charset="utf-8">
+<title>Orden {{ $appointment->id }}</title>
+<style>
+    @page {
+        margin: 14mm 12mm;
+        size: letter portrait;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            color: #111111;
-        }
+    * { box-sizing: border-box; }
 
-        .sheet {
-            width: 100%;
-        }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'DejaVu Sans', sans-serif;
+        color: #0F1F38;
+        font-size: 10pt;
+        line-height: 1.4;
+        background: #FFFFFF;
+    }
 
-        .line {
-            border-top: 2px solid #000000;
-            height: 0;
-        }
+    .item-container { page-break-inside: avoid; }
 
-        .space-10 { margin-top: 10px; }
-        .space-12 { margin-top: 12px; }
-        .space-16 { margin-top: 16px; }
-        .space-20 { margin-top: 20px; }
-        .space-28 { margin-top: 28px; }
+    table.layout { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    table.layout td { vertical-align: top; padding: 0; }
 
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
+    .sheet {
+        border: 1px solid #E5E9F2;
+        border-radius: 12px;
+        background: #FFFFFF;
+        min-height: auto;
+    }
 
-        .header-table td {
-            vertical-align: top;
-        }
+    .header {
+        background-color: #1B365D;
+        color: #FFFFFF;
+        padding: 16px 22px;
+        border-bottom: 3px solid #4FD1C5;
+    }
+    .brand-name { font-size: 20pt; font-weight: bold; color: #FFFFFF; }
+    .folio-label { font-size: 7pt; text-transform: uppercase; color: #4FD1C5; font-weight: bold; }
+    .folio-num { font-size: 16pt; font-weight: bold; color: #FFFFFF; }
 
-        .header-logo {
-            width: 28%;
-        }
+    .meta-card {
+        margin: 15px 22px 0 22px;
+        background: #FFFFFF;
+        border: 1px solid #E5E9F2;
+        border-radius: 10px;
+        padding: 12px 15px;
+    }
+    .meta-label { color: #6B7689; font-size: 7pt; text-transform: uppercase; font-weight: bold; }
+    .meta-name  { color: #1B365D; font-size: 11pt; font-weight: bold; }
+    .meta-sub   { color: #3D4A63; font-size: 8.5pt; }
 
-        .header-center {
-            width: 52%;
-            text-align: center;
-            line-height: 1.35;
-        }
+    .section { padding: 0 22px; margin-top: 15px; }
+    .eyebrow {
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        color: #6B7689;
+        font-weight: bold;
+        border-bottom: 1px solid #E5E9F2;
+        padding-bottom: 3px;
+        margin-bottom: 8px;
+    }
 
-        .header-right {
-            width: 20%;
-        }
+    .target-box {
+        border: 1px solid #E5E9F2;
+        border-radius: 10px;
+        padding: 10px;
+        color: #1B365D;
+        font-size: 10.5pt;
+        font-weight: bold;
+    }
 
-        .logo {
-            width: 145px;
-            height: auto;
-        }
+    .item-table {
+        width: 100%;
+        margin-bottom: 8px;
+        border: 1px solid #E5E9F2;
+        border-radius: 10px;
+    }
+    .item-row td { padding: 10px; }
+    .item-title { color: #1B365D; font-weight: bold; font-size: 10.5pt; }
 
-        .doctor-name {
-            font-size: 15px;
-            font-weight: 700;
-        }
+    .signature-block {
+        margin: 40px 22px 0 22px;
+        text-align: center;
+        page-break-inside: avoid;
+    }
 
-        .doctor-sub {
-            font-size: 11px;
-            font-weight: 600;
-        }
+    .signature-line {
+        width: 260px;
+        margin: 0 auto;
+        border-top: 1px solid #0F1F38;
+        height: 1px;
+    }
 
-        .doctor-text {
-            font-size: 10px;
-        }
+    .signature-name {
+        margin-top: 6px;
+        font-size: 9pt;
+        font-weight: bold;
+        color: #1B365D;
+    }
 
-        .patient-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            border: 1px solid #000000;
-        }
+    .signature-meta {
+        font-size: 8pt;
+        color: #6B7689;
+    }
 
-        .patient-table td {
-            width: 33.33%;
-            border-right: 1px solid #cccccc;
-            padding: 7px 10px;
-            vertical-align: top;
-            word-break: break-word;
-        }
+    .footer {
+        margin-top: 20px;
+        background: #F8FAFC;
+        border-top: 1px solid #E5E9F2;
+        padding: 15px 22px;
+        color: #6B7689;
+        font-size: 7.5pt;
+    }
 
-        .patient-table td:last-child {
-            border-right: 0;
-        }
-
-        .label {
-            font-weight: 700;
-        }
-
-        .block-title {
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .product-row {
-            border: 1px solid #000000;
-            padding: 8px 10px;
-            font-weight: 700;
-            line-height: 1.35;
-            margin-bottom: 8px;
-            word-break: break-word;
-            page-break-inside: avoid;
-        }
-
-        .text-block {
-            margin-top: 12px;
-            page-break-inside: avoid;
-        }
-
-        .text-title {
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .state {
-            border: 1px solid #000000;
-            padding: 2px 8px;
-            font-size: 9px;
-            font-weight: 700;
-            display: inline-block;
-            margin-left: 8px;
-        }
-
-        .text-content {
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        .signature {
-            margin-top: 42px;
-            text-align: center;
-            page-break-inside: avoid;
-        }
-
-        .signature-line {
-            width: 210px;
-            margin: 0 auto;
-            border-top: 2px solid #000000;
-            height: 0;
-        }
-
-        .signature-label {
-            margin-top: 6px;
-            font-weight: 700;
-        }
-
-        .footer-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            margin-top: 24px;
-        }
-
-        .footer-left {
-            width: 20%;
-            font-size: 22px;
-            font-weight: 800;
-            color: #0C385A;
-        }
-
-        .footer-right {
-            width: 80%;
-            text-align: right;
-            color: #0C385A;
-            font-size: 10px;
-            font-weight: 600;
-            line-height: 1.45;
-            word-break: break-word;
-        }
-    </style>
+    .legal-note {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #E5E9F2;
+        font-size: 6.8pt;
+        line-height: 1.35;
+        color: #7D889A;
+        text-align: justify;
+    }
+</style>
 </head>
 <body>
-    <div class="sheet">
-        <div class="line"></div>
-
-        <table class="header-table space-12">
+<div class="sheet">
+    <div class="header">
+        <table class="layout">
             <tr>
-                <td class="header-logo">
-                    <img class="logo" src="{{ public_path('/img/LogoINMAXSUP.png') }}" alt="Logo">
-                </td>
-                <td class="header-center">
-                    <div class="doctor-name">{{$appointment->requester->name}}</div>
-                    <div class="doctor-sub">{{$appointment->requester->doctor?->specialty->name}}</div>
-                    <div class="doctor-sub">CEDULA PROFESIONAL: {{$appointment->requester->doctor?->license}}</div>
-                    <div class="doctor-text">{{$appointment->requester->doctor?->university}}</div>
-                    <div class="doctor-sub space-10"></div>
-                    <div class="doctor-text">{{$appointment->requester->doctor?->address}}</div>
-                    <div class="doctor-sub">TEL. {{$appointment->requester->doctor?->user->phone}}</div>
-                </td>
-                <td class="header-right"></td>
-            </tr>
-        </table>
-
-        <div class="line space-10"></div>
-
-        <table class="patient-table space-16">
-            <tr>
-                <td><span class="label">Folio:</span> <br>{{$appointment->id}}</td>
-                <td><span class="label">Fecha:</span> <br>{{$appointment->created_at}}</td>
-                <td><span class="label">Nombre:</span> <br>{{$appointment->user->name}}</td>
-                <td><span class="label">Edad:</span> <br>{{$appointment->user->age}}</td>
-            </tr>
-        </table>
-
-        <div class="space-16">
-            <div class="block-title">Para:</div>
-            <div class="product-row">{{ $appointment->doctor->user->name}} </div>
-        </div>
-
-        <div class="space-16">
-            <div class="block-title">Servicios:</div>
-            @foreach ($appointment->services as $service)
-                <div class="product-row">{!!nl2br(e($service->service->name))!!}</div>
-            @endforeach
-        </div>
-
-        <div class="signature">
-            <div class="signature-line"></div>
-            <div class="signature-label">Firma</div>
-        </div>
-
-        <table class="footer-table">
-            <tr>
-                <td class="footer-left"></td>
-                <td class="footer-right">
-                    TEL: 3313666626<br>
-                    DIR: Torre Médica <br>
-                    Av. Plan de San Luis #1831 Col. San Bernardo, C.P. 44260<br>
-                    EMAIL: contacto@inmax-sure.com<br>
+                <td><span class="brand-name">INMAX</span></td>
+                <td style="text-align:right;">
+                    <div class="folio-label">Folio de Orden</div>
+                    <div class="folio-num">#{{ str_pad($appointment->id, 5, '0', STR_PAD_LEFT) }}</div>
+                    <div class="folio-label">Fecha: {{ $appointment->created_at->format('d/m/Y') }}</div>
                 </td>
             </tr>
         </table>
     </div>
+
+    <div class="meta-card">
+        <table class="layout">
+            <tr>
+                <td style="width: 50%; border-right: 1px solid #E5E9F2; padding-right: 15px;">
+                    <div class="meta-label">Solicitante</div>
+                    <div class="meta-name">{{ $appointment->requester->name }}</div>
+                    <div class="meta-sub">{{ $appointment->requester->doctor?->specialty->name }}</div>
+                    <div class="meta-sub">Cédula: {{ $appointment->requester->doctor?->license }}</div>
+                    <div class="meta-sub">{{ $appointment->requester->doctor?->university }}</div>
+                    <div class="meta-sub">{{ $appointment->requester->doctor?->address }}</div>
+                    <div class="meta-sub">Tel. {{ $appointment->requester->doctor?->user->phone }}</div>
+                </td>
+                <td style="width: 50%; padding-left: 15px;">
+                    <div class="meta-label">Paciente</div>
+                    <div class="meta-name">{{ $appointment->user->name }}</div>
+                    <div class="meta-sub">Edad: {{ $appointment->user->age }} años</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="eyebrow">Para</div>
+        <div class="target-box">{{ $appointment->doctor->user->name }}</div>
+    </div>
+
+    <div class="section">
+        <div class="eyebrow">Servicios</div>
+        @foreach ($appointment->services as $service)
+            <div class="item-container">
+                <table class="item-table">
+                    <tr class="item-row">
+                        <td>
+                            <div class="item-title">{!! nl2br(e($service->service->name)) !!}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        @endforeach
+    </div>
+
+    <div class="section signature-block">
+        <div class="signature-line"></div>
+        <div class="signature-name">{{ $appointment->requester->name }}</div>
+        <div class="signature-meta">Cédula profesional: {{ $appointment->requester->doctor?->license }}</div>
+    </div>
+
+    <div class="footer">
+        @php
+          $officeAddr  = $appointment->office?->address;
+          $officePhone = $appointment->office?->phone_number;
+          $footerAddr  = $officeAddr ?: $appointment->doctor?->address;
+          $footerPhone = $officePhone ?? '';
+        @endphp
+        <table class="layout">
+            <tr>
+                <td>
+                    <strong>INMAX</strong><br>
+                    @if($footerAddr)
+                        {{ $footerAddr }}
+                    @endif
+                </td>
+                <td style="text-align: right;">
+                    <strong>Contacto</strong><br>
+                    @if($footerPhone)
+                        {{ $footerPhone }}<br>
+                    @endif
+                    contacto@inmax-sure.com
+                </td>
+            </tr>
+        </table>
+        <div class="legal-note">
+            El contenido de este documento es responsabilidad integral del médico o profesional de la salud que expide la presente orden/receta. INMAX no interviene en la elaboración de este documento, limitándose a facilitar la plataforma tecnológica para su generación digital. Los elementos visuales y logotipos de INMAX son de carácter informativo y publicitario, deslindando a la plataforma de cualquier responsabilidad derivada del acto clínico, diagnóstico o tratamiento prescrito.
+        </div>
+    </div>
+</div>
 </body>
 </html>
