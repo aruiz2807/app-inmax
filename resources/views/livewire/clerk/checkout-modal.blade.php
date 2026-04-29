@@ -40,7 +40,7 @@
                             </x-ui.text>
 
                             <x-ui.text class="text-sm text-gray-600">
-                                {{ $prescription->quantity }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                                {{ $prescription->quantity }} • {{ $prescription->dose }} • cada {{ $prescription->frequency }} • durante {{ $prescription->duration }}
                             </x-ui.text>
 
                             @if($disabled)

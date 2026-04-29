@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\Office;
+use App\Models\Parameter;
 use App\Models\Policy;
 use App\Models\Service;
 use App\Models\User;
@@ -110,6 +111,9 @@ class AppointmentFormPage extends Component
         else
         {
             $doctor = Doctor::find($this->selectedDoctor);
+            // Fetch Medico General specialty 
+            $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
+
             $appointment = Appointment::create([
                 'user_id' => $this->selectedUser,
                 'doctor_id' => $this->selectedDoctor,
@@ -117,7 +121,7 @@ class AppointmentFormPage extends Component
                 'requested_by_user_id' => Auth::user()->id,
                 'date' => $this->selectedDate,
                 'time' => $this->selectedTime,
-                'status' => $doctor->specialty->id == 1 ? \App\Enums\AppointmentStatus::BOOKED : \App\Enums\AppointmentStatus::REQUESTED,
+                'status' => $doctor->specialty->id == $paramSpecialty->value ? \App\Enums\AppointmentStatus::BOOKED : \App\Enums\AppointmentStatus::REQUESTED,
             ]);
 
             foreach($this->servicesData as $service)

@@ -124,13 +124,13 @@
 
             <div class="grid grid-cols-2 gap-2">
                 <x-ui.field>
-                    <x-ui.label>Cantidad</x-ui.label>
+                    <x-ui.label>Dosis</x-ui.label>
                     <x-ui.input type="number" wire:model="quantity" />
                     <x-ui.error name="quantity" />
                 </x-ui.field>
                 <x-ui.field>
-                    <x-ui.label>Dosis</x-ui.label>
-                    <x-ui.input wire:model="dose" placeholder="Ej. 1 tableta" />
+                    <x-ui.label>Forma</x-ui.label>
+                    <x-ui.input wire:model="dose" placeholder="Ej. Tableta" />
                     <x-ui.error name="dose" />
                 </x-ui.field>
             </div>
@@ -138,7 +138,7 @@
             <div class="grid grid-cols-2 gap-2">
                 <x-ui.field>
                     <x-ui.label>Frecuencia</x-ui.label>
-                    <x-ui.input wire:model="frequency" placeholder="Ej. Cada 8 horas" />
+                    <x-ui.input wire:model="frequency" placeholder="Ej. 8 horas" />
                     <x-ui.error name="frequency" />
                 </x-ui.field>
                 <x-ui.field>
