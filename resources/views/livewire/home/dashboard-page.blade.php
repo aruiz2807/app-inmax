@@ -6,7 +6,7 @@
     </x-ui.text>
 
     <x-ui.text class="mt-2 text-lg mb-8">
-        Bienvenido a la consola de administración de Inmax-Sure
+        Bienvenido a la consola de administración de INMAX
     </x-ui.text>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
