@@ -194,9 +194,9 @@ class DRNotesPage extends Component
         // Total for the doctor: Subtotal - Platform Commission - Coupon (or member discount) 
         if ($this->useCoupon) {
             //$this->total = number_format($subtotal - $this->couponDiscountValue - floatval(str_replace(',', '', $this->commision)), 2);
-            $this->total = number_format($subtotal * (100 - $doc_discount + $doc_commision));
+            $this->total = number_format($subtotal * (100 - $doc_discount + $doc_commision)/100);
             
-            $this->commision = ($subtotal * (100 - $doc_discount + $doc_commision)) - $effectiveSubtotal;
+            $this->commision = ($subtotal * (100 - $doc_discount + $doc_commision)/100) - $effectiveSubtotal;
         } else {
             $this->total = number_format($subtotal - $memberDiscount - floatval(str_replace(',', '', $this->commision)), 2);
         }
