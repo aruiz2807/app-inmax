@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Doctor;
 use App\Models\Office;
+use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Models\Service;
 use App\Models\User;
@@ -44,17 +45,11 @@ class DRSchedulePage extends Component
     {
         $this->appointment = Appointment::findOrFail($appointment);
         $doctorsQuery = Doctor::where('status', 'Active');
+        $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
 
-        $currentDoctorId = Auth::user()?->doctor?->id;
         $currentDoctorType = Auth::user()?->doctor?->type;
         if (in_array($currentDoctorType, [DoctorType::Lab, DoctorType::Hospital], true)) {
-            $doctorsQuery->where(function ($query) use ($currentDoctorId) {
-                $query->where('type', DoctorType::Doctor);
-
-                if ($currentDoctorId) {
-                    $query->orWhere('id', $currentDoctorId);
-                }
-            });
+            $doctorsQuery->where('type', DoctorType::Doctor)->where('specialty_id', $paramSpecialty->value);
         }
 
         $this->doctors = $doctorsQuery->get();

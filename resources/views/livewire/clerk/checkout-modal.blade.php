@@ -88,7 +88,11 @@
                             <p class="text-sm text-teal-700">Aplicar cupón de descuento de ${{ number_format($couponValue, 2) }}</p>
                         </div>
                     </div>
-                    <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
+                    @if($disabled)
+                        <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" disabled/>
+                    @else
+                        <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
+                    @endif  
                 </div>
                 @endif
 
@@ -101,8 +105,12 @@
                             <p class="text-sm text-blue-700">Beneficio por membresía activa</p>
                         </div>
                     </div>
-                    <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" />
-                </div>
+                    @if($disabled)
+                        <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" disabled/>
+                    @else               
+                        <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" />
+                    @endif
+                    </div>
                 @endif
 
                 <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 flex-col items-end">
