@@ -36,7 +36,7 @@ final class DispensationTable extends PowerGridComponent
         return Appointment::query()
             ->leftJoin('appointment_notes', 'appointment_notes.appointment_id', '=', 'appointments.id')
             ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
-            ->select('appointments.*', 'appointment_notes.id as appointment_note_id')
+            ->select('appointments.*', 'appointment_notes.id as appointment_note_id', 'appointment_notes.created_at as appointment_note_date')
             ->with(['user.policy', 'doctor.user'])
             ->where('doctors.type', 'Doctor')
             ->whereNotNull('status_prescription');
@@ -96,17 +96,9 @@ final class DispensationTable extends PowerGridComponent
                 );
             })
             ->add('appointment_at_formatted', function ($row): string {
-                $date = data_get($row, 'date');
-                $time = data_get($row, 'time');
+                $date = data_get($row, 'appointment_note_date');
 
-                if (! $date || ! $time) {
-                    return '-';
-                }
-
-                $datePart = Carbon::parse($date)->toDateString();
-                $timePart = Carbon::parse($time)->format('H:i:s');
-
-                return Carbon::createFromFormat('Y-m-d H:i:s', $datePart.' '.$timePart)->format('d/m/Y H:i');
+                return Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('d/m/Y H:i');
             })
             ->add('status_label', function ($row): string {
                 return match ((string) data_get($row, 'status_prescription')) {
