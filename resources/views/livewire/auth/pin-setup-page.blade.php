@@ -4,8 +4,8 @@
             <x-ui.brand
                 href="/"
                 logo="/img/logo.png"
-                name="Inmax-Sure"
-                alt="Inmax"
+                name="INMAX"
+                alt="INMAX"
                 logoClass="rounded-full size-12"
             />
         </x-slot>
@@ -14,7 +14,7 @@
 
         @if ($this->canSetPin())
             <div class="mb-4 text-sm text-neutral-600 dark:text-neutral-300">
-                Confirma tu acceso y define tu PIN de 4 digitos para iniciar sesion en Inmax-Sure.
+                Confirma tu acceso y define tu PIN de 4 digitos para iniciar sesion en INMAX.
             </div>
         @endif
 

@@ -4,8 +4,8 @@
             <x-ui.brand
                 href="/"
                 logo="/img/logo.png"
-                name="Inmax-Sure"
-                alt="Inmax"
+                name="INMAX"
+                alt="INMAX"
                 logoClass="rounded-full size-12"
             />
         </x-slot>

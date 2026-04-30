@@ -80,7 +80,7 @@ class CheckoutModal extends Component
 
     public function getCanDispenseProperty()
     {
-        $hasQuantity = collect($this->deliveryQuantities)->sum() > 0;
+        $hasQuantity = collect($this->deliveryQuantities)->map(fn($qty) => (int) $qty)->sum() > 0;
         $hasBenefitSelected = $this->useCoupon || $this->useMembersDiscount;
 
         return $hasQuantity && $hasBenefitSelected;

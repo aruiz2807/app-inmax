@@ -6,7 +6,7 @@
     </x-ui.text>
 
     <x-ui.text class="mt-2 text-lg">
-        Bienvenido a la consola de administración de Inmax-Sure
+        Bienvenido a la consola de administración de INMAX
     </x-ui.text>
 
     </div>

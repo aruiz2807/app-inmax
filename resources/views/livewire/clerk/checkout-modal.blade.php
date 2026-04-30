@@ -68,9 +68,9 @@
                                 @endif
                             </div>
 
-                            <div class="text-right min-w-[5rem]">
+                            <div class="text-right min-w-20">
                                 <x-ui.text class="font-bold text-lg text-teal-600">
-                                    ${{ number_format(($deliveryQuantities[$prescription->id] ?? 0) * $prescription->medication->price_public, 2) }}
+                                    ${{ number_format(((int) ($deliveryQuantities[$prescription->id] ?? 0)) * $prescription->medication->price_public, 2) }}
                                 </x-ui.text>
                             </div>
                         </div>
@@ -118,7 +118,7 @@
                         $subtotalPublic = 0;
                         $subtotalMembers = 0;
                         foreach ($prescriptions as $prescription) {
-                            $qty = $deliveryQuantities[$prescription->id] ?? 0;
+                            $qty = (int) ($deliveryQuantities[$prescription->id] ?? 0);
                             $subtotalPublic += $qty * $prescription->medication->price_public;
                             $subtotalMembers += $qty * $prescription->medication->price_members;
                         }
