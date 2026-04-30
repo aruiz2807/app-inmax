@@ -3,17 +3,17 @@
         <img src="/img/home.png" alt="Header" class="w-full object-cover">
 
         <!-- User Profile Button -->
-        <div class="ms-3 relative">
+        <div class="ms-3 relative -translate-y-13">
             <x-dropdown align="left" width="48">
                 <x-slot name="trigger">
                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                         <button class="flex text-sm border-2 border-white rounded-full shadow-md focus:outline-none focus:border-neutral-300 transition">
-                            <img class="size-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                            <img class="size-8 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}" />
                         </button>
                     @else
                         <span class="inline-flex rounded-md">
                             <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-neutral-500 bg-white hover:text-neutral-700 focus:outline-none focus:bg-neutral-50 active:bg-neutral-50 transition ease-in-out duration-150">
-                                {{ Auth::user()->name }}
+                                {{ $user->name }}
 
                                 <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -110,14 +110,17 @@
                 <span class="text-lg font-bold text-gray-800">Mis consultas y servicios</span>
             </a>
 
-            <a href="{{ route('doctor.requests') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                <div class="p-3 bg-[#F58A71] rounded-xl text-white mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </div>
-                <span class="text-lg font-bold text-gray-800">Solicitudes pendientes</span>
-            </a>
+            @if ($user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
+                <a href="{{ route('doctor.requests') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                    <div class="p-3 bg-[#F58A71] rounded-xl text-white mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <span class="text-lg font-bold text-gray-800">Solicitudes pendientes</span>
+                </a>
+            @endif
+            
         </div>
     </div>
 </div>

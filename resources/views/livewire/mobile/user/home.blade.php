@@ -4,7 +4,7 @@
         <img src="/img/home.png" alt="Header" class="w-full object-cover">
 
         <!-- User Profile Button -->
-        <div class="ms-3 relative">
+        <div class="ms-3 relative -translate-y-13">
             <x-dropdown align="left" width="48">
                 <x-slot name="trigger">
                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
