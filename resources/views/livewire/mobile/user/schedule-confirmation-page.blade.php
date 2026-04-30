@@ -49,6 +49,11 @@
                 </div>
             </a>
 
+            <div class="flex justify-center mt-4">
+                <x-ui.button class="w-40" href="{{ route('user.home') }}" variant="outline" color="indigo" icon="home">
+                    Volver al inicio
+                </x-ui.button>
+            </div>
         </x-ui.card>
     </div>
 </div>
