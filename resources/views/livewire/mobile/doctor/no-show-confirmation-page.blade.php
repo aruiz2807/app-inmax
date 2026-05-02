@@ -38,7 +38,7 @@
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Doctor : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $appointment->doctor->user->name }}</x-ui.text>
+                    <x-ui.text class="font-semibold">{{ Auth::user()->name }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />

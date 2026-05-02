@@ -12,11 +12,20 @@ class RatingPage extends Component
 {
     public $appointment;
 
-    #[Validate('required|min:1|max:5')]
-    public $rating = 0;
+    #[Validate('required|integer|min:1|max:5')]
+    public $rating;
 
     #[Validate('required_if:rating,1,2,3')]
     public $comments = '';
+
+    public function messages()
+    {
+        return [
+            'rating.required' => 'Por favor seleccione una calificación.',
+            'rating.min' => 'Por favor seleccione una calificación.',
+            'comments.required_if' => 'Por favor deje un comentario sobre su experiencia.',
+        ];
+    }
 
     #[Layout('layouts.mobile')]
     public function render()
