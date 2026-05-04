@@ -130,7 +130,7 @@
                             class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-100 dark:border-neutral-700 last:border-0"
                         >
                             <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
-                            <x-ui.text class="text-xs opacity-75">{{ $medication->packaging }}</x-ui.text>
+                            <x-ui.text class="text-xs opacity-75">{{ $medication->packaging }} ({{ $medication->trade_name }})</x-ui.text>
                         </div>
                     @empty
                         <div class="p-4 text-center">
