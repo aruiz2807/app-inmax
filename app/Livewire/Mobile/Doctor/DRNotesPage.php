@@ -14,6 +14,7 @@ use App\Services\Appointments\AppointmentCompletedNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -37,7 +38,7 @@ class DRNotesPage extends Component
     public float $couponDiscountValue = 0;
 
     // Medication selection
-    public $medications = [];
+    public $searchTerm = '';
     public $prescriptions = [];
     public $medicationId = null;
     public $quantity = 1;
@@ -64,14 +65,32 @@ class DRNotesPage extends Component
             $this->form->attachments[$service->id] = null;
         }
 
-        $this->loadMedications();
         $this->loadPrescriptions();
         $this->checkCouponAvailability();
     }
 
-    public function loadMedications()
+    #[Computed]
+    public function medications()
     {
-        $this->medications = Medication::where('status', 'Active')->get();
+        if (empty(trim($this->searchTerm))) {
+            return collect();
+        }
+
+        return Medication::where('status', 'Active')
+            ->where(function ($query) {
+                $query->where('name', 'like', '%' . $this->searchTerm . '%')
+                    ->orWhere('trade_name', 'like', '%' . $this->searchTerm . '%')
+                    ->orWhere('active_substance', 'like', '%' . $this->searchTerm . '%')
+                    ->orWhere('packaging', 'like', '%' . $this->searchTerm . '%');
+            })
+            ->limit(25)
+            ->get();
+    }
+
+    public function selectMedication($id, $name)
+    {
+        $this->medicationId = $id;
+        $this->searchTerm = $name;
     }
 
     public function loadPrescriptions()
@@ -132,7 +151,7 @@ class DRNotesPage extends Component
             'duration' => $this->duration,
         ]);
 
-        $this->reset(['medicationId', 'quantity', 'dose', 'frequency', 'duration']);
+        $this->reset(['medicationId', 'quantity', 'dose', 'frequency', 'duration', 'searchTerm']);
         $this->loadPrescriptions();
     }
 

@@ -110,15 +110,35 @@
         </x-ui.heading>
 
         <div class="flex flex-col gap-2">
-            <x-ui.field>
+            <x-ui.field class="relative" x-data="{ open: false }" @click.away="open = false">
                 <x-ui.label>Medicamento</x-ui.label>
-                <x-ui.select wire:model="medicationId" placeholder="Seleccione un medicamento" searchable>
-                    @foreach($medications as $medication)
-                        <x-ui.select.option value="{{ $medication->id }}">
-                            {{ $medication->name }} ({{ $medication->trade_name }})
-                        </x-ui.select.option>
-                    @endforeach
-                </x-ui.select>
+                <x-ui.input 
+                    wire:model.live.debounce.300ms="searchTerm" 
+                    placeholder="Busque un medicamento..."
+                    @focus="open = true"
+                    @input="open = true"
+                />
+                
+                <div 
+                    x-show="open && $wire.searchTerm.length > 0" 
+                    class="absolute z-50 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
+                >
+                    @forelse($this->medications as $medication)
+                        <div 
+                            wire:click="selectMedication({{ $medication->id }}, '{{ $medication->name }}')"
+                            @click="open = false"
+                            class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-100 dark:border-neutral-700 last:border-0"
+                        >
+                            <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
+                            <x-ui.text class="text-xs opacity-75">{{ $medication->packaging }}</x-ui.text>
+                        </div>
+                    @empty
+                        <div class="p-4 text-center">
+                            <x-ui.text class="text-sm opacity-50">No se encontraron medicamentos</x-ui.text>
+                        </div>
+                    @endforelse
+                </div>
+
                 <x-ui.error name="medicationId" />
             </x-ui.field>
 

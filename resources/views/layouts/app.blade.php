@@ -133,6 +133,14 @@
                                 :active="request()->routeIs('reports.commissions')"
                                 x-on:click="closeSidebar()"
                             />
+
+                            <x-ui.navlist.item
+                                icon="document-currency-dollar"
+                                :label="__('app.sales')"
+                                href="{{ route('reports.sales') }}"
+                                :active="request()->routeIs('reports.sales')"
+                                x-on:click="closeSidebar()"
+                            />
                         </x-ui.navlist.group>
 
                         <x-ui.navlist.group

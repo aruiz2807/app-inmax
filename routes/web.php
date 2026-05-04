@@ -89,6 +89,7 @@ use App\Livewire\Mobile\User\SchedulePage;
 
 //Livewire - Reports - Commissions
 use App\Livewire\Reports\CommissionsPage;
+use App\Livewire\Reports\SalesPage;
 
 Route::get('/', function () {
     return view('welcome');
@@ -136,6 +137,7 @@ Route::middleware([
         Route::get('/policies', PoliciesPage::class)->name('policies');
 
         Route::get('/reports/commissions', CommissionsPage::class)->name('reports.commissions');
+        Route::get('/reports/sales', SalesPage::class)->name('reports.sales');
 
         Route::get('/services', ServicesPage::class)->name('services');
 

@@ -24,6 +24,7 @@ return [
     'inventory' => 'Inventario',
     'reports' => 'Reportes',
     'commissions' => 'Comisiones',
+    'sales' => 'Ventas',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',
