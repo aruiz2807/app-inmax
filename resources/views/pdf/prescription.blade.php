@@ -158,7 +158,10 @@
   <div class="header">
     <table class="layout">
       <tr>
-        <td><span class="brand-name">INMAX</span></td>
+        <td>
+          <img class="logo" src="{{ public_path('/img/logo.png') }}" alt="Logo" style="height: 50px; top: 15px; position: relative;">
+          <span class="brand-name">INMAX</span>
+        </td>
         <td style="text-align:right;">
           <div class="folio-label">Folio de Receta</div>
           <div class="folio-num">#{{ str_pad($note->folio ?? $note->id, 5, '0', STR_PAD_LEFT) }}</div>

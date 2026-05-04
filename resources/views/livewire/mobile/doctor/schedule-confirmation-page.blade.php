@@ -49,6 +49,12 @@
                 </div>
             </a>
 
+            <div class="flex justify-center mt-4">
+                <x-ui.button class="w-40" wire:click="order({{ $appointment->id }})" variant="outline" color="indigo" icon="clipboard-document-list">
+                    Orden
+                </x-ui.button>
+            </div>
+
         </x-ui.card>
     </div>
 </div>
