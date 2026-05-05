@@ -204,7 +204,7 @@ class DRNotesPage extends Component
         } else {
             $effectiveSubtotal = max(0, $subtotal - $memberDiscount);
         }
-        
+
         $this->user_payment = number_format($effectiveSubtotal, 2);
         
         // The commission Inmax charges the doctor is usually based on the full subtotal

@@ -55,6 +55,7 @@ class NotesConfirmationPage extends Component
         $pdf = Pdf::loadView('pdf.ticket', [
             'note' => $this->note,
             'subtotal' => $this->getSubtotalProperty(),
+            'coupon_discount' => $this->getCouponDiscountProperty(),
             'payment' => $this->getPaymentProperty(),
             'commision' => $this->getCommissionProperty(),
             'total' => $this->getTotalProperty(),
@@ -71,6 +72,11 @@ class NotesConfirmationPage extends Component
         return number_format($this->note->appointment->subtotal, 2);
     }
 
+    public function getCouponDiscountProperty()
+    {
+        return number_format($this->note->appointment->coupon_discount, 2);
+    }
+
     public function getDiscountProperty()
     {
         return number_format($this->note->appointment->subtotal * ($this->note->appointment->doctor->discount / 100), 2);
@@ -78,16 +84,16 @@ class NotesConfirmationPage extends Component
 
     public function getPaymentProperty()
     {
-        return number_format($this->note->appointment->subtotal - floatval(str_replace(',', '', $this->getDiscountProperty())), 2);
+        return number_format($this->note->appointment->user_payment, 2);
     }
 
     public function getTotalProperty()
     {
-        return number_format(floatval(str_replace(',', '', $this->getSubtotalProperty())) - floatval(str_replace(',', '', $this->getDiscountProperty())) - floatval(str_replace(',', '', floatval(str_replace(',', '', $this->getCommissionProperty())))), 2);
+        return number_format($this->note->appointment->total, 2);
     }
 
     public function getCommissionProperty()
     {
-        return number_format($this->note->appointment->subtotal * ($this->note->appointment->doctor->commission / 100), 2);
+        return number_format($this->note->appointment->commission, 2);
     }
 }

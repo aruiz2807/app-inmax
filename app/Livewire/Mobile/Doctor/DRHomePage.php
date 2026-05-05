@@ -3,6 +3,7 @@
 namespace App\Livewire\Mobile\Doctor;
 
 use App\Models\Appointment;
+use App\Models\Parameter;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -13,6 +14,7 @@ class DRHomePage extends Component
     public $user;
     public $pendingRequestsCount = 0;
     public $showRequestsAlert = true;
+    public $paramGMSpeciality;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -24,6 +26,7 @@ class DRHomePage extends Component
     {
         $this->loadTodayAppointments();
         $this->checkPendingRequests();
+        $this->paramGMSpeciality = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
     }
 
     public function loadTodayAppointments()
