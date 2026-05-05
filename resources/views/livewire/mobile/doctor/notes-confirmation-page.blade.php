@@ -44,6 +44,23 @@
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
+                    <x-ui.text>Servicios realizados</x-ui.text>
+                    <table class="items">
+                        @foreach ($note->appointment->services as $service)
+                            @if($service->status === 'Completed')
+                            <tr>
+                                <td class="qty">1</td>
+                                <td class="desc">{!! nl2br(e($service->service->name)) !!}</td>
+                                <td class="price">{{ $service->covered ? 'Incluido' : 'Adicional' }}</td>
+                            </tr>
+                            @endif
+                        @endforeach
+                    </table>
+                </div>
+
+                <x-ui.separator />
+
+                <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Fecha : </x-ui.text>
                     <x-ui.text class="font-semibold">{{ $note->appointment->date->format('d/m/Y') }} {{ $note->appointment->time->format('h:i A') }}</x-ui.text>
                 </div>
@@ -54,28 +71,37 @@
             <div class="mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                 <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
                     <x-ui.text>Total cuenta : </x-ui.text>
-                    <x-ui.text class="font-semibold text-right">${{ $this->subtotal }}</x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $note->appointment->subtotal }}</x-ui.text>
                 </div>
+
+                @if($note->appointment->coupon_discount > 0)
+                <x-ui.separator />
+
+                <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
+                    <x-ui.text>Descuento cupón : </x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $note->appointment->coupon_discount }}</x-ui.text>
+                </div>
+                @endif
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
                     <x-ui.text>Cobro al paciente : </x-ui.text>
-                    <x-ui.text class="font-semibold text-right">${{ $this->payment }}</x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $note->appointment->user_payment }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
-                    <x-ui.text>Comision Inmax : </x-ui.text>
-                    <x-ui.text class="font-semibold text-right">${{ $this->commission }}</x-ui.text>
+                    <x-ui.text>Comisión Inmax : </x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $note->appointment->commission }}</x-ui.text>
                 </div>
 
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
                     <x-ui.text>Ganancia del proveedor : </x-ui.text>
-                    <x-ui.text class="font-semibold text-right">${{ $this->total }}</x-ui.text>
+                    <x-ui.text class="font-semibold text-right">${{ $note->appointment->total }}</x-ui.text>
                 </div>
             </div>
             @endif

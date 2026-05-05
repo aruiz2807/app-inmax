@@ -116,7 +116,7 @@
                 <span class="text-lg font-bold text-gray-800">Mis consultas y servicios</span>
             </a>
 
-            @if ($user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
+            @if ($user->doctor->specialty_id != $paramGMSpeciality->value || $user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
             <a href="{{ route('doctor.requests') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                 <div class="p-3 bg-[#F58A71] rounded-xl text-white mr-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">

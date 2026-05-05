@@ -65,7 +65,7 @@
         }
 
         .items .price {
-            width: 20%;
+            width: 30%;
             text-align: right;
         }
 
@@ -94,6 +94,7 @@
         <div class="small-text">
             <strong>Folio:</strong> {{$note->id}}<br>
             <strong>Fecha:</strong> {{$note->created_at}}<br>
+            <strong>Proveedor:</strong> {{$note->appointment->doctor->user->name}}<br>
             <strong>Paciente:</strong> {{$note->appointment->user->name}}<br>
         </div>
 
@@ -121,12 +122,17 @@
                 </tr>
 
                 <tr>
+                    <td class="desc">Descuento cupón: </td>
+                    <td class="price">${{ $coupon_discount }} </td>
+                </tr>
+
+                <tr>
                     <td class="desc">Cobro al paciente: </td>
                     <td class="price">${{ $payment }} </td>
                 </tr>
 
                 <tr>
-                    <td class="desc">Comision Inmax: </td>
+                    <td class="desc">Comisión Inmax: </td>
                     <td class="price">${{ $commision }} </td>
                 </tr>
 

@@ -45,7 +45,7 @@ class DRSchedulePage extends Component
     {
         $this->appointment = Appointment::findOrFail($appointment);
         $doctorsQuery = Doctor::where('status', 'Active');
-        $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
+        $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
 
         $currentDoctorType = Auth::user()?->doctor?->type;
         if (in_array($currentDoctorType, [DoctorType::Lab, DoctorType::Hospital], true)) {
