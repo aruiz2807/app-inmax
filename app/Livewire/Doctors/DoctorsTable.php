@@ -39,7 +39,14 @@ final class DoctorsTable extends PowerGridComponent
 
     public function relationSearch(): array
     {
-        return [];
+        return [
+            'user' => [ 
+                'name', 
+            ],
+            'specialty' => [
+                'name', 
+            ],
+        ];
     }
 
     public function fields(): PowerGridFields

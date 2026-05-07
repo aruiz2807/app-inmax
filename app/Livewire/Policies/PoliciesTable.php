@@ -62,7 +62,11 @@ final class PoliciesTable extends PowerGridComponent
 
     public function relationSearch(): array
     {
-        return [];
+        return [
+            'user' => [ 
+                'name', 
+            ],
+        ];
     }
 
     public function fields(): PowerGridFields

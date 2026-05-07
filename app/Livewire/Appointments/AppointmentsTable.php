@@ -39,7 +39,17 @@ final class AppointmentsTable extends PowerGridComponent
 
     public function relationSearch(): array
     {
-        return [];
+        return [
+            'user' => [ 
+                'name', 
+            ],
+            'doctor' => [
+                'user' => ['name']
+            ],
+            'office' => [
+                'name',
+            ]
+        ];
     }
 
     public function fields(): PowerGridFields
