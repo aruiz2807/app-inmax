@@ -40,197 +40,227 @@
                 </x-slot>
 
                 <x-ui.navlist class="mt-2">
-                    @if ($isClerk)
-                        <x-ui.navlist.item
-                            icon="home"
-                            :label="__('app.home')"
-                            href="{{ route('clerk.dashboard') }}"
-                            :active="request()->routeIs('clerk.dashboard')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="wallet"
-                            :label="__('app.medications')"
-                            href="{{ route('clerk.medications') }}"
-                            :active="request()->routeIs('clerk.medications')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="beaker"
-                            :label="__('app.dispensation')"
-                            href="{{ route('clerk.dispensation') }}"
-                            :active="request()->routeIs('clerk.dispensation')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="archive-box"
-                            :label="__('app.inventory')"
-                            href="{{ route('clerk.inventory') }}"
-                            :active="request()->routeIs('clerk.inventory')"
-                            x-on:click="closeSidebar()"
-                        />
-                    @else
-                        <x-ui.navlist.item
-                            icon="home"
-                            :label="__('app.home')"
-                            href="{{ route('dashboard') }}"
-                            :active="request()->routeIs('dashboard')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="paper-airplane"
-                            :label="__('app.preregistration')"
-                            href="{{ route('preregistrations') }}"
-                            :active="request()->routeIs('preregistrations')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="identification"
-                            :label="__('app.policies')"
-                            href="{{ route('policies') }}"
-                            :active="request()->routeIs('policies')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        @if (auth()->user()?->profile === 'Admin')
-                        <x-ui.navlist.item
-                            icon="calendar"
-                            :label="__('app.appointments')"
-                            href="{{ route('appointments') }}"
-                            :active="request()->routeIs('appointments')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="users"
-                            :label="__('app.doctors')"
-                            href="{{ route('doctors') }}"
-                            :active="request()->routeIs('doctors')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.item
-                            icon="user-group"
-                            :label="__('app.users')"
-                            href="{{ route('users') }}"
-                            :active="request()->routeIs('users')"
-                            x-on:click="closeSidebar()"
-                        />
-
-                        <x-ui.navlist.group
-                            :label="__('app.reports')"
-                            :collapsable="true"
-                        >
+                    @switch($profile)
+                        @case('Admin')
                             <x-ui.navlist.item
-                                icon="currency-dollar"
-                                :label="__('app.commissions')"
-                                href="{{ route('reports.commissions') }}"
-                                :active="request()->routeIs('reports.commissions')"
+                                icon="home"
+                                :label="__('app.home')"
+                                href="{{ route('dashboard') }}"
+                                :active="request()->routeIs('dashboard')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="document-currency-dollar"
-                                :label="__('app.sales')"
-                                href="{{ route('reports.sales') }}"
-                                :active="request()->routeIs('reports.sales')"
-                                x-on:click="closeSidebar()"
-                            />
-                        </x-ui.navlist.group>
-
-                        <x-ui.navlist.group
-                            :label="__('app.settings')"
-                            :collapsable="true"
-                        >
-                            <x-ui.navlist.item
-                                icon="building-office"
-                                :label="__('app.offices')"
-                                href="{{ route('offices') }}"
-                                :active="request()->routeIs('offices')"
+                                icon="paper-airplane"
+                                :label="__('app.preregistration')"
+                                href="{{ route('preregistrations') }}"
+                                :active="request()->routeIs('preregistrations')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="ticket"
-                                :label="__('app.coupons')"
-                                href="{{ route('coupons') }}"
-                                :active="request()->routeIs('coupons')"
+                                icon="identification"
+                                :label="__('app.policies')"
+                                href="{{ route('policies') }}"
+                                :active="request()->routeIs('policies')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="wallet"
-                                :label="__('app.services')"
-                                href="{{ route('services') }}"
-                                :active="request()->routeIs('services')"
+                                icon="calendar"
+                                :label="__('app.appointments')"
+                                href="{{ route('appointments') }}"
+                                :active="request()->routeIs('appointments')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
+                                icon="users"
+                                :label="__('app.doctors')"
+                                href="{{ route('doctors') }}"
+                                :active="request()->routeIs('doctors')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
+                                icon="user-group"
+                                :label="__('app.users')"
+                                href="{{ route('users') }}"
+                                :active="request()->routeIs('users')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.group
+                                :label="__('app.reports')"
+                                :collapsable="true"
+                            >
+                                <x-ui.navlist.item
+                                    icon="currency-dollar"
+                                    :label="__('app.commissions')"
+                                    href="{{ route('reports.commissions') }}"
+                                    :active="request()->routeIs('reports.commissions')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="document-currency-dollar"
+                                    :label="__('app.sales')"
+                                    href="{{ route('reports.sales') }}"
+                                    :active="request()->routeIs('reports.sales')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            </x-ui.navlist.group>
+
+                            <x-ui.navlist.group
+                                :label="__('app.settings')"
+                                :collapsable="true"
+                            >
+                                <x-ui.navlist.item
+                                    icon="building-office"
+                                    :label="__('app.offices')"
+                                    href="{{ route('offices') }}"
+                                    :active="request()->routeIs('offices')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="ticket"
+                                    :label="__('app.coupons')"
+                                    href="{{ route('coupons') }}"
+                                    :active="request()->routeIs('coupons')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="wallet"
+                                    :label="__('app.services')"
+                                    href="{{ route('services') }}"
+                                    :active="request()->routeIs('services')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="wallet"
+                                    :label="__('app.medications')"
+                                    href="{{ route('medications') }}"
+                                    :active="request()->routeIs('medications')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="wallet"
+                                    :label="__('app.specialties')"
+                                    href="{{ route('specialties') }}"
+                                    :active="request()->routeIs('specialties')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="wallet"
+                                    :label="__('app.plans')"
+                                    href="{{ route('plans') }}"
+                                    :active="request()->routeIs('plans')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="chat-bubble-left-right"
+                                    :label="__('WhatsApp')"
+                                    href="{{ route('settings.whatsapp') }}"
+                                    :active="request()->routeIs('settings.whatsapp')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                <x-ui.navlist.item
+                                    icon="document-text"
+                                    :label="__('Legal')"
+                                    href="{{ route('settings.legal') }}"
+                                    :active="request()->routeIs('settings.legal')"
+                                    x-on:click="closeSidebar()"
+                                />
+
+                                    <x-ui.navlist.item
+                                        icon="document"
+                                        :label="__('app.parameters')"
+                                        href="{{ route('settings.parameters') }}"
+                                        :active="request()->routeIs('settings.parameters')"
+                                        x-on:click="closeSidebar()"
+                                    />
+
+                                @if (Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()?->profile === 'Admin')
+                                    <x-ui.navlist.item
+                                        icon="key"
+                                        :label="__('API Tokens')"
+                                        href="{{ route('api-tokens.index') }}"
+                                        :active="request()->routeIs('api-tokens.index')"
+                                        x-on:click="closeSidebar()"
+                                    />
+                                @endif
+                            </x-ui.navlist.group>
+                        @break
+
+                        @case('Clerk')
+                            <x-ui.navlist.item
+                                icon="home"
+                                :label="__('app.home')"
+                                href="{{ route('clerk.dashboard') }}"
+                                :active="request()->routeIs('clerk.dashboard')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
                                 icon="wallet"
                                 :label="__('app.medications')"
-                                href="{{ route('medications') }}"
-                                :active="request()->routeIs('medications')"
+                                href="{{ route('clerk.medications') }}"
+                                :active="request()->routeIs('clerk.medications')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="wallet"
-                                :label="__('app.specialties')"
-                                href="{{ route('specialties') }}"
-                                :active="request()->routeIs('specialties')"
+                                icon="beaker"
+                                :label="__('app.dispensation')"
+                                href="{{ route('clerk.dispensation') }}"
+                                :active="request()->routeIs('clerk.dispensation')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="wallet"
-                                :label="__('app.plans')"
-                                href="{{ route('plans') }}"
-                                :active="request()->routeIs('plans')"
+                                icon="archive-box"
+                                :label="__('app.inventory')"
+                                href="{{ route('clerk.inventory') }}"
+                                :active="request()->routeIs('clerk.inventory')"
+                                x-on:click="closeSidebar()"
+                            />
+                        @break
+
+                        @case('Doctor')
+                            <x-ui.navlist.item
+                                icon="home"
+                                :label="__('app.home')"
+                                href="{{ route('doctor.home') }}"
+                                :active="request()->routeIs('doctor.home')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="chat-bubble-left-right"
-                                :label="__('WhatsApp')"
-                                href="{{ route('settings.whatsapp') }}"
-                                :active="request()->routeIs('settings.whatsapp')"
+                                icon="calendar"
+                                :label="__('app.calendar') . ' (Consultas)'"
+                                href="{{ route('doctor.history') }}"
+                                :active="request()->routeIs('doctor.history')"
                                 x-on:click="closeSidebar()"
                             />
 
                             <x-ui.navlist.item
-                                icon="document-text"
-                                :label="__('Legal')"
-                                href="{{ route('settings.legal') }}"
-                                :active="request()->routeIs('settings.legal')"
+                                icon="calendar"
+                                :label="__('app.calendar') . ' (Solicitudes)'"
+                                href="{{ route('doctor.requests') }}"
+                                :active="request()->routeIs('doctor.requests')"
                                 x-on:click="closeSidebar()"
                             />
-
-                                <x-ui.navlist.item
-                                    icon="document"
-                                    :label="__('app.parameters')"
-                                    href="{{ route('settings.parameters') }}"
-                                    :active="request()->routeIs('settings.parameters')"
-                                    x-on:click="closeSidebar()"
-                                />
-
-                            @if (Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()?->profile === 'Admin')
-                                <x-ui.navlist.item
-                                    icon="key"
-                                    :label="__('API Tokens')"
-                                    href="{{ route('api-tokens.index') }}"
-                                    :active="request()->routeIs('api-tokens.index')"
-                                    x-on:click="closeSidebar()"
-                                />
-                            @endif
-                        </x-ui.navlist.group>
-                        @endif
-                    @endif
+                        @break
+                        
+                        @default    
+                    @endswitch
                 </x-ui.navlist>
 
                 <x-ui.sidebar.push />
