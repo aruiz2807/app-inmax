@@ -7,6 +7,52 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $specialty_id
+ * @property DoctorType $type
+ * @property int|null $discount
+ * @property int|null $commission
+ * @property string $license
+ * @property string $university
+ * @property string $address
+ * @property string|null $maps_url
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DoctorCoupon> $doctorCoupons
+ * @property-read int|null $doctor_coupons_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DoctorService> $doctorServices
+ * @property-read int|null $doctor_services_count
+ * @property-read mixed $formatted_status
+ * @property-read mixed $rating
+ * @property-read mixed $status_color
+ * @property-read mixed $status_icon
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Office> $offices
+ * @property-read int|null $offices_count
+ * @property-read \App\Models\Specialty $specialty
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $staff
+ * @property-read int|null $staff_count
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereCommission($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereDiscount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereLicense($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereMapsUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereSpecialtyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereUniversity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Doctor whereUserId($value)
+ * @mixin \Eloquent
+ */
 class Doctor extends Model
 {
     /**

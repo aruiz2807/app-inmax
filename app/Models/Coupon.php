@@ -5,6 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int|null $service_id
+ * @property string $name
+ * @property string $type
+ * @property numeric $value
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DoctorCoupon> $doctorCoupons
+ * @property-read int|null $doctor_coupons_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Doctor> $doctors
+ * @property-read int|null $doctors_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereServiceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon whereValue($value)
+ * @mixin \Eloquent
+ */
 class Coupon extends Model
 {
     /**

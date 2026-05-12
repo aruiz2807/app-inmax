@@ -5,6 +5,31 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $plan_id
+ * @property int|null $doctor_service_id
+ * @property int|null $doctor_coupon_id
+ * @property int|null $events
+ * @property numeric|null $amount
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\DoctorCoupon|null $doctorCoupon
+ * @property-read \App\Models\DoctorService|null $doctorService
+ * @property-read \App\Models\Plan $plan
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereDoctorCouponId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereDoctorServiceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereEvents($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit wherePlanId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanBenefit whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class PlanBenefit extends Model
 {
     /**

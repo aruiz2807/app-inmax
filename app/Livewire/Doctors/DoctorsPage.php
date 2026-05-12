@@ -30,6 +30,9 @@ class DoctorsPage extends Component
         $this->types = DoctorType::cases();
     }
 
+    /**
+    * @param int $doctorId
+    */
     #[On('editDoctor')]
     public function edit($doctorId)
     {
