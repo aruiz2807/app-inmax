@@ -45,8 +45,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->whereIn('doctor_id', $doctorIds)
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where(function (Builder $pendingQuery) {
                 $pendingQuery
-                    ->whereNull('user_payment')
-                    ->orWhere('user_payment', '<=', 0);
+                    ->whereNull('user_payment');
             }))
             ->when($this->tab === 'paid', fn (Builder $query) => $query->where('user_payment', '>', 0));
     }
