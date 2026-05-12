@@ -94,9 +94,14 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('amount_formatted', fn (Appointment $appointment) => '$'.number_format((float) $appointment->user_payment, 2))
             ->add('payment_button', function (Appointment $appointment): string {
                 $isPaid = !is_null($appointment->user_payment);
+                $isCompleted = $appointment->status === 'Completed';
 
                 if ($isPaid) {
                     return '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';
+                }
+
+                if (!$isCompleted) {
+                    return '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Ir a pago</button>';
                 }
 
                 $url = route('receptionist.payment', ['appointment' => $appointment->id]);
