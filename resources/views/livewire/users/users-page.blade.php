@@ -74,13 +74,41 @@
 
                 <x-ui.field required>
                     <x-ui.label>Perfil</x-ui.label>
-                    <x-ui.select wire:model="form.profile" placeholder="Selecciona un perfil">
+                    <x-ui.select wire:model.live="form.profile" placeholder="Selecciona un perfil">
                         <x-ui.select.option value="Admin">Administrador</x-ui.select.option>
                         <x-ui.select.option value="Sales">Vendedor</x-ui.select.option>
                         <x-ui.select.option value="Clerk">{{ __('app.clerk') }}</x-ui.select.option>
+                        <x-ui.select.option value="Receptionist">Recepcionista</x-ui.select.option>
                     </x-ui.select>
                     <x-ui.error name="form.profile" />
                 </x-ui.field>
+
+                @if (in_array($form->profile, ['Clerk', 'Receptionist']))
+                    <x-ui.field required>
+                        <x-ui.label>Proveedores asignados</x-ui.label>
+                        <p class="text-xs text-neutral-500 mb-2">Selecciona al menos un doctor, laboratorio u hospital al que pertenece este usuario.</p>
+
+                        @if ($doctors->isEmpty())
+                            <p class="text-sm text-neutral-500 italic">No hay doctores registrados en el sistema.</p>
+                        @else
+                            <div class="max-h-48 overflow-y-auto border border-neutral-200 rounded-lg divide-y divide-neutral-100">
+                                @foreach ($doctors as $doctor)
+                                    <label class="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            wire:model="form.doctorIds"
+                                            value="{{ $doctor->id }}"
+                                            class="rounded border-neutral-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                        <span class="text-sm font-medium">{{ $doctor->user?->name ?? 'Sin nombre' }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <x-ui.error name="form.doctorIds" />
+                    </x-ui.field>
+                @endif
             </x-ui.fieldset>
 
             <div class="w-full flex justify-end gap-3 pt-4">

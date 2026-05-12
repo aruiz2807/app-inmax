@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Livewire\Forms\UsersForm;
+use App\Models\Doctor;
 use App\Models\User;
 use App\Services\Auth\PinSetupTokenService;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,11 @@ class UsersPage extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.users.users-page');
+        $doctors = Doctor::with('user:id,name')
+            ->orderBy('id')
+            ->get();
+
+        return view('livewire.users.users-page', ['doctors' => $doctors]);
     }
 
     #[On('editUser')]
@@ -65,8 +70,23 @@ class UsersPage extends Component
 
     public function save(PinSetupTokenService $tokenService): void
     {
+        $needsDoctors = in_array($this->form->profile, ['Clerk', 'Receptionist']);
+
+        if ($needsDoctors && empty($this->form->doctorIds)) {
+            $this->addError('form.doctorIds', 'Debe asignar al menos un doctor.');
+            return;
+        }
+
         if ($this->userId) {
             $this->form->update($this->userId);
+
+            $user = User::findOrFail($this->userId);
+
+            if ($needsDoctors) {
+                $user->staffDoctors()->sync($this->form->doctorIds);
+            } else {
+                $user->staffDoctors()->detach();
+            }
 
             $this->dispatch(
                 'notify',
@@ -76,6 +96,11 @@ class UsersPage extends Component
             );
         } else {
             $user = $this->form->store();
+
+            if ($needsDoctors) {
+                $user->staffDoctors()->sync($this->form->doctorIds);
+            }
+
             $result = $tokenService->generateSetupLink(
                 $user,
                 Auth::user(),

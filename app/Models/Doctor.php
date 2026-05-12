@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\DoctorType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Doctor extends Model
 {
@@ -115,5 +116,13 @@ class Doctor extends Model
     public function offices()
     {
         return $this->belongsToMany(Office::class, 'office_doctors');
+    }
+
+    /**
+     * Staff members (Clerk / Receptionist) assigned to this doctor.
+     */
+    public function staff(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'doctor_staff');
     }
 }

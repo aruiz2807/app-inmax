@@ -233,6 +233,24 @@
                             />
                         @break
 
+                        @case('Receptionist')
+                            {{--<x-ui.navlist.item
+                                icon="home"
+                                :label="__('app.home')"
+                                href="{{ route('receptionist.dashboard') }}"
+                                :active="request()->routeIs('receptionist.dashboard')"
+                                x-on:click="closeSidebar()"
+                            />--}}
+
+                            <x-ui.navlist.item
+                                icon="calendar"
+                                :label="'Consultas'"
+                                href="{{ route('receptionist.dashboard') }}"
+                                :active="request()->routeIs('receptionist.dashboard')"
+                                x-on:click="closeSidebar()"
+                            />
+                        @break
+
                         @case('Doctor')
                             <x-ui.navlist.item
                                 icon="home"

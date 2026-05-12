@@ -30,6 +30,7 @@ class DRNotesPage extends Component
     public $commision;
     public $total;
     public $user;
+    public bool $hasReceptionistAssigned = false;
 
     // Coupon logic
     public bool $useCoupon = false;
@@ -58,6 +59,10 @@ class DRNotesPage extends Component
         $this->appointment = Appointment::with(['user.policy', 'doctor'])->findOrFail($appointment);
         $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
         $this->form->isDoctor = $this->user->doctor->type === DoctorType::Doctor;
+        $this->hasReceptionistAssigned = $this->user->doctor
+            ?->staff()
+            ->where('profile', 'Receptionist')
+            ->exists() ?? false;
 
         foreach ($this->services as $service)
         {
