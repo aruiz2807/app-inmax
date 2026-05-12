@@ -47,7 +47,7 @@ final class AppointmentsTable extends PowerGridComponent
                 $pendingQuery
                     ->whereNull('user_payment');
             }))
-            ->when($this->tab === 'paid', fn (Builder $query) => $query->where('user_payment', '>', 0));
+            ->when($this->tab === 'paid', fn (Builder $query) => $query->where('user_payment', '>=', 0));
     }
 
     public function relationSearch(): array
@@ -85,7 +85,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? 'N/A'))
             ->add('status_badge', fn (Appointment $appointment) => Blade::render('<x-status-badge status="'.$appointment->status?->value.'" />'))
             ->add('payment_status_badge', function (Appointment $appointment): string {
-                if ((float) $appointment->user_payment > 0) {
+                if ((float) $appointment->user_payment >= 0) {
                     return Blade::render('<x-ui.badge variant="outline" color="green" pill>Pagado</x-ui.badge>');
                 }
 
@@ -93,7 +93,7 @@ final class AppointmentsTable extends PowerGridComponent
             })
             ->add('amount_formatted', fn (Appointment $appointment) => '$'.number_format((float) $appointment->user_payment, 2))
             ->add('payment_button', function (Appointment $appointment): string {
-                $isPaid = (float) $appointment->user_payment > 0;
+                $isPaid = (float) $appointment->user_payment >= 0;
 
                 if ($isPaid) {
                     return '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';
