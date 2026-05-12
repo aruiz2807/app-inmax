@@ -86,15 +86,15 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('status_badge', fn (Appointment $appointment) => Blade::render('<x-status-badge status="'.$appointment->status?->value.'" />'))
             ->add('payment_status_badge', function (Appointment $appointment): string {
                 if (is_null($appointment->user_payment)) {
-                    return Blade::render('<x-ui.badge variant="outline" color="yellow" pill>Pendiente</x-ui.badge>');
+                    return Blade::render('<x-status-badge status="Pending" />');
                 }
 
-                return Blade::render('<x-ui.badge variant="outline" color="green" pill>Pagado</x-ui.badge>');
+                return Blade::render('<x-status-badge status="Paid" />');
             })
             ->add('amount_formatted', fn (Appointment $appointment) => '$'.number_format((float) $appointment->user_payment, 2))
             ->add('payment_button', function (Appointment $appointment): string {
                 $isPaid = !is_null($appointment->user_payment);
-                $isCompleted = $appointment->status === 'Completed';
+                $isCompleted = $appointment->status == \App\Enums\AppointmentStatus::COMPLETED;
 
                 if ($isPaid) {
                     return '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';

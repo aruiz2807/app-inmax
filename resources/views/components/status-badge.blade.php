@@ -17,6 +17,9 @@
 
         '1' => 'text-green-700 bg-green-100',
         '0' => 'text-amber-700 bg-amber-100',
+
+        'Pending' => 'text-yellow-700 bg-yellow-100',
+        'Paid' => 'text-green-700 bg-green-100',
     ];
 
     $labels = [
@@ -30,6 +33,9 @@
         'Cancelled' => __('Cancelada'),
         'No-show' => __('No Asistio'),
         'Completed' => __('Atendida'),
+
+        'Pending' => __('Pendiente'),
+        'Paid' => __('Pagado'),
 
         '1' => __('Incluido'),
         '0' => __('Adicional'),
