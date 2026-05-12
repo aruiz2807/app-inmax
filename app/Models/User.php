@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -146,5 +147,13 @@ class User extends Authenticatable
     public function legalAcceptances(): HasMany
     {
         return $this->hasMany(UserLegalAcceptance::class);
+    }
+
+    /**
+     * Doctors associated to this staff member (Clerk / Receptionist).
+     */
+    public function staffDoctors(): BelongsToMany
+    {
+        return $this->belongsToMany(Doctor::class, 'doctor_staff');
     }
 }

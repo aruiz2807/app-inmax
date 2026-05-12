@@ -31,6 +31,10 @@ use App\Livewire\Clerk\DashboardPage as ClerkDashboardPage;
 use App\Livewire\Clerk\DispensationPage;
 use App\Livewire\Clerk\InventoryPage;
 
+// Livewire - Receptionist
+use App\Livewire\Receptionist\DashboardPage as ReceptionistDashboardPage;
+use App\Livewire\Receptionist\PaymentPage as ReceptionistPaymentPage;
+
 // Livewire - Offices
 use App\Livewire\Offices\OfficesPage;
 
@@ -201,5 +205,10 @@ Route::middleware([
         Route::get('/dispensation', DispensationPage::class)->name('clerk.dispensation');
         Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
         Route::get('/medications', MedicationsPage::class)->name('clerk.medications');
+    });
+
+    Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
+        Route::get('/dashboard', ReceptionistDashboardPage::class)->name('receptionist.dashboard');
+        Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)->name('receptionist.payment');
     });
 });

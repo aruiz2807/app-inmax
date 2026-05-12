@@ -6,7 +6,6 @@ use App\Models\Appointment;
 use App\Models\Parameter;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 
 class DRHomePage extends Component
 {
@@ -15,18 +14,47 @@ class DRHomePage extends Component
     public $pendingRequestsCount = 0;
     public $showRequestsAlert = true;
     public $paramGMSpeciality;
+    public bool $isMobileDevice = true;
 
-    #[Layout('layouts.mobile')]
     public function render()
     {
-        return view('livewire.mobile.doctor.home-page');
+        // DESACTIVADO POR EL MOMENTO, SE MANTIENE VERSION MOBILE.
+        /*
+        $view = $this->isMobileDevice
+            ? 'livewire.mobile.doctor.home-page'
+            : 'livewire.doctor.home-page';
+
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
+        */
+        $view = 'livewire.mobile.doctor.home-page';
+        $layout = 'layouts.mobile';
+
+        return view($view)->layout($layout);
     }
 
     public function mount()
     {
+        $this->isMobileDevice = $this->detectMobileDevice();
         $this->loadTodayAppointments();
         $this->checkPendingRequests();
         $this->paramGMSpeciality = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
+    }
+
+    protected function detectMobileDevice(): bool
+    {
+        $forcedDevice = request()->query('device');
+
+        if ($forcedDevice === 'mobile') {
+            return true;
+        }
+
+        if ($forcedDevice === 'desktop') {
+            return false;
+        }
+
+        $userAgent = strtolower((string) request()->userAgent());
+
+        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
     }
 
     public function loadTodayAppointments()

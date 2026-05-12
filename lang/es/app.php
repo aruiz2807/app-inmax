@@ -25,6 +25,7 @@ return [
     'reports' => 'Reportes',
     'commissions' => 'Comisiones',
     'sales' => 'Ventas',
+    'calendar' => 'Agenda',
 
     'policy_active' => 'Activa',
     'policy_inactive' => 'Inactiva',
