@@ -3,6 +3,7 @@
 namespace App\Livewire\Receptionist;
 
 use App\Models\Appointment;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -34,9 +35,24 @@ class AppointmentsPage extends Component
                 'user.policy',
                 'doctor.user',
                 'doctor.specialty',
+                'office',
                 'services.service',
             ])
-            ->whereIn('doctor_id', $doctorIds)
+            ->where(function (Builder $query) use ($doctorIds) {
+                $query
+                    ->whereIn('appointments.doctor_id', $doctorIds)
+                    ->orWhere(function (Builder $officeQuery) use ($doctorIds) {
+                        $officeQuery
+                            ->whereNull('appointments.doctor_id')
+                            ->whereExists(function ($existsQuery) use ($doctorIds) {
+                                $existsQuery
+                                    ->selectRaw('1')
+                                    ->from('office_doctors')
+                                    ->whereColumn('office_doctors.office_id', 'appointments.office_id')
+                                    ->whereIn('office_doctors.doctor_id', $doctorIds);
+                            });
+                    });
+            })
             ->whereKey($appointmentId)
             ->first();
 

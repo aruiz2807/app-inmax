@@ -40,8 +40,22 @@ final class AppointmentsTable extends PowerGridComponent
             ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
             ->leftJoin('users as doctor_users', 'doctor_users.id', '=', 'doctors.user_id')
             ->leftJoin('policies as patient_policies', 'patient_policies.user_id', '=', 'appointments.user_id')
-            ->with(['user:id,name', 'user.policy:id,user_id,number', 'doctor:id,user_id', 'doctor.user:id,name', 'note:id,appointment_id'])
-            ->whereIn('doctor_id', $doctorIds)
+            ->with(['user:id,name', 'user.policy:id,user_id,number', 'doctor:id,user_id', 'doctor.user:id,name', 'office:id,name', 'note:id,appointment_id'])
+            ->where(function (Builder $query) use ($doctorIds) {
+                $query
+                    ->whereIn('appointments.doctor_id', $doctorIds)
+                    ->orWhere(function (Builder $officeQuery) use ($doctorIds) {
+                        $officeQuery
+                            ->whereNull('appointments.doctor_id')
+                            ->whereExists(function ($existsQuery) use ($doctorIds) {
+                                $existsQuery
+                                    ->selectRaw('1')
+                                    ->from('office_doctors')
+                                    ->whereColumn('office_doctors.office_id', 'appointments.office_id')
+                                    ->whereIn('office_doctors.doctor_id', $doctorIds);
+                            });
+                    });
+            })
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where(function (Builder $pendingQuery) {
                 $pendingQuery
                     ->whereNull('user_payment');
@@ -82,7 +96,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('time_formatted', fn (Appointment $appointment) => $appointment->time?->format('H:i'))
             ->add('patient_name', fn (Appointment $appointment) => e($appointment->user?->name ?? 'N/A'))
             ->add('membership_number', fn (Appointment $appointment) => e($appointment->user?->policy?->number ?? '-'))
-            ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? 'N/A'))
+            ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? $appointment->office?->name ?? 'N/A'))
             ->add('status_badge', fn (Appointment $appointment) => Blade::render('<x-status-badge status="'.$appointment->status?->value.'" />'))
             ->add('payment_status_badge', function (Appointment $appointment): string {
                 if (is_null($appointment->user_payment)) {
