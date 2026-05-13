@@ -1,4 +1,7 @@
-<div>
+<div
+    x-data
+    x-on:open-receptionist-appointment-detail.window="$wire.openDetails($event.detail.appointmentId)"
+>
     <x-slot name="header">
         Home
     </x-slot>
@@ -54,4 +57,6 @@
             <livewire:receptionist.appointments-table :tab="$tab" :key="'receptionist-appointments-table-'.$tab" />
         </x-ui.card>
     </div>
+
+    @include('livewire.receptionist.appointment-details-modal')
 </div>
