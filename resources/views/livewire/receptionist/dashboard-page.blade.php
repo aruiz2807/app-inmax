@@ -13,46 +13,45 @@
 
     <div id="payment-section" class="pt-2">
         <x-ui.card size="full">
-            @php
-                $activeTab = request()->query('tab', 'all');
-            @endphp
-
             <div class="flex gap-2 mb-4 border-b border-neutral-200">
-                <a
-                    href="{{ route('receptionist.dashboard', ['tab' => 'all']) }}"
+                <button
+                    type="button"
+                    wire:click="setTab('all')"
                     @class([
                         'px-4 py-2 text-sm font-medium transition-colors',
-                        'border-b-2 border-teal-600 text-teal-600' => $activeTab === 'all',
-                        'text-neutral-600 hover:text-neutral-900' => $activeTab !== 'all',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'all',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'all',
                     ])
                 >
                     Todos
-                </a>
+                </button>
 
-                <a
-                    href="{{ route('receptionist.dashboard', ['tab' => 'pending']) }}"
+                <button
+                    type="button"
+                    wire:click="setTab('pending')"
                     @class([
                         'px-4 py-2 text-sm font-medium transition-colors',
-                        'border-b-2 border-teal-600 text-teal-600' => $activeTab === 'pending',
-                        'text-neutral-600 hover:text-neutral-900' => $activeTab !== 'pending',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'pending',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'pending',
                     ])
                 >
                     Pendientes
-                </a>
+                </button>
 
-                <a
-                    href="{{ route('receptionist.dashboard', ['tab' => 'paid']) }}"
+                <button
+                    type="button"
+                    wire:click="setTab('paid')"
                     @class([
                         'px-4 py-2 text-sm font-medium transition-colors',
-                        'border-b-2 border-teal-600 text-teal-600' => $activeTab === 'paid',
-                        'text-neutral-600 hover:text-neutral-900' => $activeTab !== 'paid',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'paid',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'paid',
                     ])
                 >
                     Pagados
-                </a>
+                </button>
             </div>
 
-            <livewire:receptionist.appointments-table />
+            <livewire:receptionist.appointments-table :tab="$tab" :key="'receptionist-appointments-table-'.$tab" />
         </x-ui.card>
     </div>
 </div>

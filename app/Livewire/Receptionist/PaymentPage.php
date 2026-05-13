@@ -6,16 +6,24 @@ use App\Models\Appointment;
 use App\Models\PolicyService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PaymentPage extends Component
 {
+    use WithFileUploads;
+
     public Appointment $appointment;
     public string $subtotal = '0.00';
     public string $user_payment = '0.00';
     public string $commision = '0.00';
     public string $total = '0.00';
+    public string $payment_method = '';
+    public ?string $payment_reference = null;
+    public $payment_attachment = null;
     public bool $useCoupon = false;
     public bool $hasCouponAvailable = false;
     public bool $paymentSaved = false;
@@ -31,7 +39,7 @@ class PaymentPage extends Component
 
     public function mount(Appointment $appointment): void
     {
-        $this->appointment = $appointment->load(['user.policy', 'doctor.user', 'doctor.specialty', 'services']);
+        $this->appointment = $appointment->load(['user.policy', 'doctor.user', 'doctor.specialty', 'services.service:id,name']);
 
         if (! Auth::user()->staffDoctors()->whereKey($this->appointment->doctor_id)->exists()) {
             throw new AuthorizationException();
@@ -41,6 +49,8 @@ class PaymentPage extends Component
         $this->user_payment = $this->formatMoney($this->appointment->user_payment);
         $this->commision = $this->formatMoney($this->appointment->commission);
         $this->total = $this->formatMoney($this->appointment->total);
+        $this->payment_method = (string) ($this->appointment->payment_method ?? '');
+        $this->payment_reference = $this->appointment->payment_reference;
         $this->useCoupon = (float) $this->appointment->coupon_discount > 0;
 
         $this->checkCouponAvailability();
@@ -69,6 +79,8 @@ class PaymentPage extends Component
 
     public function confirmPayment()
     {
+        $this->validatePaymentFields();
+
         $subtotal = $this->parseMoney($this->subtotal);
 
         if ($subtotal <= 0) {
@@ -82,12 +94,24 @@ class PaymentPage extends Component
             $this->availableCouponBenefit->increment('used');
         }
 
+        $attachmentPath = $this->appointment->payment_attachment_path;
+        $attachmentName = $this->appointment->payment_attachment_name;
+
+        if ($this->payment_attachment) {
+            $attachmentPath = $this->payment_attachment->store('payment-attachments');
+            $attachmentName = $this->payment_attachment->getClientOriginalName();
+        }
+
         $this->appointment->update([
             'subtotal' => $subtotal,
             'coupon_discount' => $this->couponDiscountValue,
             'user_payment' => $this->parseMoney($this->user_payment),
             'commission' => $this->parseMoney($this->commision),
             'total' => $this->parseMoney($this->total),
+            'payment_method' => $this->payment_method,
+            'payment_reference' => $this->payment_reference,
+            'payment_attachment_path' => $attachmentPath,
+            'payment_attachment_name' => $attachmentName,
         ]);
 
         $this->dispatch('close-payment-modal');
@@ -100,6 +124,28 @@ class PaymentPage extends Component
             content: $this->paymentSuccessMessage,
             duration: 4000
         );
+
+        $this->reset('payment_attachment');
+    }
+
+    private function validatePaymentFields(): void
+    {
+        $validated = $this->validate([
+            'payment_method' => ['required', Rule::in(['CS', 'CC', 'DC', 'TR'])],
+            'payment_reference' => ['nullable', 'string', 'max:100'],
+            'payment_attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+        ], [
+            'payment_method.required' => 'Seleccione un metodo de pago.',
+            'payment_method.in' => 'Seleccione un metodo de pago valido.',
+            'payment_attachment.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
+            'payment_attachment.max' => 'El comprobante no debe superar 2MB.',
+        ]);
+
+        if (in_array($validated['payment_method'], ['CC', 'DC', 'TR'], true) && blank($validated['payment_reference'])) {
+            throw ValidationException::withMessages([
+                'payment_reference' => 'La referencia es obligatoria para este metodo de pago.',
+            ]);
+        }
     }
 
     public function checkCouponAvailability(): void
