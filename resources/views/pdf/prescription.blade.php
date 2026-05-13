@@ -159,8 +159,13 @@
     <table class="layout">
       <tr>
         <td>
-          <img class="logo" src="{{ public_path('/img/logo.png') }}" alt="Logo" style="height: 50px; top: 15px; position: relative;">
-          <span class="brand-name">INMAX</span>
+          <div>
+            <img class="logo" src="{{ public_path('/img/logo.png') }}" alt="Logo" style="height: 50px; top: 15px; position: relative;">
+            <span class="brand-name">INMAX</span>
+          </div>
+          <div>
+            <span class="folio-label">Receta expedida para socios de la plataforma INMAX</span>
+          </div>
         </td>
         <td style="text-align:right;">
           <div class="folio-label">Folio de Receta</div>
@@ -209,9 +214,9 @@
                 Tomar <span class="v-teal">{{ $med->quantity }} {{ $med->dose }}</span> cada <span class="v-teal"> {{ $med->frequency }}</span> durante <span class="v-teal">{{ $med->duration }}</span>.
               </div>
             </td>
-            <td style="width: 100px; text-align: right; vertical-align: middle;">
+            {{--<td style="width: 100px; text-align: right; vertical-align: middle;">
               <span class="route-tag">{{ $med->route ?? 'Oral' }}</span>
-            </td>
+            </td>--}}
           </tr>
         </table>
       </div>

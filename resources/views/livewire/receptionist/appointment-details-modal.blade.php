@@ -14,7 +14,7 @@
                 <p><span class="font-semibold">No. Membresia:</span> {{ $selectedAppointment->user?->policy?->number ?? '-' }}</p>
                 <p><span class="font-semibold">Proveedor:</span> {{ $selectedAppointment->doctor?->user?->name ?? 'Sin proveedor' }}</p>
                 <p><span class="font-semibold">Especialidad/Tipo:</span> {{ $selectedAppointment->doctor?->specialty?->name ?? $selectedAppointment->doctor?->type?->label() }}</p>
-                <p><span class="font-semibold">Fecha:</span> {{ $selectedAppointment->date?->format('d/m/Y') }} {{ $selectedAppointment->time?->format('h:i A') }}</p>
+                <p><span class="font-semibold">Fecha consulta:</span> {{ $selectedAppointment->note?->created_at->format('d/m/Y') ?? $selectedAppointment->date?->format('d/m/Y') }} {{ $selectedAppointment->note?->created_at->format('h:i A') ?? $selectedAppointment->date?->format('h:i A') }}</p>
                 <p><span class="font-semibold">Estatus:</span> {{ $selectedAppointment->formatted_status }}</p>
             </div>
 
@@ -48,6 +48,7 @@
             </div>
 
             <div class="space-y-2 border-t border-neutral-200 pt-3">
+                <p class="text-sm"><span class="font-semibold">Fecha pago:</span> {{ $selectedAppointment->updated_at?->format('d/m/Y') ?? '-' }} {{ $selectedAppointment->updated_at?->format('h:i A') ?? '-' }}</p>
                 <p class="text-sm"><span class="font-semibold">Total cuenta:</span> ${{ number_format((float) $selectedAppointment->subtotal, 2) }}</p>
 
                 @if((float) $selectedAppointment->coupon_discount > 0)

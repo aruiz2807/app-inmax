@@ -99,7 +99,7 @@ final class AppointmentsTable extends PowerGridComponent
 
                 $detailButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-receptionist-appointment-detail\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Ver detalle</button>';
 
-                if ($hasNote) {
+                if ($hasNote && $isPaid) {
                     $ticketUrl = route('receptionist.payment.ticket', ['appointment' => $appointment->id]);
                     $ticketButton = '<a href="'.$ticketUrl.'" target="_blank" class="bg-neutral-700 text-white px-3 py-1 rounded inline-flex">Ticket</a>';
                 } else {
