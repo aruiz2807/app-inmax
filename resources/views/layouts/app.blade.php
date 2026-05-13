@@ -249,6 +249,14 @@
                                 :active="request()->routeIs('receptionist.appointments')"
                                 x-on:click="closeSidebar()"
                             />
+
+                            <x-ui.navlist.item
+                                icon="clipboard-document-list"
+                                :label="'Solicitudes'"
+                                href="{{ route('receptionist.requests') }}"
+                                :active="request()->routeIs('receptionist.requests')"
+                                x-on:click="closeSidebar()"
+                            />
                         @break
 
                         @case('Doctor')

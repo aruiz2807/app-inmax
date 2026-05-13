@@ -12,8 +12,8 @@
             <div class="grid gap-2 md:grid-cols-2 text-sm">
                 <p><span class="font-semibold">Paciente:</span> {{ $selectedAppointment->user?->name ?? 'Sin paciente' }}</p>
                 <p><span class="font-semibold">No. Membresia:</span> {{ $selectedAppointment->user?->policy?->number ?? '-' }}</p>
-                <p><span class="font-semibold">Proveedor:</span> {{ $selectedAppointment->doctor?->user?->name ?? 'Sin proveedor' }}</p>
-                <p><span class="font-semibold">Especialidad/Tipo:</span> {{ $selectedAppointment->doctor?->specialty?->name ?? $selectedAppointment->doctor?->type?->label() }}</p>
+                <p><span class="font-semibold">Proveedor:</span> {{ $selectedAppointment->doctor?->user?->name ?? $selectedAppointment->office?->name ?? 'Sin proveedor' }}</p>
+                <p><span class="font-semibold">Especialidad/Tipo:</span> {{ $selectedAppointment->doctor?->specialty?->name ?? $selectedAppointment->doctor?->type?->label() ?? 'Consulta por oficina' }}</p>
                 <p><span class="font-semibold">Fecha consulta:</span> {{ $selectedAppointment->note?->created_at->format('d/m/Y') ?? $selectedAppointment->date?->format('d/m/Y') }} {{ $selectedAppointment->note?->created_at->format('h:i A') ?? $selectedAppointment->date?->format('h:i A') }}</p>
                 <p><span class="font-semibold">Estatus:</span> {{ $selectedAppointment->formatted_status }}</p>
             </div>
@@ -48,7 +48,14 @@
             </div>
 
             <div class="space-y-2 border-t border-neutral-200 pt-3">
-                <p class="text-sm"><span class="font-semibold">Fecha pago:</span> {{ $selectedAppointment->updated_at?->format('d/m/Y') ?? '-' }} {{ $selectedAppointment->updated_at?->format('h:i A') ?? '-' }}</p>
+                <p class="text-sm">
+                    <span class="font-semibold">Fecha pago:</span>
+                    @if(is_null($selectedAppointment->user_payment))
+                        -
+                    @else
+                        {{ $selectedAppointment->updated_at?->format('d/m/Y h:i A') ?? '-' }}
+                    @endif
+                </p>
                 <p class="text-sm"><span class="font-semibold">Total cuenta:</span> ${{ number_format((float) $selectedAppointment->subtotal, 2) }}</p>
 
                 @if((float) $selectedAppointment->coupon_discount > 0)
