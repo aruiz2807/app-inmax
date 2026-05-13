@@ -88,6 +88,10 @@ class Appointment extends Model
         'user_payment',
         'commission',
         'total',
+        'payment_method',
+        'payment_reference',
+        'payment_attachment_path',
+        'payment_attachment_name',
         'status_prescription'
     ];
 

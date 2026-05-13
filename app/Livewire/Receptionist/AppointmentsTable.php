@@ -32,8 +32,6 @@ final class AppointmentsTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        $this->tab = request()->query('tab', 'all');
-
         $doctorIds = Auth::user()->staffDoctors()->pluck('doctors.id');
 
         return Appointment::query()

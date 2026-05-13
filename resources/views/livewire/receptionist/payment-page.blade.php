@@ -33,6 +33,38 @@
 
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="clipboard-document-list" class="self-center" />
+            <x-ui.text class="text-base ml-2">Servicios completados</x-ui.text>
+        </x-ui.heading>
+
+        @php
+            $completedServices = $appointment->services->filter(fn ($service) => $service->status === 'Completed');
+        @endphp
+
+        @if($completedServices->isEmpty())
+            <x-ui.text class="text-sm text-neutral-500">No hay servicios completados en esta cita.</x-ui.text>
+        @else
+            <div class="flex flex-col w-full gap-2">
+                @foreach($completedServices as $service)
+                    <div class="flex p-2 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                        <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
+
+                        <div class="flex flex-col w-full">
+                            <div class="flex items-center justify-between pl-4 pb-2">
+                                <x-ui.text class="text-base pr-1">{{ $service->service?->name ?? 'Servicio' }}</x-ui.text>
+                                <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
+                                    {{ $service->covered_text }}
+                                </x-ui.badge>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </x-ui.card>
+
+    <x-ui.card size="full" class="mx-auto mt-2">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
             <x-ui.icon name="banknotes" class="self-center" />
             <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
         </x-ui.heading>
@@ -105,6 +137,43 @@
             <x-ui.alerts variant="info" icon="currency-dollar">
                 <x-ui.alerts.description>{{ $total }}</x-ui.alerts.description>
             </x-ui.alerts>
+        </x-ui.field>
+    </x-ui.card>
+
+    <x-ui.card size="full" class="mx-auto mt-2">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="credit-card" class="self-center" />
+            <x-ui.text class="text-base ml-2">Informacion del pago</x-ui.text>
+        </x-ui.heading>
+
+        <x-ui.field required>
+            <x-ui.label>Metodo de pago</x-ui.label>
+            <x-ui.select
+                placeholder="Seleccione el metodo de pago..."
+                icon="wallet"
+                wire:model="payment_method"
+            >
+                <x-ui.select.option value="CS">Efectivo</x-ui.select.option>
+                <x-ui.select.option value="CC">Tarjeta de credito</x-ui.select.option>
+                <x-ui.select.option value="DC">Tarjeta de debito</x-ui.select.option>
+                <x-ui.select.option value="TR">Transferencia</x-ui.select.option>
+            </x-ui.select>
+            <x-ui.error name="payment_method" />
+        </x-ui.field>
+
+        <x-ui.field class="mt-2">
+            <x-ui.label>Referencia</x-ui.label>
+            <x-ui.input wire:model="payment_reference" name="payment_reference" placeholder="Referencia de pago" />
+            <x-ui.error name="payment_reference" />
+        </x-ui.field>
+
+        <x-ui.field class="mt-2">
+            <x-ui.label>Comprobante</x-ui.label>
+            <input type="file" wire:model="payment_attachment" placeholder="Seleccione un archivo para adjuntar" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
+            <x-ui.error name="payment_attachment" />
+            <div wire:loading wire:target="payment_attachment" class="text-sm text-neutral-500 mt-2">
+                Subiendo archivo...
+            </div>
         </x-ui.field>
     </x-ui.card>
 
