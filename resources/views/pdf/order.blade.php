@@ -139,7 +139,7 @@
                         <span class="brand-name">INMAX</span>
                     </div>
                     <div>
-                        <span class="folio-label">Orden expedida para socios de la plataforma INMAX</span>
+                        <span class="folio-label">Orden expedida para usuarios de la plataforma INMAX</span>
                     </div>
                 </td>
                 <td style="text-align:right;">
