@@ -296,11 +296,11 @@ class DRNotesPage extends Component
         $this->subtotal = str_replace(',', '', $this->subtotal);
 
         $this->appointment->update([
-            'subtotal' => $this->subtotal ?: '0.00',
-            'coupon_discount' => $this->couponDiscountValue ?: '0.00',
-            'user_payment' => str_replace(',', '', $this->user_payment) ?: '0.00',
-            'commission' => str_replace(',', '', $this->commision) ?: '0.00',
-            'total' => str_replace(',', '', $this->total) ?: '0.00',
+            'subtotal' => $this->subtotal ?: null,
+            'coupon_discount' => $this->couponDiscountValue ?: null,
+            'user_payment' => str_replace(',', '', $this->user_payment) ?: null,
+            'commission' => str_replace(',', '', $this->commision) ?: null,
+            'total' => str_replace(',', '', $this->total) ?: null,
             'doctor_id' => $doctorId,
             'status' => \App\Enums\AppointmentStatus::COMPLETED,
         ]);
