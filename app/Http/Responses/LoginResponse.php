@@ -22,7 +22,7 @@ class LoginResponse implements LoginResponseContract
             'User' => route('user.home', absolute: false),
             'Doctor' => route('doctor.home', absolute: false),
             'Clerk' => route('clerk.dashboard', absolute: false),
-            'Receptionist' => route('receptionist.dashboard', absolute: false),
+            'Receptionist' => route('receptionist.appointments', absolute: false),
             default => route('dashboard', absolute: false),
         };
 

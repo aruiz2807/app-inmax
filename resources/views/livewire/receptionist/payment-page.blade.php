@@ -1,4 +1,10 @@
-<div>
+<div
+    x-data
+    x-on:payment-completed.window="
+        window.open($event.detail.ticketUrl, '_blank');
+        window.location.href = $event.detail.redirectUrl;
+    "
+>
     <x-slot name="header">
         Pago de consulta
     </x-slot>

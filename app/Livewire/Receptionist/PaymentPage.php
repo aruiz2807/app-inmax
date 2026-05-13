@@ -125,6 +125,12 @@ class PaymentPage extends Component
             duration: 4000
         );
 
+        $this->dispatch(
+            'payment-completed',
+            ticketUrl: route('receptionist.payment.ticket', ['appointment' => $this->appointment->id]),
+            redirectUrl: route('receptionist.appointments', ['tab' => 'paid'])
+        );
+
         $this->reset('payment_attachment');
     }
 
