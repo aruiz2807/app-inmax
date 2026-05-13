@@ -49,9 +49,12 @@
                         @foreach ($note->appointment->services as $service)
                             @if($service->status === 'Completed')
                             <tr>
-                                <td class="qty">1</td>
                                 <td class="desc">{!! nl2br(e($service->service->name)) !!}</td>
-                                <td class="price">{{ $service->covered ? 'Incluido' : 'Adicional' }}</td>
+                                <td class="price">
+                                    <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
+                                        {{ $service->covered_text }}
+                                    </x-ui.badge>
+                                </td>
                             </tr>
                             @endif
                         @endforeach
@@ -62,7 +65,7 @@
 
                 <div class="grid grid-cols-[6rem_auto] justify-stretch p-4">
                     <x-ui.text>Fecha : </x-ui.text>
-                    <x-ui.text class="font-semibold">{{ $note->appointment->date->format('d/m/Y') }} {{ $note->appointment->time->format('h:i A') }}</x-ui.text>
+                    <x-ui.text class="font-semibold">{{ $note->created_at->format('d/m/Y') }} {{ $note->created_at->format('h:i A') }}</x-ui.text>
                 </div>
             </div>
 
