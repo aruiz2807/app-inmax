@@ -74,7 +74,11 @@
                         placeholder="Buscar servicio..."
                         icon="wallet"
                         searchable
+                        clearable
                     >
+                        <x-ui.select.option value="">
+                            Cualquier servicio (Universal)
+                        </x-ui.select.option>
                         @foreach($services as $service)
                             <x-ui.select.option value="{{ $service->id }}">
                                 {{ $service->name }}
