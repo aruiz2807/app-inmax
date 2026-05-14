@@ -28,7 +28,7 @@ class CouponsForm extends Form
         $this->validate();
 
         Coupon::create([
-            'service_id' => $this->service,
+            'service_id' => empty($this->service) ? null : $this->service,
             'name' => $this->name,
             'type' => $this->type,
             'value' => str_replace(',', '', $this->value),
@@ -56,7 +56,7 @@ class CouponsForm extends Form
         $coupon = Coupon::find($couponId);
 
         $coupon->update([
-            'service_id' => $this->service,
+            'service_id' => empty($this->service) ? null : $this->service,
             'name' => $this->name,
             'type' => $this->type,
             'value' => str_replace(',', '', $this->value),

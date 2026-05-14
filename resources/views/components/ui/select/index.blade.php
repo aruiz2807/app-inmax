@@ -104,7 +104,7 @@
 
             // Check if given option is currently selected
             isSelected(option) {
-                return this.isMultiple ? this.state?.includes(option) : this.state === option;
+                return this.isMultiple ? this.state?.some(item => item == option) : this.state == option;
             },
 
             select(option) {
@@ -123,7 +123,7 @@
                     console.error('Multiple select requires an array value. Please bind an array property using x-model or wire:model.');
                 }        
                 
-                const itemIndex = this.state.findIndex(item => item === option);
+                const itemIndex = this.state.findIndex(item => item == option);
                 
                 if (itemIndex === -1) {
                     this.state.push(option);    // Add to selection
@@ -206,7 +206,7 @@
             
             // Convert option value to its index in the filtered results array
             getFilteredIndex(value) {
-                return this.filteredOptions.findIndex(option => option.value === value);
+                return this.filteredOptions.findIndex(option => option.value == value);
             },
             
             // Mouse hover handler - sync visual highlight with mouse position is like converting hover state to our *virtual* focus
@@ -239,13 +239,13 @@
 
                 if (!this.isMultiple) {
                     // Single select: show the selected option's label
-                    const option = this.options.find(opt => opt.value === this.state);
+                    const option = this.options.find(opt => opt.value == this.state);
                     return option?.label ?? this.placeholder;
                 }
 
                 // Multiple select: show individual label or count
                 if (this.state.length === 1) {
-                    const option = this.options.find(opt => opt.value === this.state[0]);
+                    const option = this.options.find(opt => opt.value == this.state[0]);
                     return option?.label ?? this.state[0];
                 }
 
@@ -254,7 +254,7 @@
             
             // Check if any option is currently selected
             get hasSelection() {
-                return this.isMultiple ? this.state?.length > 0 : this.state !== null;
+                return this.isMultiple ? this.state?.length > 0 : (this.state !== null && this.state !== '');
             },
             
             contains(str, substring){
@@ -288,3 +288,4 @@
         </x-ui.select.options>
     </div>
 </div>
+
