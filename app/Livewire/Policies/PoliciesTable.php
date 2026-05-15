@@ -192,6 +192,12 @@ final class PoliciesTable extends PowerGridComponent
     public function actions(Policy $row): array
     {
         return [
+            Button::add('show')
+                ->slot('Detalle')
+                ->id()
+                ->class('w-22 bg-teal-500 text-white px-3 py-1 rounded')
+                ->dispatch('showStatus', ['policyId' => $row->id]),
+
             Button::add('edit')
                 ->slot('Editar')
                 ->id()
@@ -230,6 +236,9 @@ final class PoliciesTable extends PowerGridComponent
         if(Auth::user()->profile === 'Sales')
         {
             return [
+                Rule::button('view')
+                    ->when(fn($model) => true)
+                    ->hide(),
 
                 Rule::button('activate')
                     ->when(fn($model) => true)

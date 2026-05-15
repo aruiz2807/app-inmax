@@ -100,4 +100,5 @@
     @include('livewire.policies.activation-modal')
     @include('livewire.policies.deactivation-modal')
     @include('livewire.policies.cancel-modal')
+    @include('livewire.policies.status-modal')
 </div>
