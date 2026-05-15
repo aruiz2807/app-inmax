@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserLegalAcceptance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Blade;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
@@ -121,15 +122,15 @@ final class UsersTable extends PowerGridComponent
     {
         return [
             Button::add('edit')
-                ->slot('Editar')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                 ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editUser', ['userId' => $row->id]),
 
             Button::add('send_pin_link')
-                ->slot('Enviar link PIN')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="paper-airplane" variant="outline" class="w-5 h-5"/><span>Enviar link PIN</span></div>'))
                 ->id()
-                ->class('bg-neutral-700 text-white px-3 py-1 rounded')
+                ->class('text-neutral-600 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
                 ->dispatch('sendUserPinSetupLink', ['userId' => $row->id]),
         ];
     }

@@ -193,39 +193,39 @@ final class PoliciesTable extends PowerGridComponent
     {
         return [
             Button::add('show')
-                ->slot('Detalle')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
                 ->id()
-                ->class('w-22 bg-teal-500 text-white px-3 py-1 rounded')
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('showStatus', ['policyId' => $row->id]),
 
             Button::add('edit')
-                ->slot('Editar')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                 ->id()
-                ->class('w-22 bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editPolicy', ['policyId' => $row->id]),
 
             Button::add('activate')
-                ->slot('Activar')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Activar</span></div>'))
                 ->id()
-                ->class('w-22 bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('activatePolicy', ['policyId' => $row->id]),
 
             Button::add('inactive')
-                ->slot('Inactivar')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pause-circle" variant="outline" class="w-5 h-5"/><span>Inactivar</span></div>'))
                 ->id()
-                ->class('w-22 bg-gray-600 text-white px-3 py-1 rounded')
+                ->class('text-gray-600 hover:bg-gray-100 px-2 py-1 rounded transition-colors')
                 ->dispatch('deactivatePolicy', ['policyId' => $row->id]),
 
             Button::add('cancel')
-                ->slot('Cancelar')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="x-circle" variant="outline" class="w-5 h-5"/><span>Cancelar</span></div>'))
                 ->id()
-                ->class('w-22 bg-orange-600 text-white px-3 py-1 rounded')
+                ->class('text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('cancelPolicy', ['policyId' => $row->id]),
 
             Button::add('members')
-                ->slot('Miembro')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="user-group" variant="outline" class="w-5 h-5"/><span>Miembros</span></div>'))
                 ->id()
-                ->class('w-24 bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('addMember', ['policyId' => $row->id]),
         ];
     }
