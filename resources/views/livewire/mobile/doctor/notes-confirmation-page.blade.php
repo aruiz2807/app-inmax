@@ -103,7 +103,7 @@
                 <x-ui.separator />
 
                 <div class="grid grid-cols-[10rem_auto] justify-stretch p-4">
-                    <x-ui.text>Ganancia del proveedor : </x-ui.text>
+                    <x-ui.text>Ganancia del socio : </x-ui.text>
                     <x-ui.text class="font-semibold text-right">${{ $note->appointment->total }}</x-ui.text>
                 </div>
             </div>

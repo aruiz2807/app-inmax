@@ -3,6 +3,7 @@
 namespace App\Livewire\Receptionist;
 
 use App\Models\Appointment;
+use App\Models\Parameter;
 use App\Models\PolicyService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
@@ -186,6 +187,26 @@ class PaymentPage extends Component
 
     private function calculateTotals(): void
     {
+        // Check if an included MG consultation is being performed
+        $mgParam = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
+        $mgServiceId = $mgParam ? (int) $mgParam->value : null;
+
+        $isMGIncluded = false;
+        if ($mgServiceId) {
+            $isMGIncluded = $this->appointment->services->where('service_id', $mgServiceId)
+                ->where('covered', 1)
+                ->where('status', 'Completed') // In PaymentPage, services are already marked Completed by doctor
+                ->isNotEmpty();
+        }
+
+        // Auto-set subtotal if it's an included MG consultation and current subtotal is empty
+        if ($isMGIncluded && (empty($this->subtotal) || $this->parseMoney($this->subtotal) == 0)) {
+            $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
+            if ($costoParam) {
+                $this->subtotal = $this->formatMoney($costoParam->value);
+            }
+        }
+
         $subtotal = $this->parseMoney($this->subtotal);
         $doctor = $this->appointment->doctor;
 
@@ -211,23 +232,29 @@ class PaymentPage extends Component
             }
         }
 
-        $effectiveSubtotal = $this->useCoupon
-            ? max(0, $subtotal - $this->couponDiscountValue)
-            : max(0, $subtotal - $memberDiscount);
+        if ($isMGIncluded) {
+            $effectiveSubtotal = 0;
+        } else {
+            $effectiveSubtotal = $this->useCoupon
+                ? max(0, $subtotal - $this->couponDiscountValue)
+                : max(0, $subtotal - $memberDiscount);
+        }
 
         $commission = $subtotal * $doctorCommission;
 
         $this->user_payment = $this->formatMoney($effectiveSubtotal);
 
-        if ($this->useCoupon) {
+        if ($isMGIncluded) {
+            $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
+            $this->commision = $this->formatMoney(0);
+        } elseif ($this->useCoupon) {
             $providerTotal = $subtotal - $memberDiscount - $commission;
             $this->total = $this->formatMoney($providerTotal);
             $this->commision = $this->formatMoney($effectiveSubtotal - $providerTotal);
-            return;
+        } else {
+            $this->commision = $this->formatMoney($commission);
+            $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
         }
-
-        $this->commision = $this->formatMoney($commission);
-        $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
     }
 
     private function parseMoney(null|string|float|int $value): float

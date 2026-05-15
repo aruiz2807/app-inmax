@@ -137,7 +137,7 @@
                 </tr>
 
                 <tr>
-                    <td class="desc">Ganancia del proveedor: </td>
+                    <td class="desc">Ganancia del socio: </td>
                     <td class="price">${{ $total }} </td>
                 </tr>
             </table>
