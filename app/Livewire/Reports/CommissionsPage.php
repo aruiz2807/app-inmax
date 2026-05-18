@@ -4,6 +4,7 @@ namespace App\Livewire\Reports;
 
 use App\Models\Appointment;
 use App\Models\Doctor;
+use App\Models\Parameter;
 use App\Enums\AppointmentStatus;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -50,7 +51,7 @@ class CommissionsPage extends Component
 
     public function getAppointmentsProperty()
     {
-        $query = Appointment::with(['user', 'doctor.user'])
+        $query = Appointment::with(['user', 'doctor.user', 'doctor.specialty'])
             ->where('status', AppointmentStatus::COMPLETED);
 
         if ($this->year) {
@@ -68,21 +69,51 @@ class CommissionsPage extends Component
         return $query->orderBy('date', 'desc')->get();
     }
 
+    public function getMgSpecialtyIdProperty()
+    {
+        $param = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
+        return $param ? (int) $param->value : null;
+    }
+
     #[Layout('layouts.app')]
     public function render()
     {
         $appointments = $this->appointments;
+        $mgSpecialtyId = $this->mgSpecialtyId;
 
         $groupedAppointments = $appointments->groupBy(function($appointment) {
             return $appointment->doctor->user->name;
         });
 
+        // We need to calculate totals considering the visual inversion for MG doctors
+        $subtotal = 0;
+        $coupon_discount = 0;
+        $user_payment = 0;
+        $commission = 0;
+        $total = 0;
+
+        foreach ($appointments as $app) {
+            $subtotal += $app->subtotal;
+            $coupon_discount += $app->coupon_discount;
+            $user_payment += $app->user_payment;
+
+            if ($app->doctor->specialty_id === $mgSpecialtyId) {
+                // For MG doctors, commission shows inverted total, and total shows 0
+                $commission += -$app->total;
+                $total += 0;
+            } else {
+                $commission += $app->commission;
+                $total += $app->total;
+            }
+        }
+
         $totals = [
-            'subtotal' => $appointments->sum('subtotal'),
-            'coupon_discount' => $appointments->sum('coupon_discount'),
-            'user_payment' => $appointments->sum('user_payment'),
-            'commission' => $appointments->sum('commission'),
-            'total' => $appointments->sum('total'),
+            'subtotal' => $subtotal,
+            'coupon_discount' => $coupon_discount,
+            'user_payment' => $user_payment,
+            'commission' => $commission,
+            'total' => $total,
+            'mg_specialty_id' => $mgSpecialtyId,
         ];
 
         return view('livewire.reports.commissions-page', [

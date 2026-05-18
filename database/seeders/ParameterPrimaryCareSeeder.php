@@ -43,5 +43,13 @@ class ParameterPrimaryCareSeeder extends Seeder
                 'value' => $specialty->id,
             ]
         );
+
+        Parameter::updateOrCreate(
+            ['type' => 'MG', 'key' => 'Costo'],
+            [
+                'description' => 'Costo de consulta de medico general',
+                'value' => 800,
+            ]
+        );
     }
 }

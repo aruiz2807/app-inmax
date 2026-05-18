@@ -39,8 +39,23 @@ final class AppointmentsTable extends PowerGridComponent
             ->leftJoin('users as patients', 'patients.id', '=', 'appointments.user_id')
             ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
             ->leftJoin('users as doctor_users', 'doctor_users.id', '=', 'doctors.user_id')
-            ->with(['user:id,name', 'doctor:id,user_id', 'doctor.user:id,name'])
-            ->whereIn('doctor_id', $doctorIds)
+            ->leftJoin('policies as patient_policies', 'patient_policies.user_id', '=', 'appointments.user_id')
+            ->with(['user:id,name', 'user.policy:id,user_id,number', 'doctor:id,user_id', 'doctor.user:id,name', 'office:id,name', 'note:id,appointment_id'])
+            ->where(function (Builder $query) use ($doctorIds) {
+                $query
+                    ->whereIn('appointments.doctor_id', $doctorIds)
+                    ->orWhere(function (Builder $officeQuery) use ($doctorIds) {
+                        $officeQuery
+                            ->whereNull('appointments.doctor_id')
+                            ->whereExists(function ($existsQuery) use ($doctorIds) {
+                                $existsQuery
+                                    ->selectRaw('1')
+                                    ->from('office_doctors')
+                                    ->whereColumn('office_doctors.office_id', 'appointments.office_id')
+                                    ->whereIn('office_doctors.doctor_id', $doctorIds);
+                            });
+                    });
+            })
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where(function (Builder $pendingQuery) {
                 $pendingQuery
                     ->whereNull('user_payment');
@@ -80,7 +95,8 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('date_formatted', fn (Appointment $appointment) => $appointment->date?->format('d/m/Y'))
             ->add('time_formatted', fn (Appointment $appointment) => $appointment->time?->format('H:i'))
             ->add('patient_name', fn (Appointment $appointment) => e($appointment->user?->name ?? 'N/A'))
-            ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? 'N/A'))
+            ->add('membership_number', fn (Appointment $appointment) => e($appointment->user?->policy?->number ?? '-'))
+            ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? $appointment->office?->name ?? 'N/A'))
             ->add('status_badge', fn (Appointment $appointment) => Blade::render('<x-status-badge status="'.$appointment->status?->value.'" />'))
             ->add('payment_status_badge', function (Appointment $appointment): string {
                 if (is_null($appointment->user_payment)) {
@@ -93,18 +109,33 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('payment_button', function (Appointment $appointment): string {
                 $isPaid = !is_null($appointment->user_payment);
                 $isCompleted = $appointment->status == \App\Enums\AppointmentStatus::COMPLETED;
+                $hasNote = ! is_null($appointment->note?->id);
+
+                $detailButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-receptionist-appointment-detail\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Ver detalle</button>';
+
+                if ($hasNote && $isPaid) {
+                    $ticketUrl = route('receptionist.payment.ticket', ['appointment' => $appointment->id]);
+                    $ticketButton = '<a href="'.$ticketUrl.'" target="_blank" class="bg-neutral-700 text-white px-3 py-1 rounded inline-flex">Ticket</a>';
+                } else {
+                    $ticketButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Ticket</button>';
+                }
 
                 if ($isPaid) {
-                    return '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';
+                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';
+
+                    return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
                 }
 
                 if (!$isCompleted) {
-                    return '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Ir a pago</button>';
+                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Ir a pago</button>';
+
+                    return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
                 }
 
                 $url = route('receptionist.payment', ['appointment' => $appointment->id]);
+                $payButton = '<a href="'.$url.'" class="bg-teal-600 text-white px-3 py-1 rounded inline-flex">Ir a pago</a>';
 
-                return '<a href="'.$url.'" class="bg-teal-600 text-white px-3 py-1 rounded inline-flex">Ir a pago</a>';
+                return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
             });
     }
 
@@ -122,6 +153,11 @@ final class AppointmentsTable extends PowerGridComponent
             Column::make('Paciente', 'patient_name', 'patients.name')
                 ->searchable()
                 ->sortable(),
+
+            Column::make('Membresia', 'membership_number', 'patient_policies.number')
+                ->searchable()
+                ->sortable()
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Medico', 'doctor_name', 'doctor_users.name')
                 ->searchable()

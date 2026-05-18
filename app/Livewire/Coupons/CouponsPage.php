@@ -71,4 +71,9 @@ class CouponsPage extends Component
         $this->form->reset();
         $this->couponId = null;
     }
+
+    public function clearService()
+    {
+        $this->form->service = null;
+    }
 }

@@ -134,8 +134,13 @@
         <table class="layout">
             <tr>
                 <td>
-                    <img class="logo" src="{{ public_path('/img/logo.png') }}" alt="Logo" style="height: 50px; top: 15px; position: relative;">
-                    <span class="brand-name">INMAX</span>
+                    <div>
+                        <img class="logo" src="{{ public_path('/img/logo.png') }}" alt="Logo" style="height: 50px; top: 15px; position: relative;">
+                        <span class="brand-name">INMAX</span>
+                    </div>
+                    <div>
+                        <span class="folio-label">Orden expedida para usuarios de la plataforma INMAX</span>
+                    </div>
                 </td>
                 <td style="text-align:right;">
                     <div class="folio-label">Folio de Orden</div>

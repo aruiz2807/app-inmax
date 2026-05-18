@@ -9,6 +9,7 @@ use App\Models\Appointment;
 use App\Models\Medication;
 use App\Models\AppointmentPrescription;
 use App\Models\AppointmentService;
+use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Services\Appointments\AppointmentCompletedNotificationService;
 use Illuminate\Support\Facades\Auth;
@@ -172,6 +173,13 @@ class DRNotesPage extends Component
         $this->dispatch('open-notes-modal');
     }
 
+    public function updated($name, $value)
+    {
+        if (str_starts_with($name, 'form.services.')) {
+            $this->calculateTotals();
+        }
+    }
+
     public function updatedSubtotal($value)
     {
         $this->calculateTotals();
@@ -184,6 +192,30 @@ class DRNotesPage extends Component
 
     private function calculateTotals()
     {
+        if ($this->hasReceptionistAssigned) {
+            return;
+        }
+
+        // Check if an included MG consultation is being performed
+        $mgParam = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
+        $mgServiceId = $mgParam ? (int) $mgParam->value : null;
+
+        $isMGIncluded = false;
+        if ($mgServiceId) {
+            $isMGIncluded = $this->services->where('service_id', $mgServiceId)
+                ->where('covered', 1)
+                ->filter(fn($s) => !empty($this->form->services[$s->id]))
+                ->isNotEmpty();
+        }
+
+        // Auto-set subtotal if it's an included MG consultation and current subtotal is empty
+        if ($isMGIncluded && (empty($this->subtotal) || floatval(str_replace(',', '', $this->subtotal)) == 0)) {
+            $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
+            if ($costoParam) {
+                $this->subtotal = number_format($costoParam->value, 2);
+            }
+        }
+
         $subtotal = floatval(str_replace(',', '', $this->subtotal));
         
         $doctor = $this->appointment->doctor ?: $this->user->doctor;
@@ -203,8 +235,11 @@ class DRNotesPage extends Component
             }
         }
 
-        // If a coupon is used, it completely overrides the standard member discount for the user payment calculation
-        if ($this->useCoupon) {
+        // Determine effective subtotal (what the user pays)
+        // If it's an included MG consultation, it's 100% covered (user pays 0)
+        if ($isMGIncluded) {
+            $effectiveSubtotal = 0;
+        } elseif ($this->useCoupon) {
             $effectiveSubtotal = max(0, $subtotal - $this->couponDiscountValue);
         } else {
             $effectiveSubtotal = max(0, $subtotal - $memberDiscount);
@@ -212,16 +247,19 @@ class DRNotesPage extends Component
 
         $this->user_payment = number_format($effectiveSubtotal, 2);
         
-        // The commission Inmax charges the doctor is usually based on the full subtotal
-        $this->commision = number_format($subtotal * $doc_commision, 2);
+        // The commission Inmax charges the doctor
+        $commission_amount = $subtotal * $doc_commision;
         
-        // Total for the doctor: Subtotal - Platform Commission - Coupon (or member discount) 
-        if ($this->useCoupon) {
-            //$this->total = number_format($subtotal - $this->couponDiscountValue - floatval(str_replace(',', '', $this->commision)), 2);
-            $this->total = number_format($subtotal - $memberDiscount - ($subtotal * $doc_commision), 2);
-            $this->commision = number_format($effectiveSubtotal - ($subtotal - $memberDiscount - ($subtotal * $doc_commision)),2);
+        // Total for the doctor: Subtotal - Platform Commission - Discount/Coupon
+        if ($isMGIncluded) {
+            $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
+            $this->commision = number_format(0, 2);
+        } elseif ($this->useCoupon) {
+            $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
+            $this->commision = number_format($effectiveSubtotal - ($subtotal - $memberDiscount - $commission_amount), 2);
         } else {
-            $this->total = number_format($subtotal - $memberDiscount - floatval(str_replace(',', '', $this->commision)), 2);
+            $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
+            $this->commision = number_format($commission_amount, 2);
         }
     }
 
@@ -295,15 +333,20 @@ class DRNotesPage extends Component
 
         $this->subtotal = str_replace(',', '', $this->subtotal);
 
-        $this->appointment->update([
-            'subtotal' => $this->subtotal ?: null,
-            'coupon_discount' => $this->couponDiscountValue ?: null,
-            'user_payment' => str_replace(',', '', $this->user_payment) ?: null,
-            'commission' => str_replace(',', '', $this->commision) ?: null,
-            'total' => str_replace(',', '', $this->total) ?: null,
+        $updateData = [
             'doctor_id' => $doctorId,
             'status' => \App\Enums\AppointmentStatus::COMPLETED,
-        ]);
+        ];
+
+        if (! $this->hasReceptionistAssigned) {
+            $updateData['subtotal'] = $this->subtotal ?: null;
+            $updateData['coupon_discount'] = $this->couponDiscountValue ?: null;
+            $updateData['user_payment'] = str_replace(',', '', $this->user_payment) ?: null;
+            $updateData['commission'] = str_replace(',', '', $this->commision) ?: null;
+            $updateData['total'] = str_replace(',', '', $this->total) ?: null;
+        }
+
+        $this->appointment->update($updateData);
 
         if (!empty($this->prescriptions)) // has at least one element
         { 

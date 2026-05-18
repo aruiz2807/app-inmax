@@ -1,4 +1,10 @@
-<div>
+<div
+    x-data
+    x-on:payment-completed.window="
+        window.open($event.detail.ticketUrl, '_blank');
+        window.location.href = $event.detail.redirectUrl;
+    "
+>
     <x-slot name="header">
         Pago de consulta
     </x-slot>
@@ -133,7 +139,7 @@
         </x-ui.field>
 
         <x-ui.field class="mt-2">
-            <x-ui.label>Ganancia del proveedor</x-ui.label>
+            <x-ui.label>Ganancia del socio</x-ui.label>
             <x-ui.alerts variant="info" icon="currency-dollar">
                 <x-ui.alerts.description>{{ $total }}</x-ui.alerts.description>
             </x-ui.alerts>

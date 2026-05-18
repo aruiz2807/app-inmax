@@ -3,6 +3,7 @@
 namespace App\Livewire\Policies;
 
 use App\Models\Policy;
+use App\Models\PolicyService;
 use App\Services\Auth\PinSetupTokenService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -16,25 +17,26 @@ class PoliciesPage extends Component
     use WithFileUploads;
 
     public ?int $policyId = null;
-
     public ?string $policyType = null;
-
     public bool $newMember = false;
-
     public string $policy_number = '';
-
     public string $policy_user_name = '';
-
     public ?string $lastPinSetupUrl = null;
-
     public ?string $lastPinSetupName = null;
-
     public ?string $lastPinSetupPhone = null;
 
     public $payment_method = null;
     public $payment_reference = null;
     public $payment_attachment = null;
     public $reactivation = false;
+
+    public $percentage = 0;
+    public $total_included;
+    public $total_used;
+    public $total_extra;
+    public $services = [];
+    public $policy_type;
+    public $icon;
 
     #[Layout('layouts.app')]
     public function render()
@@ -61,6 +63,41 @@ class PoliciesPage extends Component
         $this->newMember = true;
 
         $this->dispatch('open-policy-modal');
+    }
+
+    #[On('showStatus')]
+    public function showStatus(int $policyId): void
+    {
+        $policy = Policy::query()->findOrFail($policyId);
+        $this->policy_number = $policy->number;
+        $this->policy_user_name = $policy->user->name;
+
+        $policyId = $policy->type === 'Member' 
+            ? $policy->parent_policy_id 
+            : $policy->id;
+        
+            $this->services = PolicyService::with([
+                'service', 
+                'doctorService.service', 
+                'doctorService.doctor.user', 
+                'doctorCoupon.coupon', 
+                'doctorCoupon.doctor.user'
+            ])
+            ->where('policy_id', $policyId)
+            ->get();
+
+        $sum = PolicyService::where('policy_id', $policyId)
+            ->selectRaw('SUM(included) as total_included, SUM(used) as total_used, SUM(extra) as total_extra')
+            ->first();
+
+        $this->policy_type = $policy->type === 'Individual' ? 'Individual' : 'Colectiva';
+        $this->icon = $policy->type === 'Individual' ? 'user' : 'user-group';
+        $this->total_included = $sum->total_included ?? 0;
+        $this->total_used = $sum->total_used ?? 0;
+        $this->total_extra = $sum->total_extra ?? 0;
+        $this->percentage = $this->total_included > 0 ? round(($this->total_used / $this->total_included) * 100) : 0;
+
+        $this->dispatch('open-status-modal');
     }
 
     #[On('activatePolicy')]

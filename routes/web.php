@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\ReceptionistTicketController;
 
 // Livewire - Appointments
 use App\Livewire\Appointments\AppointmentsPage;
@@ -32,8 +33,9 @@ use App\Livewire\Clerk\DispensationPage;
 use App\Livewire\Clerk\InventoryPage;
 
 // Livewire - Receptionist
-use App\Livewire\Receptionist\DashboardPage as ReceptionistDashboardPage;
+use App\Livewire\Receptionist\AppointmentsPage as ReceptionistAppointmentsPage;
 use App\Livewire\Receptionist\PaymentPage as ReceptionistPaymentPage;
+use App\Livewire\Receptionist\RequestsPage as ReceptionistRequestsPage;
 
 // Livewire - Offices
 use App\Livewire\Offices\OfficesPage;
@@ -208,7 +210,9 @@ Route::middleware([
     });
 
     Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
-        Route::get('/dashboard', ReceptionistDashboardPage::class)->name('receptionist.dashboard');
+        Route::get('/appointments', ReceptionistAppointmentsPage::class)->name('receptionist.appointments');
+        Route::get('/requests', ReceptionistRequestsPage::class)->name('receptionist.requests');
         Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)->name('receptionist.payment');
+        Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)->name('receptionist.payment.ticket');
     });
 });
