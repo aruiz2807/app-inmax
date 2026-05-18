@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\LoginRedirectResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,7 @@ class AdminAuthenticatedSessionController extends Controller
     /**
      * Handle an incoming admin login request.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, LoginRedirectResolver $redirectResolver): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -46,6 +47,6 @@ class AdminAuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->to($redirectResolver->resolve($request, $user));
     }
 }

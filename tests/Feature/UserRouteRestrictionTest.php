@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Doctor;
+use App\Models\Parameter;
+use App\Models\Service;
+use App\Models\Specialty;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -81,6 +85,31 @@ class UserRouteRestrictionTest extends TestCase
             'profile' => 'Doctor',
             'pin' => '1234',
             'pin_set_at' => now(),
+        ]);
+
+        $service = Service::create([
+            'name' => 'Consulta general',
+            'type' => 'Event',
+        ]);
+
+        $specialty = Specialty::create([
+            'name' => 'Cardiologia',
+            'service_id' => $service->id,
+        ]);
+
+        Doctor::create([
+            'user_id' => $doctor->id,
+            'specialty_id' => $specialty->id,
+            'license' => 'LIC-12345',
+            'university' => 'UNAM',
+            'address' => 'Av. Principal 123',
+        ]);
+
+        Parameter::create([
+            'type' => 'MG',
+            'key' => 'Especialidad',
+            'description' => 'Especialidad medicina general',
+            'value' => (string) $specialty->id,
         ]);
 
         $response = $this->actingAs($doctor)->get(route('doctor.home'));

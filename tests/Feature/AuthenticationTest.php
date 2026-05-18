@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\Auth\LoginRedirectResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -81,5 +82,82 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($doctor);
         $response->assertRedirect(route('doctor.home', absolute: false));
+    }
+
+    public function test_users_return_to_intended_route_after_session_redirect_to_login(): void
+    {
+        $user = User::factory()->create([
+            'profile' => 'User',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $this->get(route('user.my-profile'))
+            ->assertRedirect(route('login', absolute: false));
+
+        $response = $this->post('/login', [
+            'phone' => $user->phone,
+            'password' => '1234',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('user.my-profile'));
+    }
+
+    public function test_last_visited_route_is_used_when_intended_is_missing(): void
+    {
+        $user = User::factory()->create([
+            'profile' => 'User',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $response = $this->withSession([
+            LoginRedirectResolver::LAST_VISITED_URL_KEY => route('profile.show'),
+        ])->post('/login', [
+            'phone' => $user->phone,
+            'password' => '1234',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('profile.show'));
+    }
+
+    public function test_invalid_intended_route_falls_back_to_profile_home(): void
+    {
+        $user = User::factory()->create([
+            'profile' => 'User',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $response = $this->withSession([
+            'url.intended' => route('dashboard'),
+        ])->post('/login', [
+            'phone' => $user->phone,
+            'password' => '1234',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('user.home', absolute: false));
+    }
+
+    public function test_admin_routes_redirect_guests_to_admin_login_and_return_to_intended_route(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'password' => 'secret-password',
+        ]);
+
+        $this->get(route('policies'))
+            ->assertRedirect(route('admin.login', absolute: false));
+
+        $response = $this->post(route('admin.login.store'), [
+            'email' => $admin->email,
+            'password' => 'secret-password',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect(route('policies'));
     }
 }
