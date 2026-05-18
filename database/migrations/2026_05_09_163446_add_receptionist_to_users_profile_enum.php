@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE users MODIFY COLUMN profile ENUM('Admin', 'Doctor', 'Sales', 'Clerk', 'Receptionist', 'User') NOT NULL DEFAULT 'User'");
     }
 
@@ -19,6 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("UPDATE users SET profile = 'User' WHERE profile = 'Receptionist'");
         DB::statement("ALTER TABLE users MODIFY COLUMN profile ENUM('Admin', 'Doctor', 'Sales', 'Clerk', 'User') NOT NULL DEFAULT 'User'");
     }

@@ -7,6 +7,57 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ * @property int $sales_user_id
+ * @property int|null $plan_id
+ * @property int|null $parent_policy_id
+ * @property string $preregistration_type
+ * @property string $phone
+ * @property string $token_hash
+ * @property \Illuminate\Support\Carbon $expires_at
+ * @property \Illuminate\Support\Carbon|null $used_at
+ * @property int|null $cancelled_by
+ * @property \Illuminate\Support\Carbon|null $cancelled_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $company_name
+ * @property string|null $company_type
+ * @property string|null $company_legal_name
+ * @property string|null $company_rfc
+ * @property int|null $members
+ * @property-read \App\Models\User|null $cancelledBy
+ * @property-read string $status_color
+ * @property-read string $status_label
+ * @property-read string $type_label
+ * @property-read \App\Models\Policy|null $parentPolicy
+ * @property-read \App\Models\Plan|null $plan
+ * @property-read \App\Models\Policy|null $policy
+ * @property-read \App\Models\User $salesUser
+ * @method static Builder<static>|PolicyPreregistration active()
+ * @method static Builder<static>|PolicyPreregistration newModelQuery()
+ * @method static Builder<static>|PolicyPreregistration newQuery()
+ * @method static Builder<static>|PolicyPreregistration query()
+ * @method static Builder<static>|PolicyPreregistration whereCancelledAt($value)
+ * @method static Builder<static>|PolicyPreregistration whereCancelledBy($value)
+ * @method static Builder<static>|PolicyPreregistration whereCompanyLegalName($value)
+ * @method static Builder<static>|PolicyPreregistration whereCompanyName($value)
+ * @method static Builder<static>|PolicyPreregistration whereCompanyRfc($value)
+ * @method static Builder<static>|PolicyPreregistration whereCompanyType($value)
+ * @method static Builder<static>|PolicyPreregistration whereCreatedAt($value)
+ * @method static Builder<static>|PolicyPreregistration whereExpiresAt($value)
+ * @method static Builder<static>|PolicyPreregistration whereId($value)
+ * @method static Builder<static>|PolicyPreregistration whereMembers($value)
+ * @method static Builder<static>|PolicyPreregistration whereParentPolicyId($value)
+ * @method static Builder<static>|PolicyPreregistration wherePhone($value)
+ * @method static Builder<static>|PolicyPreregistration wherePlanId($value)
+ * @method static Builder<static>|PolicyPreregistration wherePreregistrationType($value)
+ * @method static Builder<static>|PolicyPreregistration whereSalesUserId($value)
+ * @method static Builder<static>|PolicyPreregistration whereTokenHash($value)
+ * @method static Builder<static>|PolicyPreregistration whereUpdatedAt($value)
+ * @method static Builder<static>|PolicyPreregistration whereUsedAt($value)
+ * @mixin \Eloquent
+ */
 class PolicyPreregistration extends Model
 {
     public const TYPE_INDIVIDUAL_POLICY = 'individual_policy';

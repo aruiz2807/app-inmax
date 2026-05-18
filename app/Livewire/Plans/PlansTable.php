@@ -6,6 +6,7 @@ use App\Models\Plan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Number;
+use Illuminate\Support\Facades\Blade;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
@@ -94,21 +95,21 @@ final class PlansTable extends PowerGridComponent
     {
         return [
             Button::add('edit')
-                ->slot('Editar')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                 ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editPlan', ['planId' => $row->id]),
 
             Button::add('editCoverage')
-                ->slot('Inmax')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Inmax</span></div>'))
                 ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-cyan-600 hover:bg-cyan-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editCoverage', ['planId' => $row->id]),
 
             Button::add('editBenefits')
-                ->slot('Beneficios')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Beneficios</span></div>'))
                 ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editBenefits', ['planId' => $row->id]),
         ];
     }

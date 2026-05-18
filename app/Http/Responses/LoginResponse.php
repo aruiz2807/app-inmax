@@ -2,10 +2,15 @@
 
 namespace App\Http\Responses;
 
+use App\Services\Auth\LoginRedirectResolver;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
 {
+    public function __construct(
+        private readonly LoginRedirectResolver $redirectResolver,
+    ) {}
+
     /**
      * Create an HTTP response that represents the object.
      *
@@ -17,15 +22,8 @@ class LoginResponse implements LoginResponseContract
             return response()->json(['two_factor' => false]);
         }
 
-        $user = $request->user();
-        $target = match ($user?->profile) {
-            'User' => route('user.home', absolute: false),
-            'Doctor' => route('doctor.home', absolute: false),
-            'Clerk' => route('clerk.dashboard', absolute: false),
-            'Receptionist' => route('receptionist.appointments', absolute: false),
-            default => route('dashboard', absolute: false),
-        };
-
-        return redirect()->intended($target);
+        return redirect()->to(
+            $this->redirectResolver->resolve($request, $request->user())
+        );
     }
 }

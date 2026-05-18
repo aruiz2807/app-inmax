@@ -6,6 +6,44 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property string $type
+ * @property string $version
+ * @property string $title
+ * @property string $content
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $effective_at
+ * @property \Illuminate\Support\Carbon|null $expires_at
+ * @property \Illuminate\Support\Carbon|null $activated_at
+ * @property \Illuminate\Support\Carbon|null $deactivated_at
+ * @property int|null $created_by
+ * @property int|null $activated_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $activator
+ * @property-read \App\Models\User|null $creator
+ * @method static Builder<static>|LegalDocument currentActive()
+ * @method static Builder<static>|LegalDocument newModelQuery()
+ * @method static Builder<static>|LegalDocument newQuery()
+ * @method static Builder<static>|LegalDocument ofType(string $type)
+ * @method static Builder<static>|LegalDocument query()
+ * @method static Builder<static>|LegalDocument whereActivatedAt($value)
+ * @method static Builder<static>|LegalDocument whereActivatedBy($value)
+ * @method static Builder<static>|LegalDocument whereContent($value)
+ * @method static Builder<static>|LegalDocument whereCreatedAt($value)
+ * @method static Builder<static>|LegalDocument whereCreatedBy($value)
+ * @method static Builder<static>|LegalDocument whereDeactivatedAt($value)
+ * @method static Builder<static>|LegalDocument whereEffectiveAt($value)
+ * @method static Builder<static>|LegalDocument whereExpiresAt($value)
+ * @method static Builder<static>|LegalDocument whereId($value)
+ * @method static Builder<static>|LegalDocument whereIsActive($value)
+ * @method static Builder<static>|LegalDocument whereTitle($value)
+ * @method static Builder<static>|LegalDocument whereType($value)
+ * @method static Builder<static>|LegalDocument whereUpdatedAt($value)
+ * @method static Builder<static>|LegalDocument whereVersion($value)
+ * @mixin \Eloquent
+ */
 class LegalDocument extends Model
 {
     public const TYPE_TERMS = 'terms';

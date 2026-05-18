@@ -5,6 +5,60 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $sales_user_id
+ * @property int $plan_id
+ * @property int|null $parent_policy_id
+ * @property int|null $policy_preregistration_id
+ * @property string $number
+ * @property string $type
+ * @property int|null $members
+ * @property \Illuminate\Support\Carbon|null $start_date
+ * @property \Illuminate\Support\Carbon|null $end_date
+ * @property array<array-key, mixed>|null $insurance
+ * @property string|null $payment_method
+ * @property string|null $payment_reference
+ * @property string|null $payment_file_path
+ * @property string|null $payment_file_name
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Policy> $childPolicies
+ * @property-read int|null $child_policies_count
+ * @property-read mixed $status_color
+ * @property-read mixed $status_icon
+ * @property-read mixed $status_text
+ * @property-read Policy|null $parentPolicy
+ * @property-read \App\Models\Plan $plan
+ * @property-read \App\Models\PolicyPreregistration|null $preregistration
+ * @property-read \App\Models\User|null $sales_user
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereEndDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereInsurance($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereMembers($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereParentPolicyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy wherePaymentFileName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy wherePaymentFilePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy wherePaymentMethod($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy wherePaymentReference($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy wherePlanId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy wherePolicyPreregistrationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereSalesUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereStartDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy whereUserId($value)
+ * @mixin \Eloquent
+ */
 class Policy extends Model
 {
     /**

@@ -7,6 +7,65 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $doctor_id
+ * @property int|null $office_id
+ * @property int|null $requested_by_user_id
+ * @property \Illuminate\Support\Carbon $date
+ * @property \Illuminate\Support\Carbon $time
+ * @property numeric|null $subtotal
+ * @property numeric|null $coupon_discount
+ * @property numeric|null $user_payment
+ * @property numeric|null $commission
+ * @property numeric|null $total
+ * @property int|null $rating
+ * @property string|null $comments
+ * @property \App\Enums\AppointmentStatus|null $status
+ * @property string|null $status_prescription
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Doctor|null $doctor
+ * @property-read mixed $covered_color
+ * @property-read mixed $covered_icon
+ * @property-read mixed $covered_text
+ * @property-read mixed $formatted_date
+ * @property-read mixed $formatted_status
+ * @property-read mixed $formatted_time
+ * @property-read mixed $status_color
+ * @property-read mixed $status_icon
+ * @property-read \App\Models\AppointmentNote|null $note
+ * @property-read \App\Models\Office|null $office
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AppointmentPrescription> $prescriptions
+ * @property-read int|null $prescriptions_count
+ * @property-read \App\Models\User|null $requester
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\AppointmentService> $services
+ * @property-read int|null $services_count
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereComments($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereCommission($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereCouponDiscount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereDoctorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereOfficeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereRating($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereRequestedByUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereStatusPrescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Appointment whereUserPayment($value)
+ * @mixin \Eloquent
+ */
 class Appointment extends Model
 {
     /**
