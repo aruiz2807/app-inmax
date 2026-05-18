@@ -3,7 +3,7 @@
     x-on:open-receptionist-appointment-detail.window="$wire.openDetails($event.detail.appointmentId)"
 >
     <x-slot name="header">
-        Home
+        Check-OUT
     </x-slot>
 
     <x-ui.card size="full">
@@ -11,7 +11,7 @@
             <span>Consultas</span>
         </x-ui.heading>
 
-        <p>Listado de consultas para recepcion.</p>
+        <p>Liquida consultas a medida que las pacientes terminan. La cola se actualiza en tiempo real.</p>
     </x-ui.card>
 
     <div id="payment-section" class="pt-2">
@@ -51,6 +51,18 @@
                     ])
                 >
                     Pagados
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('cancelled')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'cancelled',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'cancelled',
+                    ])
+                >
+                    Canceladas
                 </button>
             </div>
 

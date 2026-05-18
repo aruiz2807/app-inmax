@@ -18,7 +18,7 @@ class AppointmentsPage extends Component
 
     public function setTab(string $tab): void
     {
-        if (! in_array($tab, ['all', 'pending', 'paid'], true)) {
+        if (! in_array($tab, ['all', 'pending', 'cancelled', 'paid'], true)) {
             return;
         }
 

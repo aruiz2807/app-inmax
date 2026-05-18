@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Receptionist;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -58,8 +59,13 @@ final class AppointmentsTable extends PowerGridComponent
             })
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where(function (Builder $pendingQuery) {
                 $pendingQuery
-                    ->whereNull('user_payment');
+                    ->whereNull('user_payment')
+                    ->where('appointments.status', AppointmentStatus::BOOKED->value);
             }))
+            ->when($this->tab === 'cancelled', fn (Builder $query) => $query->whereIn('appointments.status', [
+                AppointmentStatus::CANCELLED->value,
+                AppointmentStatus::NO_SHOW->value,
+            ]))
             ->when($this->tab === 'paid', fn (Builder $query) => $query->whereNotNull('user_payment'));
     }
 
@@ -111,7 +117,7 @@ final class AppointmentsTable extends PowerGridComponent
                 $isCompleted = $appointment->status == \App\Enums\AppointmentStatus::COMPLETED;
                 $hasNote = ! is_null($appointment->note?->id);
 
-                $detailButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-receptionist-appointment-detail\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Ver detalle</button>';
+                $detailButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-receptionist-appointment-detail\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Detalle</button>';
 
                 if ($hasNote && $isPaid) {
                     $ticketUrl = route('receptionist.payment.ticket', ['appointment' => $appointment->id]);
@@ -127,13 +133,13 @@ final class AppointmentsTable extends PowerGridComponent
                 }
 
                 if (!$isCompleted) {
-                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Ir a pago</button>';
+                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Liquidar</button>';
 
                     return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
                 }
 
                 $url = route('receptionist.payment', ['appointment' => $appointment->id]);
-                $payButton = '<a href="'.$url.'" class="bg-teal-600 text-white px-3 py-1 rounded inline-flex">Ir a pago</a>';
+                $payButton = '<a href="'.$url.'" class="bg-teal-600 text-white px-3 py-1 rounded inline-flex">Liquidar</a>';
 
                 return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
             });
