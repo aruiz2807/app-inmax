@@ -61,7 +61,7 @@ class EnsureUserHasAllowedProfile
             'user.home',
             'doctor.home',
             'clerk.dashboard',
-            'receptionist.dashboard',
+            'receptionist.appointments',
         ];
     }
 
@@ -75,7 +75,7 @@ class EnsureUserHasAllowedProfile
             'User' => 'user.home',
             'Doctor' => 'doctor.home',
             'Clerk' => 'clerk.dashboard',
-            'Receptionist' => 'receptionist.dashboard',
+            'Receptionist' => 'receptionist.appointments',
             default => null,
         };
     }
