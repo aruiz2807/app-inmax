@@ -209,7 +209,10 @@
         <table class="med-table">
           <tr class="med-row">            
             <td>
-              <div class="med-title">{{ $med->medication->name }} ({{ $med->medication->active_substance }})</div>
+              <div class="med-title">
+                {{ $med->medication?->name ?? $med->description }} 
+                @if($med->medication?->active_substance) ({{ $med->medication->active_substance }}) @endif
+              </div>
               <div class="med-details">
                 Tomar <span class="v-teal">{{ $med->quantity }} {{ $med->dose }}</span> cada <span class="v-teal"> {{ $med->frequency }}</span> durante <span class="v-teal">{{ $med->duration }}</span>.
               </div>

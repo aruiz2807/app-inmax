@@ -180,7 +180,9 @@
                     @foreach($prescriptions as $prescription)
                         <div class="bg-gray-50 p-2 rounded-lg flex justify-between items-center shadow-sm border border-gray-100">
                             <div class="flex-1">
-                                <x-ui.text class="font-bold text-sm">{{ $prescription->medication->name }}</x-ui.text>
+                                <x-ui.text class="font-bold text-sm">
+                                    {{ $prescription->medication?->name ?? $prescription->description }}
+                                </x-ui.text>
                                 <x-ui.text class="text-xs text-gray-600">
                                     {{ $prescription->quantity }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
                                 </x-ui.text>
