@@ -27,7 +27,7 @@ final class AppointmentsTable extends PowerGridComponent
         parent::mount();
 
         $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
-        $this->dateTo = Carbon::now()->toDateString();
+        $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
     }
 
     public function setUp(): array
@@ -87,7 +87,7 @@ final class AppointmentsTable extends PowerGridComponent
     {
         [$start, $end] = match ($preset) {
             'last7' => [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()],
-            'month' => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfDay()],
+            'month' => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfMonth()->endOfDay()],
             default => [null, null],
         };
 

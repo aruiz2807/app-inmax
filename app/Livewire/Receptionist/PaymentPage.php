@@ -70,7 +70,9 @@ class PaymentPage extends Component
 
     public function save(): void
     {
-        if ($this->parseMoney($this->subtotal) <= 0) {
+        $allServicesCovered = $this->allCompletedServicesCovered();
+
+        if ($this->parseMoney($this->subtotal) <= 0 && ! $allServicesCovered) {
             $this->addError('subtotal', 'Ingrese un monto valido.');
             return;
         }
@@ -83,8 +85,9 @@ class PaymentPage extends Component
         $this->validatePaymentFields();
 
         $subtotal = $this->parseMoney($this->subtotal);
+        $allServicesCovered = $this->allCompletedServicesCovered();
 
-        if ($subtotal <= 0) {
+        if ($subtotal <= 0 && ! $allServicesCovered) {
             $this->addError('subtotal', 'Ingrese un monto valido.');
             return;
         }
@@ -260,6 +263,15 @@ class PaymentPage extends Component
     private function parseMoney(null|string|float|int $value): float
     {
         return (float) str_replace(',', '', (string) ($value ?? 0));
+    }
+
+    private function allCompletedServicesCovered(): bool
+    {
+        $completedServices = $this->appointment->services
+            ->where('status', 'Completed');
+
+        return $completedServices->isNotEmpty()
+            && $completedServices->every(fn ($service) => (bool) $service->covered);
     }
 
     private function formatMoney(null|string|float|int $value): string
