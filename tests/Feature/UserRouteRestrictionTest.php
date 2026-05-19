@@ -24,7 +24,7 @@ class UserRouteRestrictionTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('dashboard'));
 
-        $response->assertStatus(403);
+        $response->assertRedirect(route('user.home'));
     }
 
     public function test_user_profile_gets_forbidden_on_admin_prefix_route(): void
@@ -50,7 +50,7 @@ class UserRouteRestrictionTest extends TestCase
 
         $response = $this->actingAs($doctor)->get(route('dashboard'));
 
-        $response->assertStatus(403);
+        $response->assertRedirect(route('doctor.home'));
     }
 
     public function test_doctor_profile_gets_forbidden_on_admin_prefix_route(): void
@@ -76,7 +76,20 @@ class UserRouteRestrictionTest extends TestCase
 
         $response = $this->actingAs($doctor)->get(route('user.home'));
 
-        $response->assertStatus(403);
+        $response->assertRedirect(route('doctor.home'));
+    }
+
+    public function test_receptionist_profile_redirects_to_its_home_when_visiting_dashboard_route(): void
+    {
+        $receptionist = User::factory()->create([
+            'profile' => 'Receptionist',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $response = $this->actingAs($receptionist)->get(route('dashboard'));
+
+        $response->assertRedirect(route('receptionist.dashboard'));
     }
 
     public function test_doctor_profile_can_access_doctor_prefix_route(): void
