@@ -175,11 +175,11 @@ final class AppointmentsTable extends PowerGridComponent
                     return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
                 }
 
-                if ($allCovered) {
+                /*if ($allCovered) {
                     $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Servicios cubiertos</button>';
 
                     return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
-                }
+                }*/
 
                 if (!$isCompleted) {
                     $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Liquidar</button>';
