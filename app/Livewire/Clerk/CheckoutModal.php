@@ -56,9 +56,11 @@ class CheckoutModal extends Component
 
         foreach ($this->prescriptions as $prescription) 
         {
-            $quantity = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
-            $subtotalPublic += $quantity * $prescription->medication->price_public;
-            $subtotalMembers += $quantity * $prescription->medication->price_members;
+            if (!is_null($prescription->medication_id)) {
+                $quantity = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
+                $subtotalPublic += $quantity * $prescription->medication->price_public;
+                $subtotalMembers += $quantity * $prescription->medication->price_members;
+            }
         }
 
         if ($this->useMembersDiscount && $this->isMembershipActive) 
@@ -82,6 +84,10 @@ class CheckoutModal extends Component
     {
         $hasQuantity = collect($this->deliveryQuantities)->map(fn($qty) => (int) $qty)->sum() > 0;
         $hasBenefitSelected = $this->useCoupon || $this->useMembersDiscount;
+
+        if ($this->total == 0) {
+            return $hasQuantity;
+        }
 
         return $hasQuantity && $hasBenefitSelected;
     }
@@ -266,6 +272,11 @@ class CheckoutModal extends Component
 
                 if ($quantity <= 0) 
                 {
+                    return null;
+                }
+
+                // If manual medication skip
+                if (is_null($prescription->medication_id)) {
                     return null;
                 }
 

@@ -141,7 +141,8 @@ class DRNotesPage extends Component
     public function addMedication()
     {
         $this->validate([
-            'medicationId' => 'required|exists:medications,id',
+            'medicationId' => 'nullable|exists:medications,id',
+            'searchTerm' => 'required|string|max:250',
             'quantity' => 'required|numeric|min:1',
             'dose' => 'required|string|max:50',
             'frequency' => 'required|string|max:50',
@@ -151,6 +152,7 @@ class DRNotesPage extends Component
         AppointmentPrescription::create([
             'appointment_id' => $this->appointment->id,
             'medication_id' => $this->medicationId,
+            'description' => $this->medicationId ? null : $this->searchTerm,
             'quantity' => $this->quantity,
             'dose' => $this->dose,
             'frequency' => $this->frequency,

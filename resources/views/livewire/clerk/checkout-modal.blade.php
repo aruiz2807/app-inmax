@@ -27,7 +27,10 @@
             
             <div class="flex flex-col gap-2">
                 @foreach($prescriptions as $prescription)
-                    @php $disabled = $prescription->status === 'Dispensed'; @endphp
+                    @php 
+                        $disabled = $prescription->status === 'Dispensed'; 
+                        $isManual = is_null($prescription->medication_id);
+                    @endphp
 
                     <div 
                         class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center gap-4
@@ -36,7 +39,7 @@
                     >
                         <div class="flex-1">
                             <x-ui.text class="font-bold text-base">
-                                {{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})
+                                {{ $isManual ? $prescription->description : $prescription->medication->name . ' (' . $prescription->medication->trade_name . ')' }}
                             </x-ui.text>
 
                             <x-ui.text class="text-sm text-gray-600">
@@ -47,9 +50,14 @@
                                 <x-ui.text class="text-xs text-gray-500 mt-1">
                                     Surtida
                                 </x-ui.text>
+                            @elseif($isManual)
+                                <x-ui.text class="text-xs text-amber-600 mt-1">
+                                    Medicamento no disponible en catálogo
+                                </x-ui.text>
                             @endif
                         </div>
 
+                        @if(!$isManual)
                         <div class="flex items-center gap-4">
                             <div class="w-24">
                                 @if($disabled)
@@ -74,6 +82,7 @@
                                 </x-ui.text>
                             </div>
                         </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -118,9 +127,11 @@
                         $subtotalPublic = 0;
                         $subtotalMembers = 0;
                         foreach ($prescriptions as $prescription) {
-                            $qty = (int) ($deliveryQuantities[$prescription->id] ?? 0);
-                            $subtotalPublic += $qty * $prescription->medication->price_public;
-                            $subtotalMembers += $qty * $prescription->medication->price_members;
+                            if (!is_null($prescription->medication_id)) {
+                                $qty = (int) ($deliveryQuantities[$prescription->id] ?? 0);
+                                $subtotalPublic += $qty * $prescription->medication->price_public;
+                                $subtotalMembers += $qty * $prescription->medication->price_members;
+                            }
                         }
                         
                         $discount = 0;

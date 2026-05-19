@@ -43,6 +43,7 @@ class AppointmentPrescription extends Model
     protected $fillable = [
         'appointment_id',
         'medication_id',
+        'description',
         'quantity',
         'dose',
         'frequency',
