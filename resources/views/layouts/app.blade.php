@@ -199,6 +199,32 @@
                             </x-ui.navlist.group>
                         @break
 
+                        @case('Sales')
+                            <x-ui.navlist.item
+                                icon="home"
+                                :label="__('app.home')"
+                                href="{{ route('dashboard') }}"
+                                :active="request()->routeIs('dashboard')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
+                                icon="paper-airplane"
+                                :label="__('app.preregistration')"
+                                href="{{ route('preregistrations') }}"
+                                :active="request()->routeIs('preregistrations')"
+                                x-on:click="closeSidebar()"
+                            />
+
+                            <x-ui.navlist.item
+                                icon="identification"
+                                :label="__('app.policies')"
+                                href="{{ route('policies') }}"
+                                :active="request()->routeIs('policies')"
+                                x-on:click="closeSidebar()"
+                            />
+                        @break
+
                         @case('Clerk')
                             <x-ui.navlist.item
                                 icon="home"

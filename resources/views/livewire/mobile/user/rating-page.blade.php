@@ -14,12 +14,12 @@
             <x-ui.text class="text-lg ml-2">Consulta</x-ui.text>
         </x-ui.heading>
 
-        <div class="grid grid-cols-[auto_6rem] justify-stretch items-center pt-2">
+        {{--<div class="grid grid-cols-[auto_6rem] justify-stretch items-center pt-2">
             <x-ui.text class="text-base">{{$appointment->formatted_date}}</x-ui.text>
             <x-ui.badge :icon="$appointment->covered_icon" variant="outline" :color="$appointment->covered_color" pill>
                 {{$appointment->covered_text}}
             </x-ui.badge>
-        </div>
+        </div>--}}
 
         <div class="flex mt-2">
             <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->user->photo_url" circle />

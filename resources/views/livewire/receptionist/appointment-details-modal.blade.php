@@ -47,6 +47,10 @@
                 @endif
             </div>
 
+            @php
+                $allServicesCovered = $selectedAppointment->services->isNotEmpty() && $selectedAppointment->services->every(fn ($s) => (bool) $s->covered);
+            @endphp
+
             <div class="space-y-2 border-t border-neutral-200 pt-3">
                 <p class="text-sm">
                     <span class="font-semibold">Fecha pago:</span>
@@ -56,7 +60,7 @@
                         {{ $selectedAppointment->updated_at?->format('d/m/Y h:i A') ?? '-' }}
                     @endif
                 </p>
-                <p class="text-sm"><span class="font-semibold">Total cuenta:</span> ${{ number_format((float) $selectedAppointment->subtotal, 2) }}</p>
+                <p class="text-sm"><span class="font-semibold">Total cuenta:</span> ${{ $allServicesCovered && is_null($selectedAppointment->user_payment) ? '0.00' : number_format((float) $selectedAppointment->subtotal, 2) }}</p>
 
                 @if((float) $selectedAppointment->coupon_discount > 0)
                     <p class="text-sm"><span class="font-semibold">Descuento cupon:</span> -${{ number_format((float) $selectedAppointment->coupon_discount, 2) }}</p>

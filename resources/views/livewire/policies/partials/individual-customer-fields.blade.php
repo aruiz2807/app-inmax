@@ -34,7 +34,7 @@
         <x-ui.input wire:model.blur="form.birth" type="date" placeholder="dd/mm/aaaa" leftIcon="calendar" />
 
         @if($this->age !== null)
-            <x-ui.text class="opacity-75 pl-1 pt-1">Edad actual: {{ $this->age }} anos</x-ui.text>
+            <x-ui.text class="opacity-75 pl-1 pt-1">Edad actual: {{ $this->age }} años</x-ui.text>
         @endif
 
         <x-ui.error name="form.birth" />

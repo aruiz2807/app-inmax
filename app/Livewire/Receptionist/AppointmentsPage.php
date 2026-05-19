@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Receptionist;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -62,6 +63,56 @@ class AppointmentsPage extends Component
 
         $this->selectedAppointment = $appointment;
         $this->dispatch('open-receptionist-appointment-detail-modal');
+    }
+
+    public function getPendingCountProperty(): int
+    {
+        return (clone $this->getBaseQuery())
+            ->whereNull('user_payment')
+            ->whereNotIn('status', [
+                AppointmentStatus::CANCELLED->value,
+                AppointmentStatus::NO_SHOW->value,
+            ])
+            ->count();
+    }
+
+    public function getPaidCountProperty(): int
+    {
+        return (clone $this->getBaseQuery())
+            ->whereNotNull('user_payment')
+            ->count();
+    }
+
+    public function getCancelledCountProperty(): int
+    {
+        return (clone $this->getBaseQuery())
+            ->whereIn('status', [
+                AppointmentStatus::CANCELLED->value,
+                AppointmentStatus::NO_SHOW->value,
+            ])
+            ->count();
+    }
+
+    private function getBaseQuery(): Builder
+    {
+        $doctorIds = Auth::user()->staffDoctors()->pluck('doctors.id');
+
+        return Appointment::query()
+            ->where(function (Builder $query) use ($doctorIds) {
+                $query
+                    ->whereIn('appointments.doctor_id', $doctorIds)
+                    ->orWhere(function (Builder $officeQuery) use ($doctorIds) {
+                        $officeQuery
+                            ->whereNull('appointments.doctor_id')
+                            ->whereExists(function ($existsQuery) use ($doctorIds) {
+                                $existsQuery
+                                    ->selectRaw('1')
+                                    ->from('office_doctors')
+                                    ->whereColumn('office_doctors.office_id', 'appointments.office_id')
+                                    ->whereIn('office_doctors.doctor_id', $doctorIds);
+                            });
+                    });
+            });
     }
 
     #[Layout('layouts.app')]

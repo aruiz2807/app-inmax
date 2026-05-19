@@ -8,11 +8,31 @@
 
     <x-ui.card size="full">
         <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
-            <span>Consultas</span>
+            <span>Check-OUT</span>
         </x-ui.heading>
 
         <p>Liquida consultas a medida que las pacientes terminan. La cola se actualiza en tiempo real.</p>
     </x-ui.card>
+
+    <div class="grid grid-cols-1 gap-4 pt-2 md:grid-cols-3">
+        <x-ui.card size="full" class="border-t-2 border-yellow-400">
+            <p class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Pendientes</p>
+            <p class="mt-2 text-3xl font-bold text-neutral-900">{{ $this->pendingCount }}</p>
+            <p class="text-xs text-neutral-500">Por liquidar</p>
+        </x-ui.card>
+
+        <x-ui.card size="full" class="border-t-2 border-green-500">
+            <p class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Pagadas</p>
+            <p class="mt-2 text-3xl font-bold text-neutral-900">{{ $this->paidCount }}</p>
+            <p class="text-xs text-neutral-500">Liquidadas</p>
+        </x-ui.card>
+
+        <x-ui.card size="full" class="border-t-2 border-red-500">
+            <p class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Canceladas</p>
+            <p class="mt-2 text-3xl font-bold text-neutral-900">{{ $this->cancelledCount }}</p>
+            <p class="text-xs text-neutral-500">Canceladas / No asistio</p>
+        </x-ui.card>
+    </div>
 
     <div id="payment-section" class="pt-2">
         <x-ui.card size="full">

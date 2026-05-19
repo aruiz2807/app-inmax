@@ -5,6 +5,7 @@ namespace App\Livewire\Receptionist;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -18,13 +19,24 @@ final class AppointmentsTable extends PowerGridComponent
     public string $tab = 'all';
     public string $sortField = 'date';
     public string $sortDirection = 'desc';
+    public ?string $dateFrom = null;
+    public ?string $dateTo = null;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
+        $this->dateTo = Carbon::now()->toDateString();
+    }
 
     public function setUp(): array
     {
         return [
             PowerGrid::header()
                 ->showSearchInput()
-                ->showToggleColumns(),
+                ->showToggleColumns()
+                ->includeViewOnTop('livewire.receptionist.appointments-date-presets'),
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
@@ -41,7 +53,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
             ->leftJoin('users as doctor_users', 'doctor_users.id', '=', 'doctors.user_id')
             ->leftJoin('policies as patient_policies', 'patient_policies.user_id', '=', 'appointments.user_id')
-            ->with(['user:id,name', 'user.policy:id,user_id,number', 'doctor:id,user_id', 'doctor.user:id,name', 'office:id,name', 'note:id,appointment_id'])
+            ->with(['user:id,name', 'user.policy:id,user_id,number', 'doctor:id,user_id', 'doctor.user:id,name', 'office:id,name', 'note:id,appointment_id', 'services:id,appointment_id,covered'])
             ->where(function (Builder $query) use ($doctorIds) {
                 $query
                     ->whereIn('appointments.doctor_id', $doctorIds)
@@ -66,7 +78,29 @@ final class AppointmentsTable extends PowerGridComponent
                 AppointmentStatus::CANCELLED->value,
                 AppointmentStatus::NO_SHOW->value,
             ]))
-            ->when($this->tab === 'paid', fn (Builder $query) => $query->whereNotNull('user_payment'));
+            ->when($this->tab === 'paid', fn (Builder $query) => $query->whereNotNull('user_payment'))
+            ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
+    }
+
+    public function applyPreset(string $preset): void
+    {
+        [$start, $end] = match ($preset) {
+            'last7' => [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()],
+            'month' => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfDay()],
+            default => [null, null],
+        };
+
+        if ($start && $end) {
+            $this->dateFrom = $start->toDateString();
+            $this->dateTo = $end->toDateString();
+        }
+    }
+
+    public function clearDateRange(): void
+    {
+        $this->dateFrom = null;
+        $this->dateTo = null;
     }
 
     public function relationSearch(): array
@@ -111,11 +145,20 @@ final class AppointmentsTable extends PowerGridComponent
 
                 return Blade::render('<x-status-badge status="Paid" />');
             })
-            ->add('amount_formatted', fn (Appointment $appointment) => '$'.number_format((float) $appointment->user_payment, 2))
+            ->add('amount_formatted', function (Appointment $appointment): string {
+                $allCovered = $appointment->services->isNotEmpty() && $appointment->services->every(fn ($s) => (bool) $s->covered);
+
+                if ($allCovered && is_null($appointment->user_payment)) {
+                    return '$0.00';
+                }
+
+                return '$'.number_format((float) $appointment->user_payment, 2);
+            })
             ->add('payment_button', function (Appointment $appointment): string {
                 $isPaid = !is_null($appointment->user_payment);
                 $isCompleted = $appointment->status == \App\Enums\AppointmentStatus::COMPLETED;
                 $hasNote = ! is_null($appointment->note?->id);
+                $allCovered = $appointment->services->isNotEmpty() && $appointment->services->every(fn ($s) => (bool) $s->covered);
 
                 $detailButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-receptionist-appointment-detail\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Detalle</button>';
 
@@ -128,6 +171,12 @@ final class AppointmentsTable extends PowerGridComponent
 
                 if ($isPaid) {
                     $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';
+
+                    return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
+                }
+
+                if ($allCovered) {
+                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Servicios cubiertos</button>';
 
                     return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
                 }

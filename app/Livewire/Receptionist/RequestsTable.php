@@ -6,6 +6,7 @@ use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -19,13 +20,24 @@ final class RequestsTable extends PowerGridComponent
     public string $tab = 'all';
     public string $sortField = 'date';
     public string $sortDirection = 'asc';
+    public ?string $dateFrom = null;
+    public ?string $dateTo = null;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
+        $this->dateTo = Carbon::now()->toDateString();
+    }
 
     public function setUp(): array
     {
         return [
             PowerGrid::header()
                 ->showSearchInput()
-                ->showToggleColumns(),
+                ->showToggleColumns()
+                ->includeViewOnTop('livewire.receptionist.requests-date-presets'),
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
@@ -65,7 +77,29 @@ final class RequestsTable extends PowerGridComponent
                 AppointmentStatus::REQUESTED,
                 AppointmentStatus::BOOKED,
                 AppointmentStatus::REJECTED,
-            ]));
+            ]))
+            ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
+    }
+
+    public function applyPreset(string $preset): void
+    {
+        [$start, $end] = match ($preset) {
+            'last7' => [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()],
+            'month' => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfDay()],
+            default => [null, null],
+        };
+
+        if ($start && $end) {
+            $this->dateFrom = $start->toDateString();
+            $this->dateTo = $end->toDateString();
+        }
+    }
+
+    public function clearDateRange(): void
+    {
+        $this->dateFrom = null;
+        $this->dateTo = null;
     }
 
     public function relationSearch(): array
