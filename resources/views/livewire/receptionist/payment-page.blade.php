@@ -84,22 +84,38 @@
         @endif
 
         @if($hasCouponAvailable)
-        <div class="flex items-center justify-between p-4 bg-teal-50 rounded-xl border border-teal-100 mb-4">
-            <div class="flex items-center gap-3">
-                <x-ui.icon name="ticket" class="w-6 h-6 text-teal-600" />
-                <div>
-                    <p class="font-bold text-teal-900">Cupón disponible</p>
-                    <p class="text-xs text-teal-700">
-                        {{ $availableCouponBenefit->doctorCoupon->coupon->name }}
-                        @if($availableCouponBenefit->doctorCoupon->coupon->type === 'Amount')
-                            (${{ number_format($availableCouponBenefit->doctorCoupon->coupon->value, 2) }})
-                        @else
-                            ({{ $availableCouponBenefit->doctorCoupon->coupon->value }}%)
-                        @endif
-                    </p>
-                </div>
+        <div class="mt-4 mb-4">
+            <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
+
+            <div class="space-y-2">
+                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
+                    <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500">
+                    <span class="text-sm text-gray-700">No aplicar cupón</span>
+                </label>
+
+                @foreach($availableCoupons as $benefit)
+                    <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
+                        <div class="pt-1">
+                            <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
+                                <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
+                                    {{ $benefit->doctorCoupon->coupon->name }}
+                                </p>
+                            </div>
+                            <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
+                                @if($benefit->doctorCoupon->coupon->type === 'Amount')
+                                    Descuento de ${{ number_format($benefit->doctorCoupon->coupon->value, 2) }}
+                                @else
+                                    {{ $benefit->doctorCoupon->coupon->value }}% de descuento
+                                @endif
+                            </p>
+                        </div>
+                    </label>
+                @endforeach
             </div>
-            <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
         </div>
         @endif
 
