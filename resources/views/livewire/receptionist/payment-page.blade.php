@@ -70,97 +70,90 @@
     </x-ui.card>
 
     <x-ui.card size="full" class="mx-auto mt-2">
-        <x-ui.heading class="flex pb-2" level="h3" size="sm">
-            <x-ui.icon name="banknotes" class="self-center" />
-            <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
-        </x-ui.heading>
+            <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                <x-ui.icon name="clipboard-document-list" class="self-center" />
+                <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
+            </x-ui.heading>
 
-        @if($paymentSaved)
-            <div class="mb-4">
-                <x-ui.alerts variant="success" icon="check-circle">
-                    <x-ui.alerts.heading>{{ $paymentSuccessMessage }}</x-ui.alerts.heading>
-                </x-ui.alerts>
-            </div>
-        @endif
+            <x-ui.field>
+                <x-ui.label>Monto total de la cuenta</x-ui.label>
+                <x-ui.input
+                    wire:model.live="subtotal"
+                    name="subtotal" x-mask:dynamic="$money($input)"
+                    placeholder="0.00"
+                >
+                    <x-slot name="prefix">$</x-slot>
+                </x-ui.input>
+            </x-ui.field>
 
-        @if($hasCouponAvailable)
-        <div class="mt-4 mb-4">
-            <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
+            @if($hasCouponAvailable)
+            <div class="mt-4 mb-4">
+                <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
+                
+                <div class="space-y-2">
+                    <!-- Option to not use any coupon -->
+                    <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
+                        <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-gray-700">No aplicar cupón</span>
+                    </label>
 
-            <div class="space-y-2">
-                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
-                    <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500">
-                    <span class="text-sm text-gray-700">No aplicar cupón</span>
-                </label>
-
-                @foreach($availableCoupons as $benefit)
-                    <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
-                        <div class="pt-1">
-                            <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2">
-                                <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
-                                <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
-                                    {{ $benefit->doctorCoupon->coupon->name }}
+                    <!-- Available coupons list -->
+                    @foreach($availableCoupons as $benefit)
+                        <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
+                            <div class="pt-1">
+                                <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
+                                    <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
+                                        {{ $benefit->doctorCoupon->coupon->name }}
+                                    </p>
+                                </div>
+                                <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
+                                    @if($benefit->doctorCoupon->coupon->type === 'Amount')
+                                        Descuento de ${{ number_format($benefit->doctorCoupon->coupon->value, 2) }}
+                                    @else
+                                        {{ $benefit->doctorCoupon->coupon->value }}% de descuento
+                                    @endif
                                 </p>
                             </div>
-                            <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
-                                @if($benefit->doctorCoupon->coupon->type === 'Amount')
-                                    Descuento de ${{ number_format($benefit->doctorCoupon->coupon->value, 2) }}
-                                @else
-                                    {{ $benefit->doctorCoupon->coupon->value }}% de descuento
-                                @endif
-                            </p>
-                        </div>
-                    </label>
-                @endforeach
+                        </label>
+                    @endforeach
+                </div>
             </div>
-        </div>
-        @endif
+            @endif
 
-        <x-ui.field>
-            <x-ui.label>Monto total de la cuenta</x-ui.label>
-            <x-ui.input
-                wire:model.live="subtotal"
-                name="subtotal" x-mask:dynamic="$money($input)"
-                placeholder="0.00"
-            >
-                <x-slot name="prefix">$</x-slot>
-            </x-ui.input>
-            <x-ui.error name="subtotal" />
-        </x-ui.field>
+            @if($couponDiscountValue > 0)
+            <x-ui.field class="mt-2">
+                <x-ui.label>Descuento por cupón</x-ui.label>
+                <x-ui.alerts variant="success" icon="ticket">
+                    <x-ui.alerts.heading>-{{$couponDiscountValue}}</x-ui.alerts.heading>
+                </x-ui.alerts>
+            </x-ui.field>
+            @endif
 
-        @if($couponDiscountValue > 0)
-        <x-ui.field class="mt-2">
-            <x-ui.label>Descuento por cupón</x-ui.label>
-            <x-ui.alerts variant="success" icon="ticket">
-                <x-ui.alerts.heading>-{{ $couponDiscountValue }}</x-ui.alerts.heading>
-            </x-ui.alerts>
-        </x-ui.field>
-        @endif
+            <x-ui.field class="mt-2">
+                <x-ui.label>Cobro al paciente (Pago miembro)</x-ui.label>
+                <x-ui.alerts variant="success" icon="currency-dollar">
+                    <x-ui.alerts.heading>{{$user_payment}}</x-ui.alerts.heading>
+                </x-ui.alerts>
+            </x-ui.field>
 
-        <x-ui.field class="mt-2">
-            <x-ui.label>Cobro al paciente (Pago miembro)</x-ui.label>
-            <x-ui.alerts variant="success" icon="currency-dollar">
-                <x-ui.alerts.heading>{{ $user_payment }}</x-ui.alerts.heading>
-            </x-ui.alerts>
-        </x-ui.field>
+            <x-ui.field class="mt-2">
+                <x-ui.label>Comision Inmax</x-ui.label>
+                <x-ui.alerts variant="info" icon="currency-dollar">
+                    <x-ui.alerts.description>{{$commision}}</x-ui.alerts.description>
+                </x-ui.alerts>
+            </x-ui.field>
 
-        <x-ui.field class="mt-2">
-            <x-ui.label>Comision Inmax</x-ui.label>
-            <x-ui.alerts variant="info" icon="currency-dollar">
-                <x-ui.alerts.description>{{ $commision }}</x-ui.alerts.description>
-            </x-ui.alerts>
-        </x-ui.field>
-
-        <x-ui.field class="mt-2">
-            <x-ui.label>Ganancia del socio</x-ui.label>
-            <x-ui.alerts variant="info" icon="currency-dollar">
-                <x-ui.alerts.description>{{ $total }}</x-ui.alerts.description>
-            </x-ui.alerts>
-        </x-ui.field>
-    </x-ui.card>
+            <x-ui.field class="mt-2">
+                <x-ui.label>Ganancia del socio</x-ui.label>
+                <x-ui.alerts variant="info" icon="currency-dollar">
+                    <x-ui.alerts.description>{{$total}}</x-ui.alerts.description>
+                </x-ui.alerts>
+            </x-ui.field>
+        </x-ui.card>
 
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">

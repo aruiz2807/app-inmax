@@ -27,7 +27,7 @@
         @php
             $profile = auth()->user()?->profile;
             $isClerk = $profile === 'Clerk';
-            $homeRoute = $isClerk ? 'clerk.dashboard' : 'dashboard';
+            $homeRoute = $isClerk ? 'clerk.dispensation' : 'dashboard';
         @endphp
 
         <x-ui.layout variant="sidebar-main" collapsable>
@@ -226,13 +226,13 @@
                         @break
 
                         @case('Clerk')
-                            <x-ui.navlist.item
+                            {{--<x-ui.navlist.item
                                 icon="home"
                                 :label="__('app.home')"
                                 href="{{ route('clerk.dashboard') }}"
                                 :active="request()->routeIs('clerk.dashboard')"
                                 x-on:click="closeSidebar()"
-                            />
+                            />--}}
 
                             <x-ui.navlist.item
                                 icon="wallet"
