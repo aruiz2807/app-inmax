@@ -66,8 +66,8 @@ class LoginRedirectResolver
         return match ($user?->profile) {
             'User' => route('user.home', absolute: false),
             'Doctor' => route('doctor.home', absolute: false),
-            'Clerk' => route('clerk.dashboard', absolute: false),
-            'Receptionist' => route('receptionist.appointments', absolute: false),
+            'Clerk' => route('clerk.dispensation', absolute: false),
+            'Receptionist' => route('receptionist.requests', absolute: false),
             default => route('dashboard', absolute: false),
         };
     }

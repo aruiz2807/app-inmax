@@ -60,8 +60,8 @@ class EnsureUserHasAllowedProfile
             'dashboard',
             'user.home',
             'doctor.home',
-            'clerk.dashboard',
-            'receptionist.appointments',
+            'clerk.dispensation',
+            'receptionist.requests',
         ];
     }
 
@@ -74,8 +74,8 @@ class EnsureUserHasAllowedProfile
             'Admin', 'Sales' => 'dashboard',
             'User' => 'user.home',
             'Doctor' => 'doctor.home',
-            'Clerk' => 'clerk.dashboard',
-            'Receptionist' => 'receptionist.appointments',
+            'Clerk' => 'clerk.dispensation',
+            'Receptionist' => 'receptionist.requests',
             default => null,
         };
     }

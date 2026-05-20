@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
-use PowerComponents\LivewirePowerGrid\Facades\Filter;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
@@ -16,15 +15,27 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 final class DispensationTable extends PowerGridComponent
 {
     public string $tableName = 'dispensationTable';
+    public string $tab = 'all';
     public string $sortField = 'date';
     public string $sortDirection = 'desc';
+    public ?string $dateFrom = null;
+    public ?string $dateTo = null;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
+        $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
+    }
 
     public function setUp(): array
     {
         return [
             PowerGrid::header()
                 ->showSearchInput()
-                ->showToggleColumns(),
+                ->showToggleColumns()
+                ->includeViewOnTop('livewire.clerk.dispensation-date-presets'),
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
@@ -39,7 +50,33 @@ final class DispensationTable extends PowerGridComponent
             ->select('appointments.*', 'appointment_notes.id as appointment_note_id', 'appointment_notes.created_at as appointment_note_date')
             ->with(['user.policy', 'doctor.user'])
             ->where('doctors.type', 'Doctor')
-            ->whereNotNull('status_prescription');
+            ->whereNotNull('status_prescription')
+                ->when($this->tab === 'pending', fn (Builder $query) => $query->where('status_prescription', 'Pending'))
+                ->when($this->tab === 'partial', fn (Builder $query) => $query->where('status_prescription', 'Partial'))
+                ->when($this->tab === 'filled', fn (Builder $query) => $query->where('status_prescription', 'Filled'))
+                ->when($this->tab === 'cancelled', fn (Builder $query) => $query->where('status_prescription', 'Cancelled'))
+            ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
+    }
+
+    public function applyPreset(string $preset): void
+    {
+        [$start, $end] = match ($preset) {
+            'last7' => [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()],
+            'month' => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfMonth()->endOfDay()],
+            default => [null, null],
+        };
+
+        if ($start && $end) {
+            $this->dateFrom = $start->toDateString();
+            $this->dateTo = $end->toDateString();
+        }
+    }
+
+    public function clearDateRange(): void
+    {
+        $this->dateFrom = null;
+        $this->dateTo = null;
     }
 
     public function relationSearch(): array
@@ -110,10 +147,10 @@ final class DispensationTable extends PowerGridComponent
             })
             ->add('status_badge', function ($row): string {
                 return match ((string) data_get($row, 'status_prescription')) {
-                    'Filled' => Blade::render('<x-ui.badge variant="outline" color="green" pill>Surtida</x-ui.badge>'),
-                    'Partial' => Blade::render('<x-ui.badge variant="outline" color="blue" pill>Surtida Parcial</x-ui.badge>'),
-                    'Cancelled' => Blade::render('<x-ui.badge variant="outline" color="red" pill>Vencida</x-ui.badge>'),
-                    default => Blade::render('<x-ui.badge variant="outline" color="yellow" pill>Pendiente</x-ui.badge>'),
+                    'Filled' => '<span class="px-2 py-1 text-xs font-bold rounded-full text-green-700 bg-green-100">Surtida</span>',
+                    'Partial' => '<span class="px-2 py-1 text-xs font-bold rounded-full text-blue-700 bg-blue-100">Surtida Parcial</span>',
+                    'Cancelled' => '<span class="px-2 py-1 text-xs font-bold rounded-full text-red-700 bg-red-100">Vencida</span>',
+                    default => '<span class="px-2 py-1 text-xs font-bold rounded-full text-yellow-700 bg-yellow-100">Pendiente</span>',
                 };
             });
     }
@@ -181,28 +218,13 @@ final class DispensationTable extends PowerGridComponent
         ];
     }
 
-    public function filters(): array
-    {
-        return [
-            Filter::select('status_prescription', 'status_prescription')
-                ->dataSource([
-                    ['id' => 'Pending', 'name' => 'Pendiente'],
-                    ['id' => 'Filled', 'name' => 'Surtida'],
-                    ['id' => 'Partial', 'name' => 'Surtida Parcial'],
-                    ['id' => 'Cancelled', 'name' => 'Vencida'],
-                ])
-                ->optionValue('id')
-                ->optionLabel('name'),
-        ];
-    }
-
     public function actions($row): array
     {
         return [
             Button::add('show_details')
-                ->slot('Ver detalles')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
                 ->id()
-                ->class('bg-teal-600 text-white px-3 py-1 rounded')
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('openPrescription', ['appointmentId' => (int) data_get($row, 'id')]),
         ];
     }
