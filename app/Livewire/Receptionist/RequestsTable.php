@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
@@ -55,12 +56,6 @@ final class RequestsTable extends PowerGridComponent
                     ->select('services.name')
                     ->join('services', 'services.id', '=', 'appointment_services.service_id')
                     ->whereColumn('appointment_services.appointment_id', 'appointments.id')
-                    ->orderBy('appointment_services.id')
-                    ->limit(1),
-                'medical_order_id' => AppointmentService::query()
-                    ->select('appointment_services.id')
-                    ->whereColumn('appointment_services.appointment_id', 'appointments.id')
-                    ->whereNotNull('appointment_services.attachment_name')
                     ->orderBy('appointment_services.id')
                     ->limit(1),
             ])
@@ -133,28 +128,7 @@ final class RequestsTable extends PowerGridComponent
             ->add('service_name', fn (Appointment $appointment) => e($appointment->service_name ?? 'Sin servicio'))
             ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? 'N/A'))
             ->add('schedule', fn (Appointment $appointment) => sprintf('%s %s', $appointment->date?->format('d/m/Y') ?? '-', $appointment->time?->format('H:i') ?? '-'))
-            ->add('status_badge', fn (Appointment $appointment) => Blade::render('<x-status-badge status="'.$appointment->status?->value.'" />'))
-            ->add('medical_order_link', function (Appointment $appointment): string {
-                if (blank($appointment->medical_order_id)) {
-                    return '<span class="inline-flex bg-neutral-200 text-neutral-500 px-3 py-1 rounded">Sin orden</span>';
-                }
-
-                $url = route('attachment.download', $appointment->medical_order_id);
-
-                return '<a href="'.$url.'" class="inline-flex bg-neutral-700 text-white px-3 py-1 rounded" target="_blank">Ver orden</a>';
-            })
-            ->add('actions', function (Appointment $appointment): string {
-                if ($appointment->status !== AppointmentStatus::REQUESTED) {
-                    $stateLabel = $appointment->status === AppointmentStatus::BOOKED ? 'Aceptada' : 'Rechazada';
-
-                    return '<div class="flex gap-2"><button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>'.$stateLabel.'</button><button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Sin accion</button></div>';
-                }
-
-                $acceptButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'accept-receptionist-request\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Aceptar</button>';
-                $rejectButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'reject-receptionist-request\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-red-600 text-white px-3 py-1 rounded">Rechazar</button>';
-
-                return '<div class="flex gap-2">'.$acceptButton.$rejectButton.'</div>';
-            });
+            ->add('status_badge', fn (Appointment $appointment) => Blade::render('<x-status-badge status="'.$appointment->status?->value.'" />'));
     }
 
     public function columns(): array
@@ -170,8 +144,6 @@ final class RequestsTable extends PowerGridComponent
 
             Column::make('Servicio', 'service_name'),
 
-            Column::make('Orden medica', 'medical_order_link'),
-
             Column::make('Doctor', 'doctor_name', 'doctor_users.name')
                 ->searchable()
                 ->sortable(),
@@ -183,7 +155,54 @@ final class RequestsTable extends PowerGridComponent
                 ->searchable()
                 ->sortable(),
 
-            Column::make('Acciones', 'actions'),
+            Column::action('Acciones'),
         ];
+    }
+
+    public function actions(Appointment $row): array
+    {
+        $status = $row->status instanceof AppointmentStatus
+            ? $row->status
+            : AppointmentStatus::tryFrom((string) $row->status);
+
+        return [
+            Button::add('show')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
+                ->id()
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('showReceptionistRequestDetail', ['appointmentId' => $row->id]),
+
+            $status === AppointmentStatus::REQUESTED
+                ? Button::add('accept')
+                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="check" variant="outline" class="w-5 h-5"/><span>Aceptar</span></div>'))
+                    ->id()
+                    ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                    ->dispatch('acceptReceptionistRequest', ['appointmentId' => $row->id])
+                : ($status === AppointmentStatus::BOOKED
+                    ? Button::add('accepted_state')
+                        ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Aceptada</span></div>'))
+                        ->id()
+                        ->class('text-neutral-400 px-2 py-1 rounded cursor-not-allowed')
+                    : Button::add('rejected_state')
+                        ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="x-circle" variant="outline" class="w-5 h-5"/><span>Rechazada</span></div>'))
+                        ->id()
+                        ->class('text-neutral-400 px-2 py-1 rounded cursor-not-allowed')),
+
+            $status === AppointmentStatus::REQUESTED
+                ? Button::add('reject')
+                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="x-mark" variant="outline" class="w-5 h-5"/><span>Rechazar</span></div>'))
+                    ->id()
+                    ->class('text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors')
+                    ->dispatch('rejectReceptionistRequest', ['appointmentId' => $row->id])
+                : Button::add('state_spacer')
+                    ->slot('')
+                    ->id()
+                    ->class('hidden'),
+        ];
+    }
+
+    public function actionRules(): array
+    {
+        return [];
     }
 }

@@ -3,12 +3,12 @@
     x-on:open-receptionist-appointment-detail.window="$wire.openDetails($event.detail.appointmentId)"
 >
     <x-slot name="header">
-        Check-OUT
+        Check-out
     </x-slot>
 
     <x-ui.card size="full">
         <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
-            <span>Check-OUT</span>
+            <span>Check-out</span>
         </x-ui.heading>
 
         <p>Liquida consultas a medida que las pacientes terminan. La cola se actualiza en tiempo real.</p>
