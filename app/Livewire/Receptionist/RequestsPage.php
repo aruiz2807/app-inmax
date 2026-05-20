@@ -15,6 +15,7 @@ class RequestsPage extends Component
 {
     #[Url(as: 'tab')]
     public string $tab = 'all';
+    public ?Appointment $selectedRequest = null;
 
     public function setTab(string $tab): void
     {
@@ -73,6 +74,27 @@ class RequestsPage extends Component
         );
 
         $this->dispatch('pg:eventRefresh-receptionistRequestsTable');
+    }
+
+    #[On('showReceptionistRequestDetail')]
+    public function openDetails(int $appointmentId): void
+    {
+        $request = $this->getBaseQuery()
+            ->with([
+                'user.policy',
+                'doctor.user',
+                'doctor.specialty',
+                'services.service',
+            ])
+            ->whereKey($appointmentId)
+            ->first();
+
+        if (! $request) {
+            return;
+        }
+
+        $this->selectedRequest = $request;
+        $this->dispatch('open-receptionist-request-detail-modal');
     }
 
     public function getPendingCountProperty(): int

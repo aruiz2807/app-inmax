@@ -276,8 +276,8 @@
                             />
 
                             <x-ui.navlist.item
-                                icon="calendar"
-                                :label="'Consultas'"
+                                icon="currency-dollar"
+                                :label="'Check-out'"
                                 href="{{ route('receptionist.appointments') }}"
                                 :active="request()->routeIs('receptionist.appointments')"
                                 x-on:click="closeSidebar()"

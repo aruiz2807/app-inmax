@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
@@ -72,7 +73,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where(function (Builder $pendingQuery) {
                 $pendingQuery
                     ->whereNull('user_payment')
-                    ->where('appointments.status', AppointmentStatus::BOOKED->value);
+                    ->where('appointments.status', AppointmentStatus::COMPLETED->value);
             }))
             ->when($this->tab === 'cancelled', fn (Builder $query) => $query->whereIn('appointments.status', [
                 AppointmentStatus::CANCELLED->value,
@@ -153,44 +154,6 @@ final class AppointmentsTable extends PowerGridComponent
                 }
 
                 return '$'.number_format((float) $appointment->user_payment, 2);
-            })
-            ->add('payment_button', function (Appointment $appointment): string {
-                $isPaid = !is_null($appointment->user_payment);
-                $isCompleted = $appointment->status == \App\Enums\AppointmentStatus::COMPLETED;
-                $hasNote = ! is_null($appointment->note?->id);
-                $allCovered = $appointment->services->isNotEmpty() && $appointment->services->every(fn ($s) => (bool) $s->covered);
-
-                $detailButton = '<button type="button" onclick="window.dispatchEvent(new CustomEvent(\'open-receptionist-appointment-detail\', { detail: { appointmentId: '.$appointment->id.' } }))" class="bg-teal-600 text-white px-3 py-1 rounded">Detalle</button>';
-
-                if ($hasNote && $isPaid) {
-                    $ticketUrl = route('receptionist.payment.ticket', ['appointment' => $appointment->id]);
-                    $ticketButton = '<a href="'.$ticketUrl.'" target="_blank" class="bg-neutral-700 text-white px-3 py-1 rounded inline-flex">Ticket</a>';
-                } else {
-                    $ticketButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Ticket</button>';
-                }
-
-                if ($isPaid) {
-                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Pagado</button>';
-
-                    return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
-                }
-
-                /*if ($allCovered) {
-                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Servicios cubiertos</button>';
-
-                    return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
-                }*/
-
-                if (!$isCompleted) {
-                    $payButton = '<button type="button" class="bg-neutral-300 text-neutral-600 px-3 py-1 rounded cursor-not-allowed" disabled>Liquidar</button>';
-
-                    return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
-                }
-
-                $url = route('receptionist.payment', ['appointment' => $appointment->id]);
-                $payButton = '<a href="'.$url.'" class="bg-teal-600 text-white px-3 py-1 rounded inline-flex">Liquidar</a>';
-
-                return '<div class="flex gap-2 flex-wrap">'.$detailButton.$ticketButton.$payButton.'</div>';
             });
     }
 
@@ -228,8 +191,56 @@ final class AppointmentsTable extends PowerGridComponent
             Column::make('Monto', 'amount_formatted', 'user_payment')
                 ->sortable(),
 
-            Column::make('Accion', 'payment_button'),
+            Column::action('Accion'),
         ];
+    }
+
+    public function actions(Appointment $row): array
+    {
+        $canOpenTicket = !is_null($row->user_payment) && !is_null($row->note?->id);
+        $isPaid = !is_null($row->user_payment);
+        $status = $row->status instanceof AppointmentStatus
+            ? $row->status
+            : AppointmentStatus::tryFrom((string) $row->status);
+        $isCompleted = $status === AppointmentStatus::COMPLETED;
+
+        return [
+            Button::add('show')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
+                ->id()
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('showReceptionistAppointmentDetail', ['appointmentId' => $row->id]),
+
+            $canOpenTicket
+                ? Button::add('ticket')
+                    ->slot(Blade::render('<a href="'.route('receptionist.payment.ticket', ['appointment' => $row->id]).'" target="_blank" class="inline-flex items-center gap-2"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Ticket</span></a>'))
+                    ->id()
+                    ->class('text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
+                : Button::add('ticket_disabled')
+                    ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Ticket</span></div>'))
+                    ->id()
+                    ->class('text-neutral-500'),
+
+            $isPaid
+                ? Button::add('paid')
+                    ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Pagado</span></div>'))
+                    ->id()
+                    ->class('text-neutral-500')
+                : ($isCompleted
+                    ? Button::add('settle')
+                        ->slot(Blade::render('<a href="'.route('receptionist.payment', ['appointment' => $row->id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="currency-dollar" variant="outline" class="w-5 h-5"/><span>Liquidar</span></a>'))
+                        ->id()
+                        ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                    : Button::add('settle_disabled')
+                        ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed"><x-ui.icon name="currency-dollar" variant="outline" class="w-5 h-5"/><span>Liquidar</span></div>'))
+                        ->id()
+                        ->class('text-neutral-500')),
+        ];
+    }
+
+    public function actionRules(): array
+    {
+        return [];
     }
 
 }

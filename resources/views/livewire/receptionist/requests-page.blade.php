@@ -2,6 +2,7 @@
     x-data
     x-on:accept-receptionist-request.window="$wire.acceptRequest($event.detail.appointmentId)"
     x-on:reject-receptionist-request.window="$wire.rejectRequest($event.detail.appointmentId)"
+    x-on:show-receptionist-request-detail.window="$wire.openDetails($event.detail.appointmentId)"
 >
     <x-slot name="header">
         Solicitudes
@@ -31,7 +32,7 @@
         <x-ui.card size="full" class="border-t-2 border-red-500">
             <p class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Solicitudes rechazadas</p>
             <p class="mt-2 text-3xl font-bold text-neutral-900">{{ $this->rejectedCount }}</p>
-            <p class="text-xs text-neutral-500">Historico</p>
+            <p class="text-xs text-neutral-500">Rechazadas</p>
         </x-ui.card>
     </div>
 
@@ -90,4 +91,6 @@
             <livewire:receptionist.requests-table :tab="$tab" :key="'receptionist-requests-table-'.$tab" />
         </x-ui.card>
     </div>
+
+    @include('livewire.receptionist.request-details-modal')
 </div>
