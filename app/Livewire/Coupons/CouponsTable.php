@@ -49,6 +49,8 @@ final class CouponsTable extends PowerGridComponent
             ->add('type')
             ->add('type_formatted', fn ($model) => $model->type === 'Amount' ? 'Importe' : 'Porcentaje')
             ->add('value')
+            ->add('limit_min')
+            ->add('limit_max')
             ->add('status')
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
@@ -70,6 +72,12 @@ final class CouponsTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Valor', 'value')
+                ->sortable(),
+
+            Column::make('Limite inferior', 'limit_min')
+                ->sortable(),
+
+            Column::make('Limite superior', 'limit_max')
                 ->sortable(),
 
             Column::make('Estatus', 'status_toggle', 'status')

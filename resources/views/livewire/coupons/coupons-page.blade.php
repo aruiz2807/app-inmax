@@ -67,6 +67,22 @@
                     <x-ui.error name="form.value" />
                 </x-ui.field>
 
+                <x-ui.field required>
+                    <x-ui.label>Limite inferior</x-ui.label>
+                    <x-ui.input wire:model="form.min" name="min" x-mask:dynamic="$money($input)" placeholder="0.00">
+                        <x-slot name="prefix">$</x-slot>
+                    </x-ui.input>
+                    <x-ui.error name="form.min" />
+                </x-ui.field>
+
+                <x-ui.field required>
+                    <x-ui.label>Limite superior</x-ui.label>
+                    <x-ui.input wire:model="form.max" name="max" x-mask:dynamic="$money($input)" placeholder="0.00">
+                        <x-slot name="prefix">$</x-slot>
+                    </x-ui.input>
+                    <x-ui.error name="form.max" />
+                </x-ui.field>
+
                 <x-ui.field>
                     <x-ui.label>Servicios disponibles</x-ui.label>
                     <x-ui.select

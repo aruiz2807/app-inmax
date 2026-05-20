@@ -18,6 +18,12 @@ class CouponsForm extends Form
     #[Validate('required')]
     public $value = '0';
 
+    #[Validate('required')]
+    public $min = '0';
+
+    #[Validate('required')]
+    public $max = '0';
+
     public $service = null;
 
     /**
@@ -32,6 +38,8 @@ class CouponsForm extends Form
             'name' => $this->name,
             'type' => $this->type,
             'value' => str_replace(',', '', $this->value),
+            'limit_min' => str_replace(',', '', $this->min),
+            'limit_max' => str_replace(',', '', $this->max),
         ]);
     }
 
@@ -44,6 +52,8 @@ class CouponsForm extends Form
         $this->name = $coupon->name;
         $this->type = $coupon->type;
         $this->value = $coupon->value;
+        $this->min = $coupon->limit_min;
+        $this->max = $coupon->limit_max;
     }
 
     /**
@@ -60,6 +70,8 @@ class CouponsForm extends Form
             'name' => $this->name,
             'type' => $this->type,
             'value' => str_replace(',', '', $this->value),
+            'limit_min' => str_replace(',', '', $this->min),
+            'limit_max' => str_replace(',', '', $this->max),
         ]);
     }
 }

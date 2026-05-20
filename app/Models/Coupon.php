@@ -43,6 +43,8 @@ class Coupon extends Model
         'name',
         'type',
         'value',
+        'limit_min',
+        'limit_max',
     ];
 
     /**
