@@ -34,9 +34,9 @@ class DRNotesPage extends Component
     public bool $hasReceptionistAssigned = false;
 
     // Coupon logic
-    public bool $useCoupon = false;
     public bool $hasCouponAvailable = false;
-    public $availableCouponBenefit = null;
+    public $availableCoupons = [];
+    public $selectedCouponId = null;
     public float $couponDiscountValue = 0;
 
     // Medication selection
@@ -109,7 +109,7 @@ class DRNotesPage extends Component
     public function checkCouponAvailability()
     {
         $this->hasCouponAvailable = false;
-        $this->availableCouponBenefit = null;
+        $this->availableCoupons = collect();
 
         $policy = $this->appointment->user->policy;
         if (!$policy) return;
@@ -117,24 +117,43 @@ class DRNotesPage extends Component
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
         $doctorId = $this->user->doctor->id;
         $serviceIds = $this->services->pluck('service_id')->toArray();
+        
+        $subtotal = floatval(str_replace(',', '', $this->subtotal));
 
-        // Search for an available coupon for this doctor and the services in the appointment
-        $this->availableCouponBenefit = PolicyService::with('doctorCoupon.coupon')
+        // Search for all available coupons for this doctor and the services in the appointment
+        $this->availableCoupons = PolicyService::with('doctorCoupon.coupon')
             ->where('policy_id', $policyId)
             ->whereNotNull('doctor_coupon_id')
             ->whereColumn('used', '<', 'included')
-            ->whereHas('doctorCoupon', function ($q) use ($doctorId, $serviceIds) {
+            ->whereHas('doctorCoupon', function ($q) use ($doctorId, $serviceIds, $subtotal) {
                 $q->where('doctor_id', $doctorId)
-                  ->whereHas('coupon', function ($q2) use ($serviceIds) {
+                  ->whereHas('coupon', function ($q2) use ($serviceIds, $subtotal) {
                       // Universal coupon (no service_id) or specific to one of the appointment services
-                      $q2->whereNull('service_id')
-                         ->orWhereIn('service_id', $serviceIds);
+                      $q2->where(function($q3) use ($serviceIds) {
+                          $q3->whereNull('service_id')
+                             ->orWhereIn('service_id', $serviceIds);
+                      });
+
+                      // New logic: check limits
+                      $q2->where(function ($q3) use ($subtotal) {
+                          $q3->where('limit_min', '<=', 0)
+                             ->orWhere('limit_min', '<=', $subtotal);
+                      })->where(function ($q3) use ($subtotal) {
+                          $q3->where('limit_max', '<=', 0)
+                             ->orWhere('limit_max', '>', $subtotal);
+                      });
                   });
             })
-            ->first();
+            ->get();
 
-        if ($this->availableCouponBenefit) {
+        if ($this->availableCoupons->isNotEmpty()) {
             $this->hasCouponAvailable = true;
+            // Check if selected coupon is still available, if not, reset it
+            if ($this->selectedCouponId && !$this->availableCoupons->contains('id', $this->selectedCouponId)) {
+                $this->selectedCouponId = null;
+            }
+        } else {
+            $this->selectedCouponId = null;
         }
     }
 
@@ -187,7 +206,7 @@ class DRNotesPage extends Component
         $this->calculateTotals();
     }
 
-    public function updatedUseCoupon($value)
+    public function updatedSelectedCouponId($value)
     {
         $this->calculateTotals();
     }
@@ -218,6 +237,8 @@ class DRNotesPage extends Component
             }
         }
 
+        $this->checkCouponAvailability();
+
         $subtotal = floatval(str_replace(',', '', $this->subtotal));
         
         $doctor = $this->appointment->doctor ?: $this->user->doctor;
@@ -228,12 +249,17 @@ class DRNotesPage extends Component
         $memberDiscount = round($subtotal * $doc_discount, 2);
         
         $this->couponDiscountValue = 0;
-        if ($this->useCoupon && $this->availableCouponBenefit) {
-            $coupon = $this->availableCouponBenefit->doctorCoupon->coupon;
-            if ($coupon->type === 'Amount') {
-                $this->couponDiscountValue = (float) $coupon->value;
-            } elseif ($coupon->type === 'Percentage') {
-                $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
+        $selectedBenefit = null;
+        
+        if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
+            $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
+            if ($selectedBenefit) {
+                $coupon = $selectedBenefit->doctorCoupon->coupon;
+                if ($coupon->type === 'Amount') {
+                    $this->couponDiscountValue = (float) $coupon->value;
+                } elseif ($coupon->type === 'Percentage') {
+                    $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
+                }
             }
         }
 
@@ -241,7 +267,7 @@ class DRNotesPage extends Component
         // If it's an included MG consultation, it's 100% covered (user pays 0)
         if ($isMGIncluded) {
             $effectiveSubtotal = 0;
-        } elseif ($this->useCoupon) {
+        } elseif ($selectedBenefit) {
             $effectiveSubtotal = max(0, $subtotal - $this->couponDiscountValue);
         } else {
             $effectiveSubtotal = max(0, $subtotal - $memberDiscount);
@@ -256,7 +282,7 @@ class DRNotesPage extends Component
         if ($isMGIncluded) {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format(0, 2);
-        } elseif ($this->useCoupon) {
+        } elseif ($selectedBenefit) {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format($effectiveSubtotal - ($subtotal - $memberDiscount - $commission_amount), 2);
         } else {
@@ -329,8 +355,8 @@ class DRNotesPage extends Component
         }
 
         // Redeem coupon if used
-        if ($this->useCoupon && $this->availableCouponBenefit) {
-            $this->availableCouponBenefit->increment('used');
+        if ($this->selectedCouponId) {
+            PolicyService::where('id', $this->selectedCouponId)->increment('used');
         }
 
         $this->subtotal = str_replace(',', '', $this->subtotal);
