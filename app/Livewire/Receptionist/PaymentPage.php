@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Parameter;
 use App\Models\PolicyService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -25,11 +26,11 @@ class PaymentPage extends Component
     public string $payment_method = '';
     public ?string $payment_reference = null;
     public $payment_attachment = null;
-    public bool $useCoupon = false;
     public bool $hasCouponAvailable = false;
     public bool $paymentSaved = false;
     public string $paymentSuccessMessage = '';
-    public ?PolicyService $availableCouponBenefit = null;
+    public Collection $availableCoupons;
+    public null|int|string $selectedCouponId = null;
     public float $couponDiscountValue = 0;
 
     #[Layout('layouts.app')]
@@ -40,6 +41,8 @@ class PaymentPage extends Component
 
     public function mount(Appointment $appointment): void
     {
+        $this->availableCoupons = collect();
+
         $this->appointment = $appointment->load(['user.policy', 'doctor.user', 'doctor.specialty', 'services.service:id,name']);
 
         if (! Auth::user()->staffDoctors()->whereKey($this->appointment->doctor_id)->exists()) {
@@ -52,7 +55,6 @@ class PaymentPage extends Component
         $this->total = $this->formatMoney($this->appointment->total);
         $this->payment_method = (string) ($this->appointment->payment_method ?? '');
         $this->payment_reference = $this->appointment->payment_reference;
-        $this->useCoupon = (float) $this->appointment->coupon_discount > 0;
 
         $this->checkCouponAvailability();
         $this->calculateTotals();
@@ -63,7 +65,7 @@ class PaymentPage extends Component
         $this->calculateTotals();
     }
 
-    public function updatedUseCoupon(): void
+    public function updatedSelectedCouponId(): void
     {
         $this->calculateTotals();
     }
@@ -94,8 +96,8 @@ class PaymentPage extends Component
 
         $this->calculateTotals();
 
-        if ($this->useCoupon && $this->availableCouponBenefit && (float) $this->appointment->coupon_discount <= 0) {
-            $this->availableCouponBenefit->increment('used');
+        if ($this->selectedCouponId && (float) $this->appointment->coupon_discount <= 0) {
+            PolicyService::whereKey($this->selectedCouponId)->increment('used');
         }
 
         $attachmentPath = $this->appointment->payment_attachment_path;
@@ -161,31 +163,51 @@ class PaymentPage extends Component
     public function checkCouponAvailability(): void
     {
         $this->hasCouponAvailable = false;
-        $this->availableCouponBenefit = null;
+        $this->availableCoupons = collect();
 
         $policy = $this->appointment->user->policy;
 
         if (! $policy) {
+            $this->selectedCouponId = null;
             return;
         }
 
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
         $serviceIds = $this->appointment->services->pluck('service_id')->toArray();
+        $subtotal = $this->parseMoney($this->subtotal);
 
-        $this->availableCouponBenefit = PolicyService::with('doctorCoupon.coupon')
+        $this->availableCoupons = PolicyService::with('doctorCoupon.coupon')
             ->where('policy_id', $policyId)
             ->whereNotNull('doctor_coupon_id')
             ->whereColumn('used', '<', 'included')
-            ->whereHas('doctorCoupon', function ($query) use ($serviceIds) {
+            ->whereHas('doctorCoupon', function ($query) use ($serviceIds, $subtotal) {
                 $query->where('doctor_id', $this->appointment->doctor_id)
-                    ->whereHas('coupon', function ($couponQuery) use ($serviceIds) {
-                        $couponQuery->whereNull('service_id')
-                            ->orWhereIn('service_id', $serviceIds);
+                    ->whereHas('coupon', function ($couponQuery) use ($serviceIds, $subtotal) {
+                        $couponQuery->where(function ($serviceQuery) use ($serviceIds) {
+                            $serviceQuery->whereNull('service_id')
+                                ->orWhereIn('service_id', $serviceIds);
+                        });
+
+                        $couponQuery->where(function ($limitMinQuery) use ($subtotal) {
+                            $limitMinQuery->where('limit_min', '<=', 0)
+                                ->orWhere('limit_min', '<=', $subtotal);
+                        })->where(function ($limitMaxQuery) use ($subtotal) {
+                            $limitMaxQuery->where('limit_max', '<=', 0)
+                                ->orWhere('limit_max', '>', $subtotal);
+                        });
                     });
             })
-            ->first();
+            ->get();
 
-        $this->hasCouponAvailable = $this->availableCouponBenefit !== null;
+        if ($this->availableCoupons->isNotEmpty()) {
+            $this->hasCouponAvailable = true;
+
+            if ($this->selectedCouponId && ! $this->availableCoupons->contains('id', $this->selectedCouponId)) {
+                $this->selectedCouponId = null;
+            }
+        } else {
+            $this->selectedCouponId = null;
+        }
     }
 
     private function calculateTotals(): void
@@ -210,6 +232,8 @@ class PaymentPage extends Component
             }
         }
 
+        $this->checkCouponAvailability();
+
         $subtotal = $this->parseMoney($this->subtotal);
         $doctor = $this->appointment->doctor;
 
@@ -224,21 +248,26 @@ class PaymentPage extends Component
         $memberDiscount = round($subtotal * ($doctor->discount / 100), 2);
         $doctorCommission = $doctor->commission / 100;
         $this->couponDiscountValue = 0;
+        $selectedBenefit = null;
 
-        if ($this->useCoupon && $this->availableCouponBenefit) {
-            $coupon = $this->availableCouponBenefit->doctorCoupon->coupon;
+        if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
+            $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
 
-            if ($coupon->type === 'Amount') {
-                $this->couponDiscountValue = (float) $coupon->value;
-            } elseif ($coupon->type === 'Percentage') {
-                $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
+            if ($selectedBenefit) {
+                $coupon = $selectedBenefit->doctorCoupon->coupon;
+
+                if ($coupon->type === 'Amount') {
+                    $this->couponDiscountValue = (float) $coupon->value;
+                } elseif ($coupon->type === 'Percentage') {
+                    $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
+                }
             }
         }
 
         if ($isMGIncluded) {
             $effectiveSubtotal = 0;
         } else {
-            $effectiveSubtotal = $this->useCoupon
+            $effectiveSubtotal = $selectedBenefit
                 ? max(0, $subtotal - $this->couponDiscountValue)
                 : max(0, $subtotal - $memberDiscount);
         }
@@ -250,7 +279,7 @@ class PaymentPage extends Component
         if ($isMGIncluded) {
             $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
             $this->commision = $this->formatMoney(0);
-        } elseif ($this->useCoupon) {
+        } elseif ($selectedBenefit) {
             $providerTotal = $subtotal - $memberDiscount - $commission;
             $this->total = $this->formatMoney($providerTotal);
             $this->commision = $this->formatMoney($effectiveSubtotal - $providerTotal);
