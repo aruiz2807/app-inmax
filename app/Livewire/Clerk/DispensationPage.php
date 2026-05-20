@@ -3,19 +3,61 @@
 namespace App\Livewire\Clerk;
 
 use App\Models\Appointment;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class DispensationPage extends Component
 {
+    #[Url(as: 'tab')]
+    public string $tab = 'all';
+
     public ?array $selectedAppointment = null;
+
+    public function setTab(string $tab): void
+    {
+        if (! in_array($tab, ['all', 'pending', 'partial', 'filled', 'cancelled'], true)) {
+            return;
+        }
+
+        $this->tab = $tab;
+    }
+
+    public function getPendingCountProperty(): int
+    {
+        return (clone $this->getBaseQuery())
+            ->where('status_prescription', 'Pending')
+            ->count();
+    }
+
+    public function getPartialCountProperty(): int
+    {
+        return (clone $this->getBaseQuery())
+            ->where('status_prescription', 'Partial')
+            ->count();
+    }
+
+    public function getFilledCountProperty(): int
+    {
+        return (clone $this->getBaseQuery())
+            ->where('status_prescription', 'Filled')
+            ->count();
+    }
 
     #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.clerk.dispensation-page');
+    }
+
+    private function getBaseQuery(): Builder
+    {
+        return Appointment::query()
+            ->whereNotNull('status_prescription')
+            ->whereHas('doctor', fn (Builder $query) => $query->where('type', 'Doctor'));
     }
 
     #[On('showDispensationDetails')]
