@@ -8,7 +8,7 @@
             <span>Surtir recetas</span>
         </x-ui.heading>
 
-        <p>Surte las recetas a medida que las pacientes terminan. La cola se actualiza en tiempo real.</p>
+        <p>Surte las recetas. La cola se actualiza en tiempo real.</p>
     </x-ui.card>
 
     <div class="grid grid-cols-1 gap-4 pt-2 md:grid-cols-3">
