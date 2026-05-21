@@ -246,7 +246,8 @@
                 <x-ui.label>Monto total de la cuenta</x-ui.label>
                 <x-ui.input
                     wire:model.live="subtotal"
-                    name="subtotal" x-mask:dynamic="$money($input)"
+                    name="subtotal" 
+                    x-mask:dynamic="$money($input)"
                     placeholder="0.00"
                 >
                     <x-slot name="prefix">$</x-slot>
