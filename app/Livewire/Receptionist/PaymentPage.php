@@ -143,7 +143,7 @@ class PaymentPage extends Component
     private function validatePaymentFields(): void
     {
         $validated = $this->validate([
-            'payment_method' => ['required', Rule::in(['CS', 'CC', 'DC', 'TR'])],
+            'payment_method' => ['required', Rule::in(['CS', 'CC', 'DC', 'TR', 'SI'])],
             'payment_reference' => ['nullable', 'string', 'max:100'],
             'payment_attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
         ], [
