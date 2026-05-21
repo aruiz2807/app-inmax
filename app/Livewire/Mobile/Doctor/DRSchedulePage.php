@@ -142,12 +142,6 @@ class DRSchedulePage extends Component
                           ->orWhereHas('doctorService', function ($q) use ($service) {
                               $q->where('doctor_id', $this->selectedDoctor)
                                 ->where('service_id', $service->id);
-                          })
-                          ->orWhereHas('doctorCoupon', function ($q) use ($service) {
-                              $q->where('doctor_id', $this->selectedDoctor)
-                                ->whereHas('coupon', function ($q2) use ($service) {
-                                    $q2->where('service_id', $service->id);
-                                });
                           });
                 })
                 ->exists();
