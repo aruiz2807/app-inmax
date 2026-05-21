@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class NotesConfirmationPage extends Component
 {
     public $note;
+    public bool $hasReceptionistAssigned = false;
 
     #[Layout('layouts.mobile')]
     public function render()
@@ -29,6 +30,11 @@ class NotesConfirmationPage extends Component
         $this->note = AppointmentNote::with(['appointment.prescriptions.medication', 'appointment.doctor.user', 'appointment.doctor.specialty', 'appointment.user'])
             ->where('id', $noteId)
             ->firstOrFail();
+
+        $this->hasReceptionistAssigned = $this->note->appointment->doctor
+            ?->staff()
+            ->where('profile', 'Receptionist')
+            ->exists() ?? false;
     }
 
     public function schedule()
