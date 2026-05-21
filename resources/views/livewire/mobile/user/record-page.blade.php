@@ -51,7 +51,11 @@
                                                 <ul class="list-disc pl-5">
                                                 @foreach($record->prescriptions as $prescription)
                                                     <li>
+                                                        @if($prescription->medication)
                                                         <x-ui.text class="text-sm">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
+                                                        @else
+                                                        <x-ui.text class="text-sm">{{ $prescription->description }}</x-ui.text>
+                                                        @endif
                                                     </li>
                                                 @endforeach
                                                 </ul>
