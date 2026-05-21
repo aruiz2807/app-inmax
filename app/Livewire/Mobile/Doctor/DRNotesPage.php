@@ -146,8 +146,6 @@ class DRNotesPage extends Component
             })
             ->get();
 
-        dd($this->availableCoupons);
-
         if ($this->availableCoupons->isNotEmpty()) {
             $this->hasCouponAvailable = true;
             // Check if selected coupon is still available, if not, reset it
