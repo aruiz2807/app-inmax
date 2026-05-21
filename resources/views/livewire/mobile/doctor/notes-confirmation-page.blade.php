@@ -119,7 +119,9 @@
                     Receta digital
                 </x-ui.button>
             </div>
-            @else
+            @endif
+
+            @if(!$hasReceptionistAssigned)
             <div class="flex justify-center mt-4">
                 <x-ui.button class="w-40 mr-1" wire:click="print_ticket" variant="outline" color="indigo" icon="document">
                     Ticket
