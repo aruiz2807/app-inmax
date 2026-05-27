@@ -188,18 +188,17 @@ class DRSchedulePage extends Component
         if (Carbon::parse($this->selectedDate)->isToday()) {
             $startHour = now()->addHours(2)->hour;
         }
-        else
-        {
+        else {
             $startHour = 7;
         }
 
         $slots = [];
 
-        for ($hour = $startHour; $hour <= $endHour; $hour++) 
-        {
-            $slots[] = Carbon::createFromTime($hour)
-                ->format('h:00 A');
-        }        
+        if ($startHour >= 7 && $startHour <= 22) {
+            for ($hour = $startHour; $hour <= $endHour; $hour++) {
+                $slots[] = Carbon::createFromTime($hour)->format('h:00 A');
+            }        
+        }
 
         if($doctor?->specialty_id == 1 && $this->selectedOffice)
         {

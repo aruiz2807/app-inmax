@@ -246,9 +246,8 @@ class AppointmentFormPage extends Component
         $date = Carbon::now();
 
         while (count($dates) < 15) {
-            $date->addDay();
-
-            if (!$date->isSunday()) {
+            if (!$date->isSunday()) 
+            {
                 $dates[] = [
                     'id'    => $date->format('Y-m-d'),
                     'day'   => $date->isoFormat('ddd'),
@@ -256,6 +255,8 @@ class AppointmentFormPage extends Component
                     'month' => $date->isoFormat('MMM'),
                 ];
             }
+
+            $date->addDay();
         }
 
         return $dates;
@@ -269,11 +270,22 @@ class AppointmentFormPage extends Component
 
         $doctor = Doctor::find($this->selectedDoctor);
         $usedSlots = [];
-        $slots = [
-            '09:00 AM','10:00 AM','11:00 AM','12:00 PM',
-            '01:00 PM','02:00 PM','03:00 PM','04:00 PM',
-            '05:00 PM','06:00 PM','07:00 PM'
-        ];
+        $endHour = 22; // 10 PM
+
+        if (Carbon::parse($this->selectedDate)->isToday()) {
+            $startHour = now()->addHours(2)->hour;
+        }
+        else {
+            $startHour = 7;
+        }
+
+        $slots = [];
+
+        if ($startHour >= 7 && $startHour <= 22) {
+            for ($hour = $startHour; $hour <= $endHour; $hour++) {
+                $slots[] = Carbon::createFromTime($hour)->format('h:00 A');
+            }
+        }
 
         if($doctor?->specialty_id == 1 && $this->selectedOffice)
         {
