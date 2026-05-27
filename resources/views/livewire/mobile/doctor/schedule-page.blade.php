@@ -60,9 +60,13 @@
                     searchable
                     multiple
                     clearable
+                    search-emit="service-search-changed"
+                    x-on:service-search-changed.debounce.300ms="$wire.set('serviceSearch', $event.detail.search)"
+                    load-more-emit="load-more-services"
+                    x-on:load-more-services.debounce.200ms="$wire.loadMoreServices()"
                     wire:model.live="selectedServices">
                         @foreach($this->services as $service)
-                            <x-ui.select.option value="{{ $service->id }}">
+                            <x-ui.select.option value="{{ $service->id }}" wire:key="service-opt-{{ $service->id }}-{{ $selectedDoctor }}">
                                 {{ $service->name }}
                             </x-ui.select.option>
                         @endforeach

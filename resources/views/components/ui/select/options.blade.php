@@ -1,5 +1,6 @@
 @aware([
     'searchable' => false,
+    'loadMoreEmit' => null,
 ])
 
 @props([
@@ -50,6 +51,7 @@
         x-on:keydown.enter.prevent.stop="select($focus.focused().dataset.value)"
         x-on:keydown.up.prevent.stop="$focus.wrap().prev()"
         x-on:keydown.down.prevent.stop="$focus.wrap().next()"
+        x-on:scroll.passive="if(loadMoreEmit && ($el.scrollTop + $el.clientHeight >= $el.scrollHeight - 5)) $dispatch(loadMoreEmit)"
         class="grid grid-cols-[auto_auto_1fr] gap-y-1 overflow-y-auto max-h-60"
     >
         {{ $slot }}

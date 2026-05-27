@@ -14,6 +14,7 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -28,6 +29,8 @@ class DRSchedulePage extends Component
     public $selectedDoctor;
     public $selectedOffice;
     public $selectedServices = [];
+    public $serviceSearch = '';
+    public $servicesLimit = 20;
 
     public $user;
     public $doctor;
@@ -63,10 +66,22 @@ class DRSchedulePage extends Component
     {
         $this->reset([
             'selectedServices',
+            'serviceSearch',
+            'servicesLimit',
         ]);
 
         $this->doctor = Doctor::find($value);
         $this->offices = $this->doctor?->offices ?? collect();
+    }
+
+    public function updatedServiceSearch()
+    {
+        $this->servicesLimit = 20;
+    }
+
+    public function loadMoreServices()
+    {
+        $this->servicesLimit += 20;
     }
 
     public function schedule()
@@ -113,12 +128,29 @@ class DRSchedulePage extends Component
             return collect();
         }
 
-        return Doctor::with('doctorServices.service')
+        $allServices = Doctor::with('doctorServices.service')
             ->find($this->selectedDoctor)
             ?->doctorServices
             ->map(fn($ds) => $ds->service)
             ->filter()
             ->values() ?? collect();
+
+        $filtered = $allServices;
+        if ($this->serviceSearch) {
+            $normalizedSearch = Str::lower(Str::ascii($this->serviceSearch));
+            
+            $filtered = $allServices->filter(function($s) use ($normalizedSearch) {
+                return Str::contains(
+                    Str::lower(Str::ascii($s->name)), 
+                    $normalizedSearch
+                );
+            });
+        }
+
+        // Always include currently selected services
+        $selected = $allServices->whereIn('id', $this->selectedServices);
+
+        return $filtered->take($this->servicesLimit)->merge($selected)->unique('id')->values();
     }
 
     #[Computed]

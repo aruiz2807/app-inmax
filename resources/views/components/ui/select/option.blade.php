@@ -20,8 +20,8 @@
     
     tabindex="0"
 
-    x-bind:data-value="@js($value)"
-    x-bind:data-label="@js($slot)"
+    data-value="{{ $value }}"
+    data-label="{{ $slot }}"
 
     x-show="isItemShown(@js($slot))"
 
@@ -72,5 +72,5 @@
         />
     @endif
     
-    <span class="col-start-3 text-start text-neutral-950 dark:text-neutral-50">{{ $slot  }}</span>
+    <span class="col-start-3 text-start text-neutral-950 dark:text-neutral-50">{!! $slot !!}</span>
 </li>
