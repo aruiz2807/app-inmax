@@ -13,6 +13,8 @@
     'checkIconClass' => null,
     'invalid' => null,
     'triggerClass' => null,
+    'searchEmit' => null,
+    'loadMoreEmit' => null,
 ])
 @php
     // Extract wire:model property and check if .live modifier exists
@@ -60,22 +62,35 @@
             isMultiple: @js($multiple),
             isDisabled: @js($disabled),
             isSearchable: @js($searchable),
+            searchEmit: @js($searchEmit),
+            loadMoreEmit: @js($loadMoreEmit),
             
             // Selected value(s) - array for multiple, single value for single select
             state: $initState(@js($model), @js($isLive), @js($multiple)),
                     
             placeholder: @js($placeholder) ?? 'select ...',
 
+            syncOptions() {
+                this.options = Array
+                    .from(this.$el.querySelectorAll('[data-slot=option]:not([hidden])'))
+                    .map((option) => ({
+                        value: option.dataset.value,
+                        label: option.dataset.label,
+                        element: option
+                    }));
+
+                if (this.search.trim() === '' || this.searchEmit) {
+                    // If searching remotely or empty search, show all currently rendered options
+                    this.filteredOptions = this.options;
+                } else {
+                    // Filter by search query locally
+                    this.filteredOptions = this.options.filter(option => this.contains(option.label,this.search));
+                }
+            },
+
             init() {
                 this.$nextTick(() => {
-                    // Build options array from DOM elements on component initialization
-                    this.filteredOptions = this.options = Array
-                        .from(this.$el.querySelectorAll('[data-slot=option]:not([hidden])'))
-                        .map((option) => ({
-                            value: option.dataset.value,
-                            label: option.dataset.label,
-                            element: option
-                        }));
+                    this.syncOptions();
 
                     // Only initialize from Alpine x-model when there is no Livewire wire:model binding.
                     if (!@js($model) && this.$root?._x_model?.get) {
@@ -92,11 +107,15 @@
 
                 // Filter options based on search input
                 this.$watch('search', (val) => {
+                    if (this.searchEmit) {
+                        this.$dispatch(this.searchEmit, { search: val });
+                    }
+
                     if (val.trim() === '') {
                         // Empty search → show all options 
                         this.filteredOptions = this.options;
-                    } else {
-                        // Filter by search query 
+                    } else if (!this.searchEmit) {
+                        // Filter locally only if not emitting for remote search
                         this.filteredOptions = this.options.filter(option => this.contains(option.label,val));
                     }
                 })
@@ -141,6 +160,7 @@
             // Determine if option should be visible (for search filtering)
             isItemShown(value) {
                 if (!this.isSearchable || !this.isTyping) return true;
+                if (this.searchEmit) return true;
                 return this.contains(value, this.search);
             },
 
@@ -225,7 +245,8 @@
             
             // Check if option should appear visually highlighted
             isFocused(value) {
-                return this.activeIndex !== null && this.getFilteredIndex(value) === this.activeIndex;
+                const index = this.getFilteredIndex(value);
+                return this.activeIndex !== null && index !== -1 && index === this.activeIndex;
             },
             
             // Check if search returned any results
@@ -237,15 +258,24 @@
             get label() {
                 if (!this.hasSelection) return this.placeholder;
 
+                const findOption = (val) => {
+                    let opt = this.options.find(o => o.value == val);
+                    if (!opt) {
+                        this.syncOptions(); // Just-in-time sync if not found
+                        opt = this.options.find(o => o.value == val);
+                    }
+                    return opt;
+                };
+
                 if (!this.isMultiple) {
                     // Single select: show the selected option's label
-                    const option = this.options.find(opt => opt.value == this.state);
-                    return option?.label ?? this.placeholder;
+                    const option = findOption(this.state);
+                    return option?.label ?? this.state;
                 }
 
                 // Multiple select: show individual label or count
                 if (this.state.length === 1) {
-                    const option = this.options.find(opt => opt.value == this.state[0]);
+                    const option = findOption(this.state[0]);
                     return option?.label ?? this.state[0];
                 }
 
@@ -262,6 +292,7 @@
             } 
         }
     }"
+    x-effect="syncOptions()"
     {{ $attributes->class([
             'relative [--popup-round:var(--radius-box)] [--popup-padding:--spacing(1)]',
             'dark:border-red-400! dark:shadow-red-400 text-red-400! placeholder:text-red-400!' => $invalid,
@@ -288,4 +319,3 @@
         </x-ui.select.options>
     </div>
 </div>
-

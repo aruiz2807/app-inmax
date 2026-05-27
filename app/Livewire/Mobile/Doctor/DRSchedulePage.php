@@ -14,6 +14,7 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -28,6 +29,8 @@ class DRSchedulePage extends Component
     public $selectedDoctor;
     public $selectedOffice;
     public $selectedServices = [];
+    public $serviceSearch = '';
+    public $servicesLimit = 20;
 
     public $user;
     public $doctor;
@@ -73,10 +76,22 @@ class DRSchedulePage extends Component
     {
         $this->reset([
             'selectedServices',
+            'serviceSearch',
+            'servicesLimit',
         ]);
 
         $this->doctor = Doctor::find($value);
         $this->offices = $this->doctor?->offices ?? collect();
+    }
+
+    public function updatedServiceSearch()
+    {
+        $this->servicesLimit = 20;
+    }
+
+    public function loadMoreServices()
+    {
+        $this->servicesLimit += 20;
     }
 
     public function schedule()
@@ -123,12 +138,29 @@ class DRSchedulePage extends Component
             return collect();
         }
 
-        return Doctor::with('doctorServices.service')
+        $allServices = Doctor::with('doctorServices.service')
             ->find($this->selectedDoctor)
             ?->doctorServices
             ->map(fn($ds) => $ds->service)
             ->filter()
             ->values() ?? collect();
+
+        $filtered = $allServices;
+        if ($this->serviceSearch) {
+            $normalizedSearch = Str::lower(Str::ascii($this->serviceSearch));
+            
+            $filtered = $allServices->filter(function($s) use ($normalizedSearch) {
+                return Str::contains(
+                    Str::lower(Str::ascii($s->name)), 
+                    $normalizedSearch
+                );
+            });
+        }
+
+        // Always include currently selected services
+        $selected = $allServices->whereIn('id', $this->selectedServices);
+
+        return $filtered->take($this->servicesLimit)->merge($selected)->unique('id')->values();
     }
 
     #[Computed]
@@ -170,8 +202,6 @@ class DRSchedulePage extends Component
         $date = Carbon::now();
 
         while (count($dates) < 15) {
-            $date->addDay();
-
             if (!$date->isSunday()) {
                 $dates[] = [
                     'id'    => $date->format('Y-m-d'),
@@ -180,6 +210,8 @@ class DRSchedulePage extends Component
                     'month' => $date->isoFormat('MMM'),
                 ];
             }
+            
+            $date->addDay();
         }
 
         return $dates;
@@ -193,11 +225,22 @@ class DRSchedulePage extends Component
 
         $doctor = Doctor::find($this->selectedDoctor);
         $usedSlots = [];
-        $slots = [
-            '09:00 AM','10:00 AM','11:00 AM','12:00 PM',
-            '01:00 PM','02:00 PM','03:00 PM','04:00 PM',
-            '05:00 PM','06:00 PM','07:00 PM'
-        ];
+        $endHour = 22; // 10 PM
+
+        if (Carbon::parse($this->selectedDate)->isToday()) {
+            $startHour = now()->addHours(2)->hour;
+        }
+        else {
+            $startHour = 7;
+        }
+
+        $slots = [];
+
+        if ($startHour >= 7 && $startHour <= 22) {
+            for ($hour = $startHour; $hour <= $endHour; $hour++) {
+                $slots[] = Carbon::createFromTime($hour)->format('h:00 A');
+            }        
+        }
 
         if($doctor?->specialty_id == 1 && $this->selectedOffice)
         {
