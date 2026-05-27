@@ -71,6 +71,7 @@ use App\Livewire\Mobile\Doctor\DRHistoryNotePage;
 use App\Livewire\Mobile\Doctor\DRHistoryPage;
 use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
+use App\Livewire\Mobile\Doctor\DRResultsPendingPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
 use App\Livewire\Mobile\Doctor\DRRecordPage;
 use App\Livewire\Mobile\Doctor\DRRequestsPage;
@@ -187,6 +188,7 @@ Route::middleware([
 
         Route::get('/history', DRHistoryPage::class)->name('doctor.history');
         Route::get('/history/note/{appointment}', DRHistoryNotePage::class)->name('history.notes');
+        Route::get('/results-pending', DRResultsPendingPage::class)->name('doctor.results-pending');
 
         Route::get('/requests', DRRequestsPage::class)->name('doctor.requests');
 

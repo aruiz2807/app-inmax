@@ -335,20 +335,53 @@
      <x-ui.modal
         id="notes-modal"
         animation="fade"
-        width="md"
+        :width="count($missingAttachmentServiceNames) > 0
+            ? 'lg'
+            : 'md'"
         heading="Finalizar consulta"
-        description="Desea finalizar la consulta? Si acepta se descontará la consulta del cliente y se generara la receta digital"
+        :description="count($missingAttachmentServiceNames) > 0
+            ? 'Detectamos estudios pendientes de archivo. Si ya vienen incluidos en el documento que subiste, puedes finalizar el proceso.'
+            : '¿Deseas finalizar la consulta? Al confirmar se cerrara la cita y se generara la receta digital.'"
         x-on:open-notes-modal.window="$data.open()"
         x-on:close-notes-modal.window="$data.close()"
     >
-        <div class="flex justify-end gap-3 pt-4">
-            <x-ui.button x-on:click="$data.close()" icon="x-mark" variant="outline">
-                Cancelar
-            </x-ui.button>
+        @if(count($missingAttachmentServiceNames) > 0)
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <x-ui.text class="text-sm font-semibold text-amber-900">Servicios sin adjunto:</x-ui.text>
+                <ul class="mt-2 list-disc pl-5 text-sm text-amber-800 space-y-1">
+                    @foreach($missingAttachmentServiceNames as $serviceName)
+                        <li>{{ $serviceName }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        
+        @if(count($missingAttachmentServiceNames) > 0)
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" color="amber" icon="clock" wire:click="confirmNotes(true)">
+                    Subir el resto después
+                </x-ui.button>
 
-            <x-ui.button color="teal" icon="check" wire:click="confirmNotes">
-                Confirmar
-            </x-ui.button>
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
+                    Ya incluidos, finalizar
+                </x-ui.button>
+            </div> 
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+            </div>
+        @else
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes">
+                    Confirmar
+                </x-ui.button>
+            </div>
+        @endif
         </div>
     </x-ui.modal>
 </div>

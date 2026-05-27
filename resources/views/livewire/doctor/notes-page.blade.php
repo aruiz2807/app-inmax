@@ -1,0 +1,380 @@
+<div class="space-y-4">
+    <x-slot name="header">
+        Nota medica
+    </x-slot>
+
+    <x-ui.card size="full">
+        <x-ui.heading class="mb-4 flex" level="h3" size="sm">
+            <x-ui.icon name="calendar" class="self-center" />
+            <x-ui.text class="ml-2 text-lg">{{ $appointment->formatted_date }}</x-ui.text>
+        </x-ui.heading>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="flex mt-1">
+                <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->user->photo_url" circle />
+                <div class="pl-4">
+                    <x-ui.text class="pt-1 text-lg">{{ $appointment->user->name }}</x-ui.text>
+                    <x-ui.text class="text-sm opacity-75">{{ $appointment->user->policy->number }}</x-ui.text>
+                </div>
+            </div>
+
+            <div class="flex mt-1">
+                <x-ui.avatar size="lg" icon="user" color="teal" :src="$appointment->doctor->user->photo_url" circle />
+                <div class="pl-4">
+                    <x-ui.text class="pt-1 text-lg">{{ $appointment->doctor->user->name }}</x-ui.text>
+                    <x-ui.text class="text-sm opacity-75">{{ $appointment->doctor->specialty?->name }}</x-ui.text>
+                </div>
+            </div>
+        </div>
+    </x-ui.card>
+
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-12">
+        <div class="space-y-4 xl:col-span-4">
+            <x-ui.card size="full">
+                <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                    <x-ui.icon name="clipboard-document-list" class="self-center" />
+                    <x-ui.text class="text-base ml-2">Servicios</x-ui.text>
+                </x-ui.heading>
+
+                <div class="flex flex-col w-full">
+                    @foreach($services as $service)
+                        <div class="grid grid-cols-12 items-center gap-2 pb-2">
+                            <div class="col-span-5">
+                                <x-ui.text class="text-base pr-1">{{ $service->service->name }}</x-ui.text>
+                            </div>
+
+                            <div class="col-span-3 flex justify-center">
+                                <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
+                                    {{ $service->covered_text }}
+                                </x-ui.badge>
+                            </div>
+
+                            <div class="col-span-4 flex justify-end">
+                                <x-ui.switch
+                                    wire:model.live="form.services.{{ $service->id }}"
+                                    label="Realizado"
+                                    onClass="bg-teal"
+                                    iconOff="x-mark"
+                                    iconOn="check"
+                                />
+                            </div>
+                        </div>
+                    @endforeach
+
+                    @if(!collect($form->services ?? [])->contains(true))
+                        <span class="mt-2 text-sm text-red-500">Ningun servicio ha sido marcado como realizado.</span>
+                    @endif
+                </div>
+            </x-ui.card>
+
+            @if($form->isDoctor)
+                <x-ui.card size="full">
+                    <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                        <x-ui.icon name="clipboard-document-list" class="self-center" />
+                        <x-ui.text class="text-base ml-2">Sintomas</x-ui.text>
+                    </x-ui.heading>
+
+                    <x-ui.textarea wire:model="form.symptoms" placeholder="Ingrese los sintomas que presenta el paciente..." />
+                    <x-ui.error name="form.symptoms" />
+                </x-ui.card>
+
+                <x-ui.card size="full">
+                    <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                        <x-ui.icon name="clipboard-document-list" class="self-center" />
+                        <x-ui.text class="text-base ml-2">Hallazgos fisicos</x-ui.text>
+                    </x-ui.heading>
+
+                    <x-ui.textarea wire:model="form.findings" placeholder="Ingrese los hallazgos sobre el paciente" />
+                    <x-ui.error name="form.findings" />
+                </x-ui.card>
+            @endif
+        </div>
+
+        <div class="space-y-4 xl:col-span-4">
+            @if($form->isDoctor)
+                <x-ui.card size="full">
+                    <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                        <x-ui.icon name="clipboard-document-list" class="self-center" />
+                        <x-ui.text class="text-base ml-2">Diagnostico</x-ui.text>
+                    </x-ui.heading>
+
+                    <x-ui.textarea wire:model="form.diagnosis" placeholder="Ingrese el diagnostico sobre el paciente" />
+                    <x-ui.error name="form.diagnosis" />
+                </x-ui.card>
+
+                <x-ui.card size="full">
+                    <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                        <x-ui.icon name="clipboard-document-list" class="self-center" />
+                        <x-ui.text class="text-base ml-2">Tratamiento / Receta</x-ui.text>
+                    </x-ui.heading>
+
+                    <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                        <div class="lg:col-span-2">
+                            <x-ui.field class="relative" x-data="{ open: false }" @click.away="open = false">
+                                <x-ui.label>Medicamento</x-ui.label>
+                                <x-ui.input
+                                    wire:model.live.debounce.300ms="searchTerm"
+                                    placeholder="Busque un medicamento..."
+                                    @focus="open = true"
+                                    @input="open = true"
+                                />
+
+                                <div
+                                    x-show="open && $wire.searchTerm.length > 0"
+                                    class="absolute z-50 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
+                                >
+                                    @forelse($this->medications as $medication)
+                                        <div
+                                            wire:click="selectMedication({{ $medication->id }}, '{{ $medication->name }}')"
+                                            @click="open = false"
+                                            class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-100 dark:border-neutral-700 last:border-0"
+                                        >
+                                            <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
+                                            <x-ui.text class="text-xs opacity-75">{{ $medication->packaging }} ({{ $medication->trade_name }})</x-ui.text>
+                                        </div>
+                                    @empty
+                                        <div class="p-4 text-center">
+                                            <x-ui.text class="text-sm opacity-50">No se encontraron medicamentos</x-ui.text>
+                                        </div>
+                                    @endforelse
+                                </div>
+
+                                <x-ui.error name="medicationId" />
+                            </x-ui.field>
+                        </div>
+
+                        <x-ui.field>
+                            <x-ui.label>Dosis</x-ui.label>
+                            <x-ui.input type="number" wire:model="quantity" />
+                            <x-ui.error name="quantity" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Forma</x-ui.label>
+                            <x-ui.input wire:model="dose" placeholder="Ej. Tableta" />
+                            <x-ui.error name="dose" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Frecuencia</x-ui.label>
+                            <x-ui.input wire:model="frequency" placeholder="Ej. 8 horas" />
+                            <x-ui.error name="frequency" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Duracion</x-ui.label>
+                            <x-ui.input wire:model="duration" placeholder="Ej. 7 dias" />
+                            <x-ui.error name="duration" />
+                        </x-ui.field>
+                    </div>
+
+                    <x-ui.button wire:click="addMedication" color="teal" icon="plus" class="w-full mt-2">
+                        Agregar a receta
+                    </x-ui.button>
+
+                    @if(count($prescriptions) > 0)
+                        <div class="mt-4 border-t pt-2">
+                            <x-ui.text class="font-semibold mb-2">Medicamentos recetados:</x-ui.text>
+                            <div class="flex flex-col gap-2">
+                                @foreach($prescriptions as $prescription)
+                                    <div class="bg-gray-50 p-2 rounded-lg flex justify-between items-center shadow-sm border border-gray-100">
+                                        <div class="flex-1">
+                                            <x-ui.text class="font-bold text-sm">
+                                                {{ $prescription->medication?->name ?? $prescription->description }}
+                                            </x-ui.text>
+                                            <x-ui.text class="text-xs text-gray-600">
+                                                {{ $prescription->quantity }} - {{ $prescription->dose }} - {{ $prescription->frequency }} - {{ $prescription->duration }}
+                                            </x-ui.text>
+                                        </div>
+                                        <x-ui.button wire:click="deletePrescription({{ $prescription->id }})" icon="trash" variant="danger" size="sm" class="ml-2" />
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </x-ui.card>
+            @endif
+
+            <x-ui.card size="full">
+                <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                    <x-ui.icon name="clipboard-document-list" class="self-center" />
+                    <x-ui.text class="text-base ml-2">Adjuntar archivo</x-ui.text>
+                </x-ui.heading>
+
+                <div class="flex flex-col w-full">
+                    @foreach($services as $service)
+                        @if(!empty($form->services[$service->id]))
+                            <div class="grid grid-cols-5 items-center gap-2 pb-2">
+                                <div class="col-span-2">
+                                    <x-ui.text class="text-base pr-2">{{ $service->service->name }}</x-ui.text>
+                                </div>
+
+                                <div class="col-span-3">
+                                    <input type="file" wire:model="form.attachments.{{ $service->id }}" placeholder="Seleccione un archivo para adjuntar" class="pt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
+                                </div>
+                            </div>
+
+                            <x-ui.error name="form.attachments.{{ $service->id }}" />
+
+                            <div class="w-full" wire:loading wire:target="form.attachments.{{ $service->id }}">
+                                <x-ui.text>Subiendo archivo...</x-ui.text>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </x-ui.card>
+
+            <x-ui.card size="full">
+                <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                    <x-ui.icon name="clipboard-document-list" class="self-center" />
+                    <x-ui.text class="text-base ml-2">Notas y recomendaciones</x-ui.text>
+                </x-ui.heading>
+
+                <x-ui.textarea wire:model="form.notes" placeholder="Ingrese las recomendaciones para el paciente" />
+                <x-ui.error name="form.notes" />
+            </x-ui.card>
+        </div>
+
+        <div class="space-y-4 xl:col-span-4">
+            @if(! $hasReceptionistAssigned)
+                <x-ui.card size="full" class="xl:sticky xl:top-6">
+                    <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                        <x-ui.icon name="clipboard-document-list" class="self-center" />
+                        <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
+                    </x-ui.heading>
+
+                    <x-ui.field>
+                        <x-ui.label>Monto total de la cuenta</x-ui.label>
+                        <x-ui.input
+                            wire:model.live="subtotal"
+                            name="subtotal"
+                            x-mask:dynamic="$money($input)"
+                            placeholder="0.00"
+                        >
+                            <x-slot name="prefix">$</x-slot>
+                        </x-ui.input>
+                    </x-ui.field>
+
+                    @if($hasCouponAvailable)
+                        <div class="mt-4 mb-4">
+                            <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
+
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
+                                    <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500">
+                                    <span class="text-sm text-gray-700">No aplicar cupon</span>
+                                </label>
+
+                                @foreach($availableCoupons as $benefit)
+                                    <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
+                                        <div class="pt-1">
+                                            <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
+                                                <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
+                                                    {{ $benefit->doctorCoupon->coupon->name }}
+                                                </p>
+                                            </div>
+                                            <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
+                                                @if($benefit->doctorCoupon->coupon->type === 'Amount')
+                                                    Descuento de ${{ number_format($benefit->doctorCoupon->coupon->value, 2) }}
+                                                @else
+                                                    {{ $benefit->doctorCoupon->coupon->value }}% de descuento
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($couponDiscountValue > 0)
+                        <x-ui.field class="mt-2">
+                            <x-ui.label>Descuento por cupon</x-ui.label>
+                            <x-ui.alerts variant="success" icon="ticket">
+                                <x-ui.alerts.heading>-{{ $couponDiscountValue }}</x-ui.alerts.heading>
+                            </x-ui.alerts>
+                        </x-ui.field>
+                    @endif
+
+                    <x-ui.field class="mt-2">
+                        <x-ui.label>Cobro al paciente (Pago miembro)</x-ui.label>
+                        <x-ui.alerts variant="success" icon="currency-dollar">
+                            <x-ui.alerts.heading>{{ $user_payment }}</x-ui.alerts.heading>
+                        </x-ui.alerts>
+                    </x-ui.field>
+
+                    <x-ui.field class="mt-2">
+                        <x-ui.label>Comision Inmax</x-ui.label>
+                        <x-ui.alerts variant="info" icon="currency-dollar">
+                            <x-ui.alerts.description>{{ $commision }}</x-ui.alerts.description>
+                        </x-ui.alerts>
+                    </x-ui.field>
+
+                    <x-ui.field class="mt-2">
+                        <x-ui.label>Ganancia del socio</x-ui.label>
+                        <x-ui.alerts variant="info" icon="currency-dollar">
+                            <x-ui.alerts.description>{{ $total }}</x-ui.alerts.description>
+                        </x-ui.alerts>
+                    </x-ui.field>
+                </x-ui.card>
+            @endif
+
+            <x-ui.card size="full">
+                <div class="flex justify-center">
+                    <x-ui.button class="w-full" wire:click="save" variant="outline" color="blue" icon="clipboard"
+                        :disabled="!collect($form->services ?? [])->contains(true)"
+                    >
+                        Guardar
+                    </x-ui.button>
+                </div>
+            </x-ui.card>
+        </div>
+    </div>
+
+    <x-ui.modal
+        id="notes-modal"
+        animation="fade"
+        width="md"
+        heading="Finalizar consulta"
+        :description="count($missingAttachmentServiceNames) > 0
+            ? 'Se detecto que no se subieron resultados para algunos servicios. ¿Posteriormente se subiran estos resultados?'
+            : 'Desea finalizar la consulta? Si acepta se descontara la consulta del cliente y se generara la receta digital'"
+        x-on:open-notes-modal.window="$data.open()"
+        x-on:close-notes-modal.window="$data.close()"
+    >
+        @if(count($missingAttachmentServiceNames) > 0)
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <x-ui.text class="text-sm font-semibold text-amber-900">Servicios sin adjunto:</x-ui.text>
+                <ul class="mt-2 list-disc pl-5 text-sm text-amber-800 space-y-1">
+                    @foreach($missingAttachmentServiceNames as $serviceName)
+                        <li>{{ $serviceName }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+            <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                Cancelar
+            </x-ui.button>
+
+            @if(count($missingAttachmentServiceNames) > 0)
+                <x-ui.button class="w-full md:w-auto" color="amber" icon="clock" wire:click="confirmNotes(true)">
+                    Si, despues
+                </x-ui.button>
+
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
+                    No, finalizar
+                </x-ui.button>
+            @else
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes">
+                    Confirmar
+                </x-ui.button>
+            @endif
+        </div>
+    </x-ui.modal>
+</div>

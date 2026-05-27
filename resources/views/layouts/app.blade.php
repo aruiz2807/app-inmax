@@ -293,17 +293,18 @@
                                 x-on:click="closeSidebar()"
                             />
 
-                            <x-ui.navlist.item
+                           {{-- <x-ui.navlist.item
                                 icon="calendar"
                                 :label="__('app.calendar') . ' (Solicitudes)'"
                                 href="{{ route('doctor.requests') }}"
                                 :active="request()->routeIs('doctor.requests')"
                                 x-on:click="closeSidebar()"
                             />
+                            --}}
 
                             <x-ui.navlist.item
                                 icon="calendar"
-                                :label="__('app.calendar') . ' (Consultas)'"
+                                :label="'Consultas'"
                                 href="{{ route('doctor.history') }}"
                                 :active="request()->routeIs('doctor.history')"
                                 x-on:click="closeSidebar()"
