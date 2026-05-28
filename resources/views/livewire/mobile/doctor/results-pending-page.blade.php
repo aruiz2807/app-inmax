@@ -70,10 +70,17 @@
         animation="fade"
         width="xl"
         heading="Adjuntar resultados"
+        description=""
         x-on:open-upload-results-modal.window="$data.open()"
         x-on:close-upload-results-modal.window="$data.close()"
     >
-        <form wire:submit.prevent="saveResultFile" class="flex flex-col gap-3">
+        <form wire:submit.prevent="saveAndKeepPending" class="flex flex-col gap-3">
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <x-ui.text class="text-sm text-amber-900">
+                    Detectamos estudios pendientes de archivo. Si ya vienen incluidos en el documento que subiste, puedes finalizar el proceso.
+                </x-ui.text>
+            </div>
+
             <x-ui.error name="serviceAttachments" />
 
             <div class="flex flex-col w-full gap-3">
@@ -117,12 +124,19 @@
                 </div>
             @endif
 
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2">
-                <x-ui.button type="button" wire:click="closeUploadModal" variant="outline" color="zinc" class="w-full sm:w-auto sm:flex-1 rounded-xl text-sm font-medium">
-                    Cancelar
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 mt-2">
+                <x-ui.button type="button" class="w-full md:w-auto" color="amber" icon="clock" wire:click="saveAndKeepPending">
+                    Subir el resto después
                 </x-ui.button>
-                <x-ui.button type="submit" variant="outline" color="blue" class="w-full sm:w-auto sm:flex-1 rounded-xl text-sm font-medium">
-                    Guardar
+
+                <x-ui.button type="button" class="w-full md:w-auto" color="teal" icon="check" wire:click="saveAndFinalize">
+                    Ya incluidos, finalizar
+                </x-ui.button>
+            </div>
+
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-2">
+                <x-ui.button type="button" class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
                 </x-ui.button>
             </div>
         </form>

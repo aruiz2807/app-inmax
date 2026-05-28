@@ -282,6 +282,14 @@
                                 :active="request()->routeIs('receptionist.appointments')"
                                 x-on:click="closeSidebar()"
                             />
+
+                            <x-ui.navlist.item
+                                icon="document-magnifying-glass"
+                                :label="'Faltantes de resultados'"
+                                href="{{ route('receptionist.pending-results') }}"
+                                :active="request()->routeIs('receptionist.pending-results')"
+                                x-on:click="closeSidebar()"
+                            />
                         @break
 
                         @case('Doctor')

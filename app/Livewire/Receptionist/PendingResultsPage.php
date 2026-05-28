@@ -1,73 +1,65 @@
 <?php
 
-namespace App\Livewire\Mobile\Doctor;
+namespace App\Livewire\Receptionist;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-class DRResultsPendingPage extends Component
+class PendingResultsPage extends Component
 {
     use WithFileUploads;
 
-    public $appointments = null;
-    public $user;
-    public $selectedAppointmentId = null;
-    public $selectedAppointmentServices = [];
-    public $serviceAttachments = [];
+    public ?Appointment $selectedAppointment = null;
+    public ?int $selectedAppointmentId = null;
+    public array $selectedAppointmentServices = [];
+    public array $serviceAttachments = [];
     public bool $showUploadModal = false;
-    public bool $isMobileDevice = true;
 
-    #[Layout('layouts.mobile')]
-    public function render()
+    #[On('showReceptionistPendingResultsDetail')]
+    public function openDetails(int $appointmentId): void
     {
-        return view('livewire.mobile.doctor.results-pending-page');
-    }
+        $appointment = (clone $this->getBaseQuery())
+            ->with([
+                'user.policy',
+                'doctor.user',
+                'doctor.specialty',
+                'office',
+                'services.service',
+            ])
+            ->whereKey($appointmentId)
+            ->first();
 
-    public function mount()
-    {
-        $this->isMobileDevice = $this->detectMobileDevice();
-        $this->loadAppointments();
-    }
-
-    protected function detectMobileDevice(): bool
-    {
-        $forcedDevice = request()->query('device');
-
-        if ($forcedDevice === 'mobile') {
-            return true;
+        if (! $appointment) {
+            return;
         }
 
-        if ($forcedDevice === 'desktop') {
-            return false;
-        }
-
-        $userAgent = strtolower((string) request()->userAgent());
-
-        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
+        $this->selectedAppointment = $appointment;
+        $this->dispatch('open-receptionist-appointment-detail-modal');
     }
 
-    public function loadAppointments(): void
+    public function getPendingResultsCountProperty(): int
     {
-        $this->user = Auth::user();
-
-        $this->appointments = Appointment::with(['user.policy', 'doctor.user', 'office', 'note', 'services.service'])
-            ->where('doctor_id', Auth::user()->doctor->id)
-            ->where('status', AppointmentStatus::RESULTS_PENDING)
-            ->orderByDesc('date')
-            ->orderByDesc('time')
-            ->get();
+        return (clone $this->getBaseQuery())->count();
     }
 
+    #[On('showReceptionistPendingResultsUpload')]
     public function openUploadModal(int $appointmentId): void
     {
-        $appointment = Appointment::with('services.service')
-            ->where('doctor_id', Auth::user()->doctor->id)
-            ->findOrFail($appointmentId);
+        $appointment = (clone $this->getBaseQuery())
+            ->with('services.service')
+            ->whereKey($appointmentId)
+            ->first();
+
+        if (! $appointment) {
+            return;
+        }
 
         $this->selectedAppointmentServices = $appointment->services
             ->where('status', 'Completed')
@@ -81,19 +73,14 @@ class DRResultsPendingPage extends Component
 
         $this->selectedAppointmentId = $appointmentId;
         $this->showUploadModal = true;
-        $this->dispatch('open-upload-results-modal');
+        $this->dispatch('open-receptionist-upload-results-modal');
     }
 
     public function closeUploadModal(): void
     {
         $this->resetUploadForm();
         $this->showUploadModal = false;
-        $this->dispatch('close-upload-results-modal');
-    }
-
-    public function saveResultFile(): void
-    {
-        $this->saveAndKeepPending();
+        $this->dispatch('close-receptionist-upload-results-modal');
     }
 
     public function saveAndKeepPending(): void
@@ -125,9 +112,14 @@ class DRResultsPendingPage extends Component
             return;
         }
 
-        $appointment = Appointment::with('services')
-            ->where('doctor_id', Auth::user()->doctor->id)
-            ->findOrFail($this->selectedAppointmentId);
+        $appointment = (clone $this->getBaseQuery())
+            ->with('services')
+            ->whereKey($this->selectedAppointmentId)
+            ->first();
+
+        if (! $appointment) {
+            return;
+        }
 
         $appointmentServices = $appointment->services->keyBy('id');
 
@@ -164,7 +156,6 @@ class DRResultsPendingPage extends Component
         }
 
         $this->closeUploadModal();
-        $this->loadAppointments();
     }
 
     private function resetUploadForm(): void
@@ -172,5 +163,34 @@ class DRResultsPendingPage extends Component
         $this->selectedAppointmentId = null;
         $this->selectedAppointmentServices = [];
         $this->serviceAttachments = [];
+    }
+
+    private function getBaseQuery(): Builder
+    {
+        $doctorIds = Auth::user()->staffDoctors()->pluck('doctors.id');
+
+        return Appointment::query()
+            ->where(function (Builder $query) use ($doctorIds) {
+                $query
+                    ->whereIn('appointments.doctor_id', $doctorIds)
+                    ->orWhere(function (Builder $officeQuery) use ($doctorIds) {
+                        $officeQuery
+                            ->whereNull('appointments.doctor_id')
+                            ->whereExists(function ($existsQuery) use ($doctorIds) {
+                                $existsQuery
+                                    ->selectRaw('1')
+                                    ->from('office_doctors')
+                                    ->whereColumn('office_doctors.office_id', 'appointments.office_id')
+                                    ->whereIn('office_doctors.doctor_id', $doctorIds);
+                            });
+                    });
+            })
+            ->where('appointments.status', AppointmentStatus::RESULTS_PENDING);
+    }
+
+    #[Layout('layouts.app')]
+    public function render()
+    {
+        return view('livewire.receptionist.pending-results-page');
     }
 }
