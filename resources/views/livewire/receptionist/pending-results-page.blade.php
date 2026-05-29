@@ -24,7 +24,7 @@
 
     <div id="pending-results-section" class="pt-2">
         <x-ui.card size="full">
-            <livewire:receptionist.pending-results-table :key="'receptionist-pending-results-table'" />
+            <livewire:receptionist.pending-results-table :key="'receptionist-pending-results-table-'.$tableIteration" />
         </x-ui.card>
     </div>
 
@@ -88,6 +88,20 @@
                     Esta cita no tiene servicios completados para adjuntar resultados.
                 </div>
             @endif
+
+            <div class="pt-1">
+                <x-ui.field>
+                    <x-ui.label>Enlace de resultados (opcional)</x-ui.label>
+                    <x-ui.input
+                        wire:model.live="resultsComment"
+                        placeholder="https://..."
+                    />
+                </x-ui.field>
+                <x-ui.error name="resultsComment" />
+                <x-ui.text class="text-xs text-neutral-500 mt-1">
+                    Si no adjuntas archivo, puedes guardar un enlace con los resultados.
+                </x-ui.text>
+            </div>
 
             <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 mt-2">
                 <x-ui.button type="button" class="w-full md:w-auto" color="amber" icon="clock" wire:click="saveAndKeepPending">

@@ -325,6 +325,10 @@ class DRNotesPage extends Component
     {
         $hasMissingAttachments = ! empty($this->missingAttachmentServiceNames);
 
+        if ($hasMissingAttachments && $willUploadResultsLater === null && $this->canFinalizeWithoutAttachments()) {
+            $willUploadResultsLater = false;
+        }
+
         if ($hasMissingAttachments && $willUploadResultsLater === null) {
             return;
         }
@@ -340,7 +344,7 @@ class DRNotesPage extends Component
         }
 
         //reedem the corresponding cupon and mark the appointment as 'completed'
-    $this->redeem($willUploadResultsLater);
+        $this->redeem($willUploadResultsLater);
 
         //close modal
         $this->dispatch('close-notes-modal');
@@ -356,6 +360,10 @@ class DRNotesPage extends Component
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
         $doctorId = $this->user->doctor->id;
         $hasMissingAttachments = ! empty($this->missingAttachmentServiceNames);
+
+        if ($hasMissingAttachments && $willUploadResultsLater === null && $this->canFinalizeWithoutAttachments()) {
+            $willUploadResultsLater = false;
+        }
 
         $status = match (true) {
             $hasMissingAttachments && $willUploadResultsLater === true => AppointmentStatus::RESULTS_PENDING,
@@ -430,6 +438,13 @@ class DRNotesPage extends Component
         if ($updateData['status'] === AppointmentStatus::COMPLETED) {
             app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
         }
+    }
+
+    private function canFinalizeWithoutAttachments(): bool
+    {
+        $doctorType = $this->user?->doctor?->type;
+
+        return $doctorType === DoctorType::Doctor;
     }
 
     private function getMissingAttachmentServiceNames(): array

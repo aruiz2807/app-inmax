@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $diagnosis
  * @property string|null $treatment
  * @property string|null $notes
+ * @property string|null $results_comment
  * @property string|null $attachment_path
  * @property string|null $attachment_name
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -29,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereFindings($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereResultsComment($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereSymptoms($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereTreatment($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppointmentNote whereUpdatedAt($value)
@@ -48,6 +50,7 @@ class AppointmentNote extends Model
         'diagnosis',
         'treatment',
         'notes',
+        'results_comment',
         'attachment_path',
         'attachment_name',
     ];

@@ -52,7 +52,7 @@
 
     <div class="px-6 pt-12 pb-8">
         <h1 class="text-2xl font-bold text-center text-[#1A3A5A] mb-8">
-            ¡Hola {{$user->name}}! Bienvenido a tu INMAX!
+            ¡Hola {{$user->name}}! ¡Bienvenido a tu INMAX!
         </h1>
 
         @if($showRequestsAlert && $pendingRequestsCount > 0)
@@ -116,6 +116,7 @@
                 <span class="text-lg font-bold text-gray-800">Mis consultas y servicios</span>
             </a>
 
+            @if ($user->doctor->specialty_id != $paramGMSpeciality->value || $user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
             <a href="{{ route('doctor.results-pending') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                 <div class="p-3 bg-[#2D4356] rounded-xl text-white mr-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,6 +125,7 @@
                 </div>
                 <span class="text-lg font-bold text-gray-800">Consultas pendientes de resultados</span>
             </a>
+            @endif
 
             @if ($user->doctor->specialty_id != $paramGMSpeciality->value || $user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
             <a href="{{ route('doctor.requests') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">

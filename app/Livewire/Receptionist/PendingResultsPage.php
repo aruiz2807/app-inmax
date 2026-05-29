@@ -20,6 +20,8 @@ class PendingResultsPage extends Component
     public ?int $selectedAppointmentId = null;
     public array $selectedAppointmentServices = [];
     public array $serviceAttachments = [];
+    public ?string $resultsComment = null;
+    public int $tableIteration = 0;
     public bool $showUploadModal = false;
 
     #[On('showReceptionistPendingResultsDetail')]
@@ -53,7 +55,7 @@ class PendingResultsPage extends Component
     public function openUploadModal(int $appointmentId): void
     {
         $appointment = (clone $this->getBaseQuery())
-            ->with('services.service')
+            ->with(['services.service', 'note'])
             ->whereKey($appointmentId)
             ->first();
 
@@ -70,6 +72,8 @@ class PendingResultsPage extends Component
         foreach ($this->selectedAppointmentServices as $service) {
             $this->serviceAttachments[$service->id] = null;
         }
+
+        $this->resultsComment = $appointment->note?->results_comment;
 
         $this->selectedAppointmentId = $appointmentId;
         $this->showUploadModal = true;
@@ -99,16 +103,19 @@ class PendingResultsPage extends Component
             'selectedAppointmentId' => ['required', 'integer', 'exists:appointments,id'],
             'serviceAttachments' => ['required', 'array'],
             'serviceAttachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+            'resultsComment' => ['nullable', 'string', 'max:2000'],
         ], [
             'serviceAttachments.*.mimes' => 'El archivo debe ser PDF, JPG o PNG.',
             'serviceAttachments.*.max' => 'El archivo no debe superar 2MB.',
+            'resultsComment.max' => 'El enlace no debe superar 2000 caracteres.',
         ]);
 
         $filesToStore = collect($this->serviceAttachments)
             ->filter(fn ($file) => filled($file));
+        $hasComment = filled($this->resultsComment);
 
-        if (! $markAsCompleted && $filesToStore->isEmpty()) {
-            $this->addError('serviceAttachments', 'Debes seleccionar al menos un archivo.');
+        if (! $markAsCompleted && $filesToStore->isEmpty() && ! $hasComment) {
+            $this->addError('serviceAttachments', 'Debes seleccionar al menos un archivo o capturar un enlace de resultados.');
             return;
         }
 
@@ -137,6 +144,13 @@ class PendingResultsPage extends Component
             ]);
         }
 
+        if ($hasComment) {
+            $appointment->note()->updateOrCreate(
+                ['appointment_id' => $appointment->id],
+                ['results_comment' => $this->resultsComment]
+            );
+        }
+
         $hasPendingAttachments = AppointmentService::query()
             ->where('appointment_id', $appointment->id)
             ->where('status', 'Completed')
@@ -156,6 +170,7 @@ class PendingResultsPage extends Component
         }
 
         $this->closeUploadModal();
+        $this->tableIteration++;
     }
 
     private function resetUploadForm(): void
@@ -163,6 +178,7 @@ class PendingResultsPage extends Component
         $this->selectedAppointmentId = null;
         $this->selectedAppointmentServices = [];
         $this->serviceAttachments = [];
+        $this->resultsComment = null;
     }
 
     private function getBaseQuery(): Builder

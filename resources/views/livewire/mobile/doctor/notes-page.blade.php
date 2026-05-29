@@ -335,17 +335,17 @@
      <x-ui.modal
         id="notes-modal"
         animation="fade"
-        :width="count($missingAttachmentServiceNames) > 0
+        :width="count($missingAttachmentServiceNames) > 0 && ($user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
             ? 'lg'
             : 'md'"
         heading="Finalizar consulta"
-        :description="count($missingAttachmentServiceNames) > 0
+        :description="count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
             ? 'Detectamos estudios pendientes de archivo. Si ya vienen incluidos en el documento que subiste, puedes finalizar el proceso.'
             : '¿Deseas finalizar la consulta? Al confirmar se cerrara la cita y se generara la receta digital.'"
         x-on:open-notes-modal.window="$data.open()"
         x-on:close-notes-modal.window="$data.close()"
     >
-        @if(count($missingAttachmentServiceNames) > 0)
+        @if(count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital))
             <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <x-ui.text class="text-sm font-semibold text-amber-900">Servicios sin adjunto:</x-ui.text>
                 <ul class="mt-2 list-disc pl-5 text-sm text-amber-800 space-y-1">
@@ -356,7 +356,7 @@
             </div>
         @endif
         
-        @if(count($missingAttachmentServiceNames) > 0)
+        @if(count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital))
             <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
                 <x-ui.button class="w-full md:w-auto" color="amber" icon="clock" wire:click="confirmNotes(true)">
                     Subir el resto después
@@ -377,7 +377,7 @@
                     Cancelar
                 </x-ui.button>
 
-                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes">
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
                     Confirmar
                 </x-ui.button>
             </div>
