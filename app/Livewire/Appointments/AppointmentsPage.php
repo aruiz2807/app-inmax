@@ -46,7 +46,7 @@ class AppointmentsPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Cita cancelada exitosamente!',
+            content:'¡Cita cancelada exitosamente!',
             duration: 4000
         );
 

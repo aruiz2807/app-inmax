@@ -11,7 +11,7 @@
     <div class="relative w-full">
         <x-ui.tabs variant="non-contained">
             <x-ui.tab.group>
-                <x-ui.tab label="Proximas" icon="calendar" />
+                <x-ui.tab label="Próximas" icon="calendar" />
                 <x-ui.tab label="Pasadas" icon="archive-box" />
             </x-ui.tab.group>
 

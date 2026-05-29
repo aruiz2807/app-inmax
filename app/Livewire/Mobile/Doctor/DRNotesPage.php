@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mobile\Doctor;
 
+use App\Enums\AppointmentStatus;
 use App\Livewire\Forms\DoctorNotesForm;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Enums\DoctorType;
@@ -14,7 +15,6 @@ use App\Models\PolicyService;
 use App\Services\Appointments\AppointmentCompletedNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -32,6 +32,7 @@ class DRNotesPage extends Component
     public $total;
     public $user;
     public bool $hasReceptionistAssigned = false;
+    public bool $isMobileDevice = true;
 
     // Coupon logic
     public bool $hasCouponAvailable = false;
@@ -47,15 +48,25 @@ class DRNotesPage extends Component
     public $dose = '';
     public $frequency = '';
     public $duration = '';
+    public array $missingAttachmentServiceNames = [];
 
-    #[Layout('layouts.mobile')]
     public function render()
     {
-        return view('livewire.mobile.doctor.notes-page');
+        /*$view = $this->isMobileDevice
+            ? 'livewire.mobile.doctor.notes-page'
+            : 'livewire.doctor.notes-page';
+
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';*/
+
+        $view = 'livewire.mobile.doctor.notes-page';
+        $layout = 'layouts.mobile';
+
+        return view($view)->layout($layout);
     }
 
     public function mount($appointment)
     {
+        $this->isMobileDevice = $this->detectMobileDevice();
         $this->user = Auth::user();
         $this->appointment = Appointment::with(['user.policy', 'doctor'])->findOrFail($appointment);
         $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
@@ -73,6 +84,23 @@ class DRNotesPage extends Component
 
         $this->loadPrescriptions();
         $this->checkCouponAvailability();
+    }
+
+    protected function detectMobileDevice(): bool
+    {
+        $forcedDevice = request()->query('device');
+
+        if ($forcedDevice === 'mobile') {
+            return true;
+        }
+
+        if ($forcedDevice === 'desktop') {
+            return false;
+        }
+
+        $userAgent = strtolower((string) request()->userAgent());
+
+        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
     }
 
     #[Computed]
@@ -190,6 +218,8 @@ class DRNotesPage extends Component
 
     public function save()
     {
+        $this->missingAttachmentServiceNames = $this->getMissingAttachmentServiceNames();
+
         //open modal
         $this->dispatch('open-notes-modal');
     }
@@ -291,8 +321,14 @@ class DRNotesPage extends Component
         }
     }
 
-    public function confirmNotes()
+    public function confirmNotes(?bool $willUploadResultsLater = null)
     {
+        $hasMissingAttachments = ! empty($this->missingAttachmentServiceNames);
+
+        if ($hasMissingAttachments && $willUploadResultsLater === null) {
+            return;
+        }
+
         try
         {
             $note = $this->form->store($this->appointment->id);
@@ -304,7 +340,7 @@ class DRNotesPage extends Component
         }
 
         //reedem the corresponding cupon and mark the appointment as 'completed'
-        $this->redeem();
+    $this->redeem($willUploadResultsLater);
 
         //close modal
         $this->dispatch('close-notes-modal');
@@ -314,11 +350,19 @@ class DRNotesPage extends Component
         return $this->redirect(NotesConfirmationPage::class);
     }
 
-    public function redeem()
+    public function redeem(?bool $willUploadResultsLater = null)
     {
         $policy = $this->appointment->user->policy;
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
         $doctorId = $this->user->doctor->id;
+        $hasMissingAttachments = ! empty($this->missingAttachmentServiceNames);
+
+        $status = match (true) {
+            $hasMissingAttachments && $willUploadResultsLater === true => AppointmentStatus::RESULTS_PENDING,
+            $hasMissingAttachments && $willUploadResultsLater === false => AppointmentStatus::COMPLETED,
+            $hasMissingAttachments => AppointmentStatus::RESULTS_PENDING,
+            default => AppointmentStatus::COMPLETED,
+        };
 
         foreach($this->services as $service)
         {
@@ -363,7 +407,7 @@ class DRNotesPage extends Component
 
         $updateData = [
             'doctor_id' => $doctorId,
-            'status' => \App\Enums\AppointmentStatus::COMPLETED,
+            'status' => $status,
         ];
 
         if (! $this->hasReceptionistAssigned) {
@@ -383,6 +427,25 @@ class DRNotesPage extends Component
             ]);
         }
 
-        app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
+        if ($updateData['status'] === AppointmentStatus::COMPLETED) {
+            app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
+        }
+    }
+
+    private function getMissingAttachmentServiceNames(): array
+    {
+        $missingServiceNames = [];
+
+        foreach ($this->services as $service) {
+            if (empty($this->form->services[$service->id])) {
+                continue;
+            }
+
+            if (empty($this->form->attachments[$service->id])) {
+                $missingServiceNames[] = (string) $service->service->name;
+            }
+        }
+
+        return $missingServiceNames;
     }
 }

@@ -62,7 +62,7 @@ class GroupPolicyPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Membresía almacenada exitosamente!',
+            content:'¡Membresía almacenada exitosamente!',
             duration: 4000
         );
 

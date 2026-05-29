@@ -56,7 +56,7 @@ class DoctorCouponsModal extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Cupones otorgados almacenados exitosamente!',
+            content:'¡Cupones otorgados almacenados exitosamente!',
             duration: 4000
         );
 

@@ -87,4 +87,11 @@ class DoctorNotesForm extends Form
 
         return $note->id;
     }
+
+    public function hasAttachments(): bool
+    {
+        return collect($this->attachments)
+            ->filter(fn ($attachment) => filled($attachment))
+            ->isNotEmpty();
+    }
 }

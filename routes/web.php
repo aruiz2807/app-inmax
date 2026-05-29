@@ -34,6 +34,7 @@ use App\Livewire\Clerk\InventoryPage;
 
 // Livewire - Receptionist
 use App\Livewire\Receptionist\AppointmentsPage as ReceptionistAppointmentsPage;
+use App\Livewire\Receptionist\PendingResultsPage as ReceptionistPendingResultsPage;
 use App\Livewire\Receptionist\PaymentPage as ReceptionistPaymentPage;
 use App\Livewire\Receptionist\RequestsPage as ReceptionistRequestsPage;
 
@@ -71,6 +72,7 @@ use App\Livewire\Mobile\Doctor\DRHistoryNotePage;
 use App\Livewire\Mobile\Doctor\DRHistoryPage;
 use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
+use App\Livewire\Mobile\Doctor\DRResultsPendingPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
 use App\Livewire\Mobile\Doctor\DRRecordPage;
 use App\Livewire\Mobile\Doctor\DRRequestsPage;
@@ -187,6 +189,7 @@ Route::middleware([
 
         Route::get('/history', DRHistoryPage::class)->name('doctor.history');
         Route::get('/history/note/{appointment}', DRHistoryNotePage::class)->name('history.notes');
+        Route::get('/results-pending', DRResultsPendingPage::class)->name('doctor.results-pending');
 
         Route::get('/requests', DRRequestsPage::class)->name('doctor.requests');
 
@@ -211,6 +214,7 @@ Route::middleware([
 
     Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
         Route::get('/appointments', ReceptionistAppointmentsPage::class)->name('receptionist.appointments');
+        Route::get('/pending-results', ReceptionistPendingResultsPage::class)->name('receptionist.pending-results');
         Route::get('/requests', ReceptionistRequestsPage::class)->name('receptionist.requests');
         Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)->name('receptionist.payment');
         Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)->name('receptionist.payment.ticket');

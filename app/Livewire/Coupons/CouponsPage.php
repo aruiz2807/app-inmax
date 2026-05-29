@@ -52,7 +52,7 @@ class CouponsPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Cupón almacenado exitosamente!',
+            content:'¡Cupón almacenado exitosamente!',
             duration: 4000
         );
 

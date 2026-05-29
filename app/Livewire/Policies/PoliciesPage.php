@@ -205,7 +205,7 @@ class PoliciesPage extends Component
                 'status' => 'Active',
             ]);
 
-            $content = 'Membresía reactivada exitosamente!';
+            $content = '¡Membresía reactivada exitosamente!';
         }
 
         $this->dispatch(
@@ -234,7 +234,7 @@ class PoliciesPage extends Component
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Membresía desactivada exitosamente!',
+            content: '¡Membresía desactivada exitosamente!',
             duration: 4000
         );
 
@@ -254,7 +254,7 @@ class PoliciesPage extends Component
         $this->dispatch(
             'notify',
             type: 'success',
-            content: 'Membresía cancelada exitosamente!',
+            content: '¡Membresía cancelada exitosamente!',
             duration: 4000
         );
 

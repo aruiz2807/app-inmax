@@ -50,9 +50,19 @@ class DRSchedulePage extends Component
         $doctorsQuery = Doctor::where('status', 'Active');
         $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
 
-        $currentDoctorType = Auth::user()?->doctor?->type;
+        $currentDoctor = Auth::user()?->doctor;
+        $currentDoctorType = $currentDoctor?->type;
         if (in_array($currentDoctorType, [DoctorType::Lab, DoctorType::Hospital], true)) {
-            $doctorsQuery->where('type', DoctorType::Doctor)->where('specialty_id', $paramSpecialty->value);
+            $doctorsQuery->where(function ($query) use ($paramSpecialty, $currentDoctor) {
+                $query->where(function ($doctorQuery) use ($paramSpecialty) {
+                    $doctorQuery->where('type', DoctorType::Doctor)
+                        ->where('specialty_id', $paramSpecialty->value);
+                });
+
+                if ($currentDoctor?->id) {
+                    $query->orWhere('id', $currentDoctor->id);
+                }
+            });
         }
 
         $this->doctors = $doctorsQuery->get();

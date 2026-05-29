@@ -81,7 +81,7 @@ class PlanBenefitsModal extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Plan de cobertura almacenado exitosamente!',
+            content:'¡Plan de cobertura almacenado exitosamente!',
             duration: 4000
         );
 

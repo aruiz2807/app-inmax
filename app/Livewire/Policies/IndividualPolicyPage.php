@@ -89,7 +89,7 @@ class IndividualPolicyPage extends Component
         {
             $this->form->update($this->policyId);
 
-            $content = 'Membresía almacenada exitosamente!';
+            $content = '¡Membresía almacenada exitosamente!';
         }
         else
         {

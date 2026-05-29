@@ -70,7 +70,7 @@ class PlanCoverageModal extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Plan de cobetura almacenado exitosamente!',
+            content:'¡Plan de cobetura almacenado exitosamente!',
             duration: 4000
         );
 

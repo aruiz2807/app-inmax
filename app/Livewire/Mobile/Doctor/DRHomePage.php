@@ -19,13 +19,13 @@ class DRHomePage extends Component
     public function render()
     {
         // DESACTIVADO POR EL MOMENTO, SE MANTIENE VERSION MOBILE.
-        /*
-        $view = $this->isMobileDevice
+        
+        /*$view = $this->isMobileDevice
             ? 'livewire.mobile.doctor.home-page'
             : 'livewire.doctor.home-page';
 
-        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
-        */
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';]*/
+        
         $view = 'livewire.mobile.doctor.home-page';
         $layout = 'layouts.mobile';
 
@@ -40,7 +40,7 @@ class DRHomePage extends Component
         $this->paramGMSpeciality = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
     }
 
-    protected function detectMobileDevice(): bool
+    protected function detectMobileDevice()
     {
         $forcedDevice = request()->query('device');
 

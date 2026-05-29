@@ -13,6 +13,7 @@
         'Booked' => 'text-blue-700 bg-blue-100',
         'Cancelled' => 'text-red-700 bg-red-100',
         'No-show' => 'text-red-700 bg-red-100',
+        'ResultsPending' => 'text-amber-700 bg-amber-100',
         'Completed' => 'text-green-700 bg-green-100',
 
         '1' => 'text-green-700 bg-green-100',
@@ -32,6 +33,7 @@
         'Booked' => __('Agendada'),
         'Cancelled' => __('Cancelada'),
         'No-show' => __('No Asistio'),
+        'ResultsPending' => __('Pendiente de resultados'),
         'Completed' => __('Atendida'),
 
         'Pending' => __('Pendiente'),
