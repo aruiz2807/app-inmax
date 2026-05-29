@@ -42,6 +42,8 @@
                     } elseif ($service->doctor_coupon_id) {
                         $name = $service->doctorCoupon->coupon->name ?? 'N/A';
                         $doctorName = $service->doctorCoupon->doctor->user->name ?? null;
+                    } elseif ($service->coupon_id) {
+                        $name = $service->coupon->name ?? 'N/A';
                     } else {
                         $name = $service->service->name ?? 'N/A';
                     }

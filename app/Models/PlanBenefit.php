@@ -41,6 +41,7 @@ class PlanBenefit extends Model
         'plan_id',
         'doctor_service_id',
         'doctor_coupon_id',
+        'coupon_id',
         'events',
         'amount',
     ];
@@ -67,5 +68,13 @@ class PlanBenefit extends Model
     public function doctorCoupon(): BelongsTo
     {
         return $this->belongsTo(DoctorCoupon::class);
+    }
+
+    /**
+     * Each benefit can belong to a coupon.
+     */
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 }

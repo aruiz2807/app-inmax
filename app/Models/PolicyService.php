@@ -47,6 +47,7 @@ class PolicyService extends Model
     protected $fillable = [
         'policy_id',
         'service_id',
+        'coupon_id',
         'doctor_service_id',
         'doctor_coupon_id',
         'included',
@@ -114,6 +115,14 @@ class PolicyService extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Each policy service can belong to a coupon.
+     */
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     /**

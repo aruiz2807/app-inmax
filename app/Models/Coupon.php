@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -61,5 +62,21 @@ class Coupon extends Model
     public function doctors()
     {
         return $this->belongsToMany(Doctor::class, 'doctor_coupons');
+    }
+
+    /**
+     * Each coupon can have or be one kind of service.
+     */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Each coupon can have many plan benefits.
+     */
+    public function planBenefits(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PlanBenefit::class);
     }
 }

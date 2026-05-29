@@ -3,6 +3,7 @@
 namespace App\Livewire\Plans;
 
 use App\Models\PlanBenefit;
+use App\Models\Coupon;
 use App\Models\DoctorService;
 use App\Models\DoctorCoupon;
 use Livewire\Component;
@@ -11,11 +12,12 @@ use Livewire\Attributes\On;
 class PlanBenefitsModal extends Component
 {
     public ?int $planId = null;
-    public string $benefitType = 'Service'; // 'Service' or 'Coupon'
+    public string $benefitType = 'General'; // 'Service' or 'Coupon' or 'General'
     public ?int $selectedBenefitId = null;
 
-    public $availableServices = [];
-    public $availableCoupons = [];
+    public $availableDoctorServices = [];
+    public $availableDoctorCoupons = [];
+    public $availableGeneralCoupons = [];
     public $benefits = [];
     
     public $events = [];
@@ -27,8 +29,9 @@ class PlanBenefitsModal extends Component
 
     public function mount()
     {
-        $this->availableServices = DoctorService::with(['service', 'doctor.user'])->get();
-        $this->availableCoupons = DoctorCoupon::with(['coupon', 'doctor.user'])->get();
+        $this->availableGeneralCoupons = Coupon::with(['service'])->get();
+        $this->availableDoctorServices = DoctorService::with(['service', 'doctor.user'])->get();
+        $this->availableDoctorCoupons = DoctorCoupon::with(['coupon', 'doctor.user'])->get();
     }
 
     #[On('editBenefits')]
@@ -36,7 +39,7 @@ class PlanBenefitsModal extends Component
     {
         $this->planId = $planId;
         $this->selectedBenefitId = null;
-        $this->benefitType = 'Service';
+        $this->benefitType = 'General';
 
         $this->loadBenefitsAndAvailable();
 
@@ -55,8 +58,10 @@ class PlanBenefitsModal extends Component
 
         if ($this->benefitType === 'Service') {
             $data['doctor_service_id'] = $this->selectedBenefitId;
-        } else {
+        } else if ($this->benefitType === 'Coupon') {
             $data['doctor_coupon_id'] = $this->selectedBenefitId;
+        } else {
+            $data['coupon_id'] = $this->selectedBenefitId;
         }
 
         PlanBenefit::create($data);
@@ -102,6 +107,7 @@ class PlanBenefitsModal extends Component
         if (!$this->planId) return;
 
         $this->benefits = PlanBenefit::with([
+                'coupon.service', 
                 'doctorService.service', 
                 'doctorService.doctor.user', 
                 'doctorCoupon.coupon', 
@@ -112,14 +118,20 @@ class PlanBenefitsModal extends Component
             ->sortBy(fn($benefit) => $benefit->doctor_coupon_id ? 0 : 1)
             ->values();
 
-        $this->availableServices = DoctorService::with(['service', 'doctor.user'])
+        $this->availableDoctorServices = DoctorService::with(['service', 'doctor.user'])
             ->whereHas('service', fn($q) => $q->where('status', 'Active'))
             ->whereDoesntHave('planBenefits', fn ($query) =>
                 $query->where('plan_id', $this->planId)
             )
             ->get();
 
-        $this->availableCoupons = DoctorCoupon::with(['coupon', 'doctor.user'])
+        $this->availableDoctorCoupons = DoctorCoupon::with(['coupon', 'doctor.user'])
+            ->whereDoesntHave('planBenefits', fn ($query) =>
+                $query->where('plan_id', $this->planId)
+            )
+            ->get();
+
+        $this->availableGeneralCoupons = Coupon::with(['service'])
             ->whereDoesntHave('planBenefits', fn ($query) =>
                 $query->where('plan_id', $this->planId)
             )
