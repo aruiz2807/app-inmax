@@ -47,7 +47,7 @@ class PlansPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Plan de cobetura almacenada exitosamente!',
+            content:'¡Plan de cobetura almacenada exitosamente!',
             duration: 4000
         );
 

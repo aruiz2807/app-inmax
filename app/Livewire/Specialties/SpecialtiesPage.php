@@ -52,7 +52,7 @@ class SpecialtiesPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Especialidad almacenada exitosamente!',
+            content:'¡Especialidad almacenada exitosamente!',
             duration: 4000
         );
 

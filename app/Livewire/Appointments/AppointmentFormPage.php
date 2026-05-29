@@ -136,7 +136,7 @@ class AppointmentFormPage extends Component
             $notificationResult = $appointmentNotificationService->send($appointment);
         }
 
-        $successMessage = 'Cita almacenada exitosamente!';
+        $successMessage = '¡Cita almacenada exitosamente!';
 
         if ($notificationResult !== null) {
             $successMessage = match (true) {

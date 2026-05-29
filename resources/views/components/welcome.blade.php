@@ -2,7 +2,7 @@
     <x-application-logo class="block h-12 w-auto" />
 
     <x-ui.text class="mt-8 text-2xl font-semibold text-neutral-900">
-        Hola {{ auth()->user()->name }}!
+        ¡Hola {{ auth()->user()->name }}!
     </x-ui.text>
 
     <x-ui.text class="mt-2 text-lg">

@@ -45,7 +45,7 @@ class ServicesPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Servicio almacenado exitosamente!',
+            content:'¡Servicio almacenado exitosamente!',
             duration: 4000
         );
 

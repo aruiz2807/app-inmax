@@ -45,7 +45,7 @@ class MedicationsPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Medicamento almacenado exitosamente!',
+            content:'¡Medicamento almacenado exitosamente!',
             duration: 4000
         );
 

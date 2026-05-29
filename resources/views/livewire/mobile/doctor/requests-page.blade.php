@@ -57,7 +57,7 @@
 
                 <div class="flex justify-center">
                     <x-ui.button class="w-40 mr-1" wire:click="accept({{ $request->id }})" variant="outline" color="teal" icon="check-circle">
-                        Acceptar
+                        Aceptar
                     </x-ui.button>
 
                     <x-ui.button class="w-40 ml-1" wire:click="reject({{ $request->id }})" variant="outline" color="red" icon="x-circle">

@@ -122,7 +122,7 @@ class OfficesPage extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Consultorio almacenado exitosamente!',
+            content:'¡Consultorio almacenado exitosamente!',
             duration: 4000
         );
 

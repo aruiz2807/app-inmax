@@ -55,7 +55,7 @@ class SpecialtyServicesModal extends Component
         // Show success toast
         $this->dispatch('notify',
             type: 'success',
-            content:'Servicios otorgados almacenados exitosamente!',
+            content:'¡Servicios otorgados almacenados exitosamente!',
             duration: 4000
         );
 
