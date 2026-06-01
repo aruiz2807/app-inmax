@@ -148,29 +148,41 @@ class DRNotesPage extends Component
         
         $subtotal = floatval(str_replace(',', '', $this->subtotal));
 
-        // Search for all available coupons for this doctor and the services in the appointment
-        $this->availableCoupons = PolicyService::with('doctorCoupon.coupon')
-            ->where('policy_id', $policyId)
-            ->whereNotNull('doctor_coupon_id')
-            ->whereColumn('used', '<', 'included')
-            ->whereHas('doctorCoupon', function ($q) use ($doctorId, $serviceIds, $subtotal) {
-                $q->where('doctor_id', $doctorId)
-                  ->whereHas('coupon', function ($q2) use ($serviceIds, $subtotal) {
-                      // Universal coupon (no service_id) or specific to one of the appointment services
-                      $q2->where(function($q3) use ($serviceIds) {
-                          $q3->whereNull('service_id')
-                             ->orWhereIn('service_id', $serviceIds);
-                      });
+        $couponCheck = function ($q) use ($serviceIds, $subtotal) {
+            // Universal coupon (no service_id) or specific to one of the appointment services
+            $q->where(function($q2) use ($serviceIds) {
+                $q2->whereNull('service_id')
+                   ->orWhereIn('service_id', $serviceIds);
+            });
 
-                      // New logic: check limits
-                      $q2->where(function ($q3) use ($subtotal) {
-                          $q3->where('limit_min', '<=', 0)
-                             ->orWhere('limit_min', '<=', $subtotal);
-                      })->where(function ($q3) use ($subtotal) {
-                          $q3->where('limit_max', '<=', 0)
-                             ->orWhere('limit_max', '>', $subtotal);
+            // Check limits
+            $q->where(function ($q2) use ($subtotal) {
+                $q2->where('limit_min', '<=', 0)
+                   ->orWhere('limit_min', '<=', $subtotal);
+            })->where(function ($q2) use ($subtotal) {
+                $q2->where('limit_max', '<=', 0)
+                   ->orWhere('limit_max', '>', $subtotal);
+            });
+        };
+
+        // Search for all available coupons for this doctor and the services in the appointment
+        $this->availableCoupons = PolicyService::with(['doctorCoupon.coupon', 'coupon'])
+            ->where('policy_id', $policyId)
+            ->whereColumn('used', '<', 'included')
+            ->where(function ($query) use ($doctorId, $couponCheck) {
+                // Doctor-specific coupons
+                $query->where(function ($q) use ($doctorId, $couponCheck) {
+                    $q->whereNotNull('doctor_coupon_id')
+                      ->whereHas('doctorCoupon', function ($q2) use ($doctorId, $couponCheck) {
+                          $q2->where('doctor_id', $doctorId)
+                            ->whereHas('coupon', $couponCheck);
                       });
-                  });
+                })
+                // General coupons (not linked to a specific doctor)
+                ->orWhere(function ($q) use ($couponCheck) {
+                    $q->whereNotNull('coupon_id')
+                      ->whereHas('coupon', $couponCheck);
+                });
             })
             ->get();
 
@@ -284,7 +296,7 @@ class DRNotesPage extends Component
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
             if ($selectedBenefit) {
-                $coupon = $selectedBenefit->doctorCoupon->coupon;
+                $coupon = $selectedBenefit->doctorCoupon ? $selectedBenefit->doctorCoupon->coupon : $selectedBenefit->coupon;
                 if ($coupon->type === 'Amount') {
                     $this->couponDiscountValue = (float) $coupon->value;
                 } elseif ($coupon->type === 'Percentage') {
