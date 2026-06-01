@@ -30,6 +30,8 @@ final class RequestsTable extends PowerGridComponent
 
         $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
         $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
+
+        $this->emitDateRangeChanged();
     }
 
     public function setUp(): array
@@ -66,13 +68,11 @@ final class RequestsTable extends PowerGridComponent
             ->with(['user:id,name', 'user.policy:id,user_id,number', 'doctor:id,user_id', 'doctor.user:id,name'])
             ->whereIn('appointments.doctor_id', $doctorIds)
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::REQUESTED))
-            ->when($this->tab === 'booked', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::BOOKED))
-            ->when($this->tab === 'rejected', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::REJECTED))
-            ->when($this->tab === 'all', fn (Builder $query) => $query->whereIn('appointments.status', [
+            ->when($this->tab === 'booked', fn (Builder $query) => $query->whereNotIn('appointments.status', [
                 AppointmentStatus::REQUESTED,
-                AppointmentStatus::BOOKED,
                 AppointmentStatus::REJECTED,
             ]))
+            ->when($this->tab === 'rejected', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::REJECTED))
             ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
     }
@@ -88,6 +88,8 @@ final class RequestsTable extends PowerGridComponent
         if ($start && $end) {
             $this->dateFrom = $start->toDateString();
             $this->dateTo = $end->toDateString();
+
+            $this->emitDateRangeChanged();
         }
     }
 
@@ -95,6 +97,23 @@ final class RequestsTable extends PowerGridComponent
     {
         $this->dateFrom = null;
         $this->dateTo = null;
+
+        $this->emitDateRangeChanged();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->emitDateRangeChanged();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->emitDateRangeChanged();
+    }
+
+    private function emitDateRangeChanged(): void
+    {
+        $this->dispatch('receptionistRequestsDateRangeChanged', dateFrom: $this->dateFrom, dateTo: $this->dateTo);
     }
 
     public function relationSearch(): array
@@ -178,13 +197,13 @@ final class RequestsTable extends PowerGridComponent
                     ->id()
                     ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                     ->dispatch('acceptReceptionistRequest', ['appointmentId' => $row->id])
-                : ($status === AppointmentStatus::BOOKED
-                    ? Button::add('accepted_state')
-                        ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Aceptada</span></div>'))
+                : ($status === AppointmentStatus::REJECTED
+                    ? Button::add('rejected_state')
+                        ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="x-circle" variant="outline" class="w-5 h-5"/><span>Rechazada</span></div>'))
                         ->id()
                         ->class('text-neutral-400 px-2 py-1 rounded cursor-not-allowed')
-                    : Button::add('rejected_state')
-                        ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="x-circle" variant="outline" class="w-5 h-5"/><span>Rechazada</span></div>'))
+                    : Button::add('accepted_state')
+                        ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Aceptada</span></div>'))
                         ->id()
                         ->class('text-neutral-400 px-2 py-1 rounded cursor-not-allowed')),
 

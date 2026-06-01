@@ -5,6 +5,7 @@ namespace App\Livewire\Receptionist;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -15,7 +16,15 @@ class AppointmentsPage extends Component
 {
     #[Url(as: 'tab')]
     public string $tab = 'all';
+    public ?string $dateFrom = null;
+    public ?string $dateTo = null;
     public ?Appointment $selectedAppointment = null;
+
+    public function mount(): void
+    {
+        $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
+        $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
+    }
 
     public function setTab(string $tab): void
     {
@@ -65,11 +74,19 @@ class AppointmentsPage extends Component
         $this->dispatch('open-receptionist-appointment-detail-modal');
     }
 
+    #[On('receptionistAppointmentsDateRangeChanged')]
+    public function syncDateRange(?string $dateFrom = null, ?string $dateTo = null): void
+    {
+        $this->dateFrom = $dateFrom;
+        $this->dateTo = $dateTo;
+    }
+
     public function getPendingCountProperty(): int
     {
         return (clone $this->getBaseQuery())
             ->whereNull('user_payment')
             ->whereNotIn('status', [
+                AppointmentStatus::REJECTED->value,
                 AppointmentStatus::CANCELLED->value,
                 AppointmentStatus::NO_SHOW->value,
             ])
@@ -112,7 +129,13 @@ class AppointmentsPage extends Component
                                     ->whereIn('office_doctors.doctor_id', $doctorIds);
                             });
                     });
-            });
+                            })
+                            ->whereNotIn('appointments.status', [
+                            AppointmentStatus::REQUESTED->value,
+                            AppointmentStatus::REJECTED->value,
+                            ])
+                            ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
+                            ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
     }
 
     #[Layout('layouts.app')]

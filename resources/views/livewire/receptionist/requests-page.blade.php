@@ -26,7 +26,7 @@
         <x-ui.card size="full" class="border-t-2 border-teal-500">
             <p class="text-xs font-semibold tracking-wide uppercase text-neutral-500">Solicitudes aceptadas</p>
             <p class="mt-2 text-3xl font-bold text-neutral-900">{{ $this->bookedCount }}</p>
-            <p class="text-xs text-neutral-500">Agendadas</p>
+            <p class="text-xs text-neutral-500">Aprobadas y en proceso</p>
         </x-ui.card>
 
         <x-ui.card size="full" class="border-t-2 border-red-500">

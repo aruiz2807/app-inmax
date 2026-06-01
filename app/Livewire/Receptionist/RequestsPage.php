@@ -5,6 +5,7 @@ namespace App\Livewire\Receptionist;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -15,7 +16,15 @@ class RequestsPage extends Component
 {
     #[Url(as: 'tab')]
     public string $tab = 'all';
+    public ?string $dateFrom = null;
+    public ?string $dateTo = null;
     public ?Appointment $selectedRequest = null;
+
+    public function mount(): void
+    {
+        $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
+        $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
+    }
 
     public function setTab(string $tab): void
     {
@@ -97,6 +106,13 @@ class RequestsPage extends Component
         $this->dispatch('open-receptionist-request-detail-modal');
     }
 
+    #[On('receptionistRequestsDateRangeChanged')]
+    public function syncDateRange(?string $dateFrom = null, ?string $dateTo = null): void
+    {
+        $this->dateFrom = $dateFrom;
+        $this->dateTo = $dateTo;
+    }
+
     public function getPendingCountProperty(): int
     {
         return (clone $this->getBaseQuery())
@@ -107,7 +123,10 @@ class RequestsPage extends Component
     public function getBookedCountProperty(): int
     {
         return (clone $this->getBaseQuery())
-            ->where('status', AppointmentStatus::BOOKED)
+            ->whereNotIn('status', [
+                AppointmentStatus::REQUESTED,
+                AppointmentStatus::REJECTED,
+            ])
             ->count();
     }
 
@@ -122,7 +141,10 @@ class RequestsPage extends Component
     {
         $doctorIds = Auth::user()->staffDoctors()->pluck('doctors.id');
 
-        return Appointment::query()->whereIn('doctor_id', $doctorIds);
+        return Appointment::query()
+            ->whereIn('doctor_id', $doctorIds)
+            ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
     }
 
     #[Layout('layouts.app')]

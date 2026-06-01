@@ -29,6 +29,8 @@ final class AppointmentsTable extends PowerGridComponent
 
         $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
         $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
+
+        $this->emitDateRangeChanged();
     }
 
     public function setUp(): array
@@ -70,11 +72,17 @@ final class AppointmentsTable extends PowerGridComponent
                             });
                     });
             })
-            ->where('appointments.status', '!=', AppointmentStatus::REQUESTED->value)
+            ->whereNotIn('appointments.status', [
+                AppointmentStatus::REQUESTED->value,
+                AppointmentStatus::REJECTED->value,
+            ])
             ->when($this->tab === 'pending', fn (Builder $query) => $query->where(function (Builder $pendingQuery) {
                 $pendingQuery
                     ->whereNull('user_payment')
-                    ->where('appointments.status', AppointmentStatus::COMPLETED->value);
+                    ->whereIn('appointments.status', [
+                        AppointmentStatus::COMPLETED->value,
+                        AppointmentStatus::RESULTS_PENDING->value,
+                    ]);
             }))
             ->when($this->tab === 'cancelled', fn (Builder $query) => $query->whereIn('appointments.status', [
                 AppointmentStatus::CANCELLED->value,
@@ -96,6 +104,8 @@ final class AppointmentsTable extends PowerGridComponent
         if ($start && $end) {
             $this->dateFrom = $start->toDateString();
             $this->dateTo = $end->toDateString();
+
+            $this->emitDateRangeChanged();
         }
     }
 
@@ -103,6 +113,23 @@ final class AppointmentsTable extends PowerGridComponent
     {
         $this->dateFrom = null;
         $this->dateTo = null;
+
+        $this->emitDateRangeChanged();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->emitDateRangeChanged();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->emitDateRangeChanged();
+    }
+
+    private function emitDateRangeChanged(): void
+    {
+        $this->dispatch('receptionistAppointmentsDateRangeChanged', dateFrom: $this->dateFrom, dateTo: $this->dateTo);
     }
 
     public function relationSearch(): array
@@ -203,7 +230,10 @@ final class AppointmentsTable extends PowerGridComponent
         $status = $row->status instanceof AppointmentStatus
             ? $row->status
             : AppointmentStatus::tryFrom((string) $row->status);
-        $isCompleted = $status === AppointmentStatus::COMPLETED;
+        $canSettle = in_array($status, [
+            AppointmentStatus::COMPLETED,
+            AppointmentStatus::RESULTS_PENDING,
+        ], true);
 
         return [
             Button::add('show')
@@ -227,7 +257,7 @@ final class AppointmentsTable extends PowerGridComponent
                     ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Pagado</span></div>'))
                     ->id()
                     ->class('text-neutral-500')
-                : ($isCompleted
+                : ($canSettle
                     ? Button::add('settle')
                         ->slot(Blade::render('<a href="'.route('receptionist.payment', ['appointment' => $row->id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="currency-dollar" variant="outline" class="w-5 h-5"/><span>Liquidar</span></a>'))
                         ->id()
