@@ -12,10 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $user_id
  * @property int $specialty_id
  * @property DoctorType $type
+ * @property string|null $business_name
  * @property int|null $discount
  * @property int|null $commission
  * @property string $license
  * @property string $university
+ * @property string|null $contact_phone
  * @property string $address
  * @property string|null $maps_url
  * @property string $status
@@ -64,8 +66,10 @@ class Doctor extends Model
         'user_id',
         'specialty_id',
         'type',
+        'business_name',
         'license',
         'university',
+        'contact_phone',
         'address',
         'maps_url',
         'discount',

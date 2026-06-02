@@ -54,10 +54,12 @@ final class DoctorsTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('name', fn ($model) => e($model->user->name))
+            ->add('business_name', fn ($model) => e($model->business_name))
             ->add('type')
             ->add('type_translated', fn ($model) => e($model->type->label()))
             ->add('email', fn ($model) => e($model->user->email))
             ->add('phone', fn ($model) => e($model->user->phone))
+            ->add('contact_phone', fn ($model) => e($model->contact_phone))
             ->add('specialty', fn ($model) => e($model->specialty->name))
             ->add('rating_stars', fn ($model) => Blade::render('<livewire:star-rating rate="' . $model->rating . '"/>'))
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
@@ -76,6 +78,10 @@ final class DoctorsTable extends PowerGridComponent
                 ->sortable()
                 ->searchable(),
 
+            Column::make('Nombre comercial', 'business_name')
+                ->sortable()
+                ->searchable(),
+
             Column::make('Tipo', 'type_translated', 'type')
                 ->sortable(),
 
@@ -87,6 +93,9 @@ final class DoctorsTable extends PowerGridComponent
                 ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Teléfono', 'phone'),
+
+            Column::make('Teléfono de contacto', 'contact_phone')
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Rating', 'rating_stars'),
 

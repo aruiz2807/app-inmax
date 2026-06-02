@@ -58,6 +58,12 @@
                     <x-ui.error name="form.name" />
                 </x-ui.field>
 
+                <x-ui.field>
+                    <x-ui.label>Nombre comercial</x-ui.label>
+                    <x-ui.input wire:model="form.business_name" name="business_name" placeholder="Nombre comercial" />
+                    <x-ui.error name="form.business_name" />
+                </x-ui.field>
+
                 <x-ui.field required>
                     <x-ui.label>Correo electrónico</x-ui.label>
                     <x-ui.input wire:model="form.email" name="email" type="email" placeholder="nombre@correo.com" />
@@ -99,6 +105,12 @@
                     <x-ui.error name="form.university" />
                 </x-ui.field>
                 @endif
+
+                <x-ui.field>
+                    <x-ui.label>Teléfono de contacto</x-ui.label>
+                    <x-ui.input wire:model="form.contact_phone" name="contact_phone" />
+                    <x-ui.error name="form.contact_phone" />
+                </x-ui.field>
 
                 <x-ui.field required>
                     <x-ui.label>Dirección</x-ui.label>

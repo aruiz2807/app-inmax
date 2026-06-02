@@ -18,6 +18,9 @@ class DoctorsForm extends Form
     #[Validate('required|string|max:255')]
     public $name = '';
 
+    #[Validate('string|max:255')]
+    public $business_name = '';
+
     #[Validate('required|string|email|max:255|unique:users')]
     public $email = '';
 
@@ -32,6 +35,9 @@ class DoctorsForm extends Form
 
     #[Validate('required_if:type,' . DoctorType::Doctor->value . '|string|max:100')]
     public $university = '';
+
+    #[Validate('string|size:10')]
+    public $contact_phone = '';
 
     #[Validate('required')]
     public $address = '';
@@ -77,7 +83,9 @@ class DoctorsForm extends Form
             'user_id' => $user->id,
             'specialty_id' => $this->specialty,
             'type' => $this->type,
+            'business_name' => $this->business_name,
             'license' => $this->license,
+            'contact_phone' => $this->contact_phone,
             'university' => $this->university,
             'address' => $this->address,
             'maps_url' => $this->maps_url,
@@ -110,10 +118,12 @@ class DoctorsForm extends Form
     {
         $this->type = $doctor->type;
         $this->name = $doctor->user->name;
+        $this->business_name = $doctor->business_name;
         $this->email = $doctor->user->email;
         $this->phone = $doctor->user->phone;
         $this->specialty = (string) $doctor->specialty_id;
         $this->license = $doctor->license;
+        $this->contact_phone = $doctor->contact_phone;
         $this->university = $doctor->university;
         $this->address = $doctor->address;
         $this->maps_url = $doctor->maps_url;
@@ -139,8 +149,10 @@ class DoctorsForm extends Form
 
         $doctor->update([
             'type' => $this->type,
+            'business_name' => $this->business_name,
             'specialty_id' => $this->specialty,
             'license' => $this->license,
+            'contact_phone' => $this->contact_phone,
             'university' => $this->university,
             'address' => $this->address,
             'maps_url' => $this->maps_url,
