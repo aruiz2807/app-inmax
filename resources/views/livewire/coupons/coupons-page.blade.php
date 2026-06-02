@@ -115,4 +115,6 @@
             </div>
         </form>
     </x-ui.modal>
+
+    <livewire:coupons.coupon-doctors-modal />
 </div>

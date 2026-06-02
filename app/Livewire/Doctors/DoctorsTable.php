@@ -121,12 +121,6 @@ final class DoctorsTable extends PowerGridComponent
                 ->id()
                 ->class('text-cyan-600 hover:bg-cyan-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editServices', ['doctorId' => $row->id]),
-
-            Button::add('editCoupons')
-                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Cupones</span></div>'))
-                ->id()
-                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
-                ->dispatch('editCoupons', ['doctorId' => $row->id]),
         ];
     }
 

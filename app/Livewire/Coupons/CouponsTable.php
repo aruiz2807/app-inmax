@@ -104,7 +104,13 @@ final class CouponsTable extends PowerGridComponent
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                 ->id()
                 ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
-                ->dispatch('editCoupon', ['couponId' => $row->id])
+                ->dispatch('editCoupon', ['couponId' => $row->id]),
+
+            Button::add('doctors')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Red</span></div>'))
+                ->id()
+                ->class('text-cyan-600 hover:bg-cyan-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('editDoctors', ['couponId' => $row->id]),
         ];
     }
 

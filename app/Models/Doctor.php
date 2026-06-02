@@ -157,6 +157,14 @@ class Doctor extends Model
     }
 
     /**
+     * Each coupon can have many doctors.
+     */
+    public function couponDoctors(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CouponDoctor::class);
+    }
+
+    /**
      * Each doctor can have multiple offices
      */
     public function offices()
