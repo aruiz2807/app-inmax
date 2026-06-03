@@ -48,7 +48,7 @@ class PlanBenefitsModal extends Component
 
         $data = [
             'plan_id' => $this->planId,
-            $data['coupon_id'] = $this->selectedBenefitId,
+            'coupon_id' =>$this->selectedBenefitId,
         ];
 
         PlanBenefit::create($data);
