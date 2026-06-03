@@ -148,7 +148,15 @@ class DRNotesPage extends Component
         
         $subtotal = floatval(str_replace(',', '', $this->subtotal));
 
-        $couponCheck = function ($q) use ($serviceIds, $subtotal) {
+        $couponCheck = function ($q) use ($serviceIds, $subtotal, $doctorId) {
+            // Check if coupon is valid for this doctor
+            $q->where(function ($doctorQuery) use ($doctorId) {
+                $doctorQuery->whereDoesntHave('doctors')
+                    ->orWhereHas('doctors', function ($dq) use ($doctorId) {
+                        $dq->where('doctor_id', $doctorId);
+                    });
+            });
+
             // Universal coupon (no service_id) or specific to one of the appointment services
             $q->where(function($q2) use ($serviceIds) {
                 $q2->whereNull('service_id')
@@ -166,24 +174,11 @@ class DRNotesPage extends Component
         };
 
         // Search for all available coupons for this doctor and the services in the appointment
-        $this->availableCoupons = PolicyService::with(['doctorCoupon.coupon', 'coupon'])
+        $this->availableCoupons = PolicyService::with(['coupon'])
             ->where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
-            ->where(function ($query) use ($doctorId, $couponCheck) {
-                // Doctor-specific coupons
-                $query->where(function ($q) use ($doctorId, $couponCheck) {
-                    $q->whereNotNull('doctor_coupon_id')
-                      ->whereHas('doctorCoupon', function ($q2) use ($doctorId, $couponCheck) {
-                          $q2->where('doctor_id', $doctorId)
-                            ->whereHas('coupon', $couponCheck);
-                      });
-                })
-                // General coupons (not linked to a specific doctor)
-                ->orWhere(function ($q) use ($couponCheck) {
-                    $q->whereNotNull('coupon_id')
-                      ->whereHas('coupon', $couponCheck);
-                });
-            })
+            ->whereNotNull('coupon_id')
+            ->whereHas('coupon', $couponCheck)
             ->get();
 
         if ($this->availableCoupons->isNotEmpty()) {
@@ -296,7 +291,7 @@ class DRNotesPage extends Component
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
             if ($selectedBenefit) {
-                $coupon = $selectedBenefit->doctorCoupon ? $selectedBenefit->doctorCoupon->coupon : $selectedBenefit->coupon;
+                $coupon = $selectedBenefit->coupon;
                 if ($coupon->type === 'Amount') {
                     $this->couponDiscountValue = (float) $coupon->value;
                 } elseif ($coupon->type === 'Percentage') {
@@ -393,15 +388,9 @@ class DRNotesPage extends Component
 
             $serviceId = $service->service_id;
 
-            // Search for a benefit that covers this service (excluding coupons)
+            // Search for a benefit that covers this service
             $benefit = PolicyService::where('policy_id', $policyId)
-                ->where(function ($query) use ($serviceId, $doctorId) {
-                    $query->where('service_id', $serviceId)
-                          ->orWhereHas('doctorService', function ($q) use ($serviceId, $doctorId) {
-                              $q->where('doctor_id', $doctorId)
-                                ->where('service_id', $serviceId);
-                          });
-                })
+                ->where('service_id', $serviceId)
                 ->orderByRaw('used < included DESC') // Prioritize ones with remaining space
                 ->first();
 

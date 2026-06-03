@@ -267,9 +267,6 @@
 
                     <!-- Available coupons list -->
                     @foreach($availableCoupons as $benefit)
-                        @php
-                            $coupon = $benefit->doctorCoupon ? $benefit->doctorCoupon->coupon : $benefit->coupon;
-                        @endphp
                         <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
                             <div class="pt-1">
                                 <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
@@ -278,14 +275,14 @@
                                 <div class="flex items-center gap-2">
                                     <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
                                     <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
-                                        {{ $coupon->name }}
+                                        {{ $benefit->coupon->name }}
                                     </p>
                                 </div>
                                 <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
-                                    @if($coupon->type === 'Amount')
-                                        Descuento de ${{ number_format($coupon->value, 2) }}
+                                    @if($benefit->coupon->type === 'Amount')
+                                        Descuento de ${{ number_format($benefit->coupon->value, 2) }}
                                     @else
-                                        {{ $coupon->value }}% de descuento
+                                        {{ $benefit->coupon->value }}% de descuento
                                     @endif
                                 </p>
                             </div>

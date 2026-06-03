@@ -9,15 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $policy_id
  * @property int|null $service_id
- * @property int|null $doctor_service_id
- * @property int|null $doctor_coupon_id
  * @property int $included
  * @property int $used
  * @property int $extra
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\DoctorCoupon|null $doctorCoupon
- * @property-read \App\Models\DoctorService|null $doctorService
  * @property-read mixed $color
  * @property-read mixed $level
  * @property-read \App\Models\Policy $policy
@@ -26,8 +22,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService whereDoctorCouponId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService whereDoctorServiceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService whereExtra($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PolicyService whereIncluded($value)
@@ -48,8 +42,6 @@ class PolicyService extends Model
         'policy_id',
         'service_id',
         'coupon_id',
-        'doctor_service_id',
-        'doctor_coupon_id',
         'included',
         'used',
         'extra',
@@ -123,21 +115,5 @@ class PolicyService extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
-    }
-
-    /**
-     * Each policy service can belong to a doctor service.
-     */
-    public function doctorService(): BelongsTo
-    {
-        return $this->belongsTo(DoctorService::class);
-    }
-
-    /**
-     * Each policy service can belong to a doctor coupon.
-     */
-    public function doctorCoupon(): BelongsTo
-    {
-        return $this->belongsTo(DoctorCoupon::class);
     }
 }

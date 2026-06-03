@@ -274,14 +274,14 @@
                                             <div class="flex items-center gap-2">
                                                 <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
                                                 <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
-                                                    {{ $benefit->doctorCoupon->coupon->name }}
+                                                    {{ $benefit->coupon->name }}
                                                 </p>
                                             </div>
                                             <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
-                                                @if($benefit->doctorCoupon->coupon->type === 'Amount')
-                                                    Descuento de ${{ number_format($benefit->doctorCoupon->coupon->value, 2) }}
+                                                @if($benefit->coupon->type === 'Amount')
+                                                    Descuento de ${{ number_format($benefit->coupon->value, 2) }}
                                                 @else
-                                                    {{ $benefit->doctorCoupon->coupon->value }}% de descuento
+                                                    {{ $benefit->coupon->value }}% de descuento
                                                 @endif
                                             </p>
                                         </div>

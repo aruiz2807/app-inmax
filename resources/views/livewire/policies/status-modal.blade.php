@@ -42,14 +42,8 @@
             <a href="#" class="w-full mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
             @foreach ($services as $service)
                 @php
-                    $doctorName = null;
-                    if ($service->doctor_service_id) {
-                        $name = $service->doctorService->service->name ?? 'N/A';
-                        $doctorName = $service->doctorService->doctor->user->name ?? null;
-                    } elseif ($service->doctor_coupon_id) {
-                        $name = $service->doctorCoupon->coupon->name ?? 'N/A';
-                        $doctorName = $service->doctorCoupon->doctor->user->name ?? null;
-                    } elseif ($service->coupon_id) {
+                    $name = null;
+                    if ($service->coupon_id) {
                         $name = $service->coupon->name ?? 'N/A';
                     } else {
                         $name = $service->service->name ?? 'N/A';
@@ -58,9 +52,6 @@
                 <div class="grid grid-cols-[auto_6rem_2rem] justify-stretch items-center p-4">
                     <div class="flex flex-col pr-2">
                         <x-ui.text>{{ $name }}</x-ui.text>
-                        @if($doctorName)
-                            <x-ui.text size="xs" class="text-slate-500">{{ $doctorName }}</x-ui.text>
-                        @endif
                     </div>
                     <x-ui.text class="opacity-50">{{ $service->used }} de {{ $service->included }} usados</x-ui.text>
                     <x-ui.icon :name="$service->level" :class="'justify-self-end '.$service->color" />

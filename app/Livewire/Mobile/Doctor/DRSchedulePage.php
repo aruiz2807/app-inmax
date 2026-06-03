@@ -178,14 +178,8 @@ class DRSchedulePage extends Component
 
         return $services->map(function ($service) use ($policyId) {
             $isCovered = PolicyService::where('policy_id', $policyId)
+                ->where('service_id', $service->id)
                 ->whereColumn('used', '<', 'included')
-                ->where(function ($query) use ($service) {
-                    $query->where('service_id', $service->id)
-                          ->orWhereHas('doctorService', function ($q) use ($service) {
-                              $q->where('doctor_id', $this->selectedDoctor)
-                                ->where('service_id', $service->id);
-                          });
-                })
                 ->exists();
 
             return [

@@ -78,10 +78,7 @@ class PoliciesPage extends Component
         
             $this->services = PolicyService::with([
                 'service', 
-                'doctorService.service', 
-                'doctorService.doctor.user', 
-                'doctorCoupon.coupon', 
-                'doctorCoupon.doctor.user'
+                'coupon',
             ])
             ->where('policy_id', $policyId)
             ->get();

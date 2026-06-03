@@ -176,26 +176,28 @@ class PaymentPage extends Component
         $serviceIds = $this->appointment->services->pluck('service_id')->toArray();
         $subtotal = $this->parseMoney($this->subtotal);
 
-        $this->availableCoupons = PolicyService::with('doctorCoupon.coupon')
+        $this->availableCoupons = PolicyService::with('coupon')
             ->where('policy_id', $policyId)
-            ->whereNotNull('doctor_coupon_id')
+            ->whereNotNull('coupon_id')
             ->whereColumn('used', '<', 'included')
-            ->whereHas('doctorCoupon', function ($query) use ($serviceIds, $subtotal) {
-                $query->where('doctor_id', $this->appointment->doctor_id)
-                    ->whereHas('coupon', function ($couponQuery) use ($serviceIds, $subtotal) {
-                        $couponQuery->where(function ($serviceQuery) use ($serviceIds) {
-                            $serviceQuery->whereNull('service_id')
-                                ->orWhereIn('service_id', $serviceIds);
+            ->whereHas('coupon', function ($query) use ($serviceIds, $subtotal) {
+                $query->where(function ($doctorQuery) {
+                    $doctorQuery->whereDoesntHave('doctors')
+                        ->orWhereHas('doctors', function ($dq) {
+                            $dq->where('doctor_id', $this->appointment->doctor_id);
                         });
-
-                        $couponQuery->where(function ($limitMinQuery) use ($subtotal) {
-                            $limitMinQuery->where('limit_min', '<=', 0)
-                                ->orWhere('limit_min', '<=', $subtotal);
-                        })->where(function ($limitMaxQuery) use ($subtotal) {
-                            $limitMaxQuery->where('limit_max', '<=', 0)
-                                ->orWhere('limit_max', '>', $subtotal);
-                        });
-                    });
+                })
+                ->where(function ($serviceQuery) use ($serviceIds) {
+                    $serviceQuery->whereNull('service_id')
+                        ->orWhereIn('service_id', $serviceIds);
+                })
+                ->where(function ($limitMinQuery) use ($subtotal) {
+                    $limitMinQuery->where('limit_min', '<=', 0)
+                        ->orWhere('limit_min', '<=', $subtotal);
+                })->where(function ($limitMaxQuery) use ($subtotal) {
+                    $limitMaxQuery->where('limit_max', '<=', 0)
+                        ->orWhere('limit_max', '>', $subtotal);
+                });
             })
             ->get();
 
@@ -254,7 +256,7 @@ class PaymentPage extends Component
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
 
             if ($selectedBenefit) {
-                $coupon = $selectedBenefit->doctorCoupon->coupon;
+                $coupon = $selectedBenefit->coupon;
 
                 if ($coupon->type === 'Amount') {
                     $this->couponDiscountValue = (float) $coupon->value;
