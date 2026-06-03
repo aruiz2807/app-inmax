@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Delete records where coupon_id is NULL
+        DB::table('plan_benefits')
+            ->whereNull('coupon_id')
+            ->delete();
+
         Schema::table('plan_benefits', function (Blueprint $table) {
             // Drop foreign keys
             $table->dropForeign('plan_benefits_doctor_coupon_id_foreign');
