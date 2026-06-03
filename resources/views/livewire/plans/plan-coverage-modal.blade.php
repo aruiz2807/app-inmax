@@ -32,34 +32,32 @@
 
         <form wire:submit.prevent="updateCoverage">
             <x-ui.fieldset label="Servicios incluidos" class="mt-4">
-                <table class="border-separate border-spacing-y-2">
+                <table class="w-full border-separate border-spacing-y-2">
                     <thead>
-                        <tr>
-                            <th>
+                        <tr class="text-left">
+                            <th class="pb-2">
                                 <x-ui.text class="font-semibold">Servicio</x-ui.text>
                             </th>
-                            <th>
+                            <th class="pb-2">
                                 <x-ui.text class="font-semibold">Tipo</x-ui.text>
                             </th>
-                            <th class="pl-4">
+                            <th class="pb-2 pl-4 w-48">
                                 <x-ui.text class="font-semibold">Cantidad</x-ui.text>
                             </th>
-                            <th></th>
+                            <th class="pb-2"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($coverage as $included)
                             <tr wire:key="coverage-{{ $included->id }}">
                                 <td>
-                                    <x-ui.text>
-                                        {{ $included->service->name }}
-                                    </x-ui.text>
+                                    <div class="flex flex-col">
+                                        <x-ui.text class="font-medium"> {{ $included->service->name }} </x-ui.text>
+                                    </div>
                                 </td>
 
                                 <td>
-                                    <x-ui.text>
-                                        {{ $included->service->type === 'Amount' ? 'Importe' : 'Evento' }}
-                                    </x-ui.text>
+                                    <x-ui.text> Servicio </x-ui.text>
                                 </td>
 
                                 <td class="pl-4">

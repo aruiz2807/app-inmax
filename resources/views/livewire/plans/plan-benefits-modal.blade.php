@@ -2,104 +2,32 @@
     <x-ui.modal
     id="plan-benefits-modal"
     animation="fade"
-    width="4xl"
+    width="2xl"
     heading="Incluir beneficios"
     description="Seleccione los beneficios que incluira el plan"
     x-on:close-plan-benefits-modal.window="$data.close()"
     x-on:open-plan-benefits-modal.window="$data.open()"
     >
-        <div class="flex flex-col gap-4">
-            <div class="flex gap-4 items-center">
-                <x-ui.label>¿Qué desea agregar?</x-ui.label>
-                <div class="flex gap-2">
-                    <x-ui.button 
-                        wire:click="setBenefitType('General')" 
-                        variant="{{ $benefitType === 'General' ? 'primary' : 'outline' }}" 
-                        color="{{ $benefitType === 'General' ? 'teal' : 'slate' }}" 
-                        size="sm"
-                    >
-                        Cupón General
-                    </x-ui.button>
-                    
-                    <x-ui.button 
-                        wire:click="setBenefitType('Service')" 
-                        variant="{{ $benefitType === 'Service' ? 'primary' : 'outline' }}" 
-                        color="{{ $benefitType === 'Service' ? 'teal' : 'slate' }}" 
-                        size="sm"
-                    >
-                        Servicio de Doctor
-                    </x-ui.button>
-
-                    <x-ui.button 
-                        wire:click="setBenefitType('Coupon')" 
-                        variant="{{ $benefitType === 'Coupon' ? 'primary' : 'outline' }}" 
-                        color="{{ $benefitType === 'Coupon' ? 'teal' : 'slate' }}" 
-                        size="sm"
-                    >
-                        Cupón de Doctor
-                    </x-ui.button>
-                </div>
-            </div>
-
-            <div class="flex items-end gap-4">
-                @if($benefitType === 'General')
-                    <x-ui.field class="flex-1">
-                        <x-ui.label>Cupones disponibles</x-ui.label>
-                        <x-ui.select
-                            wire:model="selectedBenefitId"
-                            placeholder="Buscar cupón..."
-                            icon="ticket"
-                            searchable
-                        >
-                            @foreach($availableGeneralCoupons as $item)
-                                <x-ui.select.option value="{{ $item->id }}">
-                                    {{ $item->name }}
-                                </x-ui.select.option>
-                            @endforeach
-                        </x-ui.select>
-                    </x-ui.field>
-                @endif
-
-                @if($benefitType === 'Service')
-                    <x-ui.field class="flex-1">
-                        <x-ui.label>Servicios disponibles</x-ui.label>
-                        <x-ui.select
-                            wire:model="selectedBenefitId"
-                            placeholder="Buscar servicio..."
-                            icon="wallet"
-                            searchable
-                        >
-                            @foreach($availableDoctorServices as $item)
-                                <x-ui.select.option value="{{ $item->id }}">
-                                    {{ $item->service->name }} ({{ $item->doctor->user->name }})
-                                </x-ui.select.option>
-                            @endforeach
-                        </x-ui.select>
-                    </x-ui.field>
-                @endif
-
-                @if($benefitType === 'Coupon')
-                    <x-ui.field class="flex-1">
-                        <x-ui.label>Cupones disponibles</x-ui.label>
-                        <x-ui.select
-                            wire:model="selectedBenefitId"
-                            placeholder="Buscar cupón..."
-                            icon="ticket"
-                            searchable
-                        >
-                            @foreach($availableDoctorCoupons as $item)
-                                <x-ui.select.option value="{{ $item->id }}">
-                                    {{ $item->coupon->name }} ({{ $item->doctor->user->name }})
-                                </x-ui.select.option>
-                            @endforeach
-                        </x-ui.select>
-                    </x-ui.field>
-                @endif
-
-                <x-ui.button wire:click="addBenefit" icon="arrow-down-tray" variant="primary" color="teal">
-                    Incluir
-                </x-ui.button>
-            </div>
+        <div class="flex items-end gap-4">
+            <x-ui.field>
+                <x-ui.label>Cupones disponibles</x-ui.label>
+                <x-ui.select
+                    wire:model="selectedBenefitId"
+                    placeholder="Buscar cupón..."
+                    icon="ticket"
+                    searchable
+                >
+                    @foreach($availableCoupons as $item)
+                        <x-ui.select.option value="{{ $item->id }}">
+                            {{ $item->name }}
+                        </x-ui.select.option>
+                    @endforeach
+                </x-ui.select>
+            </x-ui.field>
+                
+            <x-ui.button wire:click="addBenefit" icon="arrow-down-tray" variant="primary" color="teal">
+                Incluir
+            </x-ui.button>
         </div>
 
         <form wire:submit.prevent="updateBenefits">
@@ -113,50 +41,32 @@
                             <th class="pb-2">
                                 <x-ui.text class="font-semibold">Tipo</x-ui.text>
                             </th>
-                            <th class="pb-2 pl-4">
-                                <x-ui.text class="font-semibold">Eventos / Usos</x-ui.text>
+                            <th class="pb-2 pl-4 w-48">
+                                <x-ui.text class="font-semibold">Cantidad</x-ui.text>
                             </th>
                             <th class="pb-2"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($benefits as $benefit)
-                            @php
-                                if ($benefit->doctor_service_id) {
-                                    $name = $benefit->doctorService->service->name ?? 'N/A';
-                                    $detail = $benefit->doctorService->doctor->user->name ?? 'N/A';
-                                    $type = 'Servicio';
-                                } elseif ($benefit->doctor_coupon_id) {
-                                    $name = $benefit->doctorCoupon->coupon->name ?? 'N/A';
-                                    $detail = $benefit->doctorCoupon->doctor->user->name ?? 'N/A';
-                                    $type = 'Cupón de Doctor';
-                                } else {
-                                    $name = $benefit->coupon->name ?? 'N/A';
-                                    $detail = 'Aplicable a todos los doctores';
-                                    $type = 'Cupón General';
-                                }
-                            @endphp
                             <tr wire:key="benefit-{{ $benefit->id }}">
-                                <td class="align-top">
+                                <td>
                                     <div class="flex flex-col">
-                                        <x-ui.text class="font-medium">{{ $name }}</x-ui.text>
-                                        <x-ui.text size="xs" class="text-slate-500">{{ $detail }}</x-ui.text>
+                                        <x-ui.text class="font-medium"> {{ $benefit->coupon->name }} </x-ui.text>
                                     </div>
                                 </td>
 
-                                <td class="align-top">
-                                    <x-ui.text>
-                                        {{ $type }}
-                                    </x-ui.text>
+                                <td>
+                                    <x-ui.text> Cupón </x-ui.text>
                                 </td>
 
-                                <td class="pl-4 align-top">
+                                <td class="pl-4">
                                     <x-ui.field>
                                         <x-ui.input wire:model.defer="events.{{ $benefit->id }}" type="number" min="0" placeholder="0"/>
                                     </x-ui.field>
                                 </td>
 
-                                <td class="pl-4 align-top">
+                                <td class="pl-4">
                                     <x-ui.button wire:click="delete({{ $benefit->id }})" type="button" icon="trash" variant="danger" size="sm"/>
                                 </td>
                             </tr>

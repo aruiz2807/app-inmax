@@ -5,19 +5,16 @@ namespace App\Livewire\Plans;
 use App\Models\PlanBenefit;
 use App\Models\Coupon;
 use App\Models\DoctorService;
-use App\Models\DoctorCoupon;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
 class PlanBenefitsModal extends Component
 {
     public ?int $planId = null;
-    public string $benefitType = 'General'; // 'Service' or 'Coupon' or 'General'
     public ?int $selectedBenefitId = null;
 
-    public $availableDoctorServices = [];
-    public $availableDoctorCoupons = [];
-    public $availableGeneralCoupons = [];
+    public $availableServices = [];
+    public $availableCoupons = [];
     public $benefits = [];
     
     public $events = [];
@@ -29,9 +26,7 @@ class PlanBenefitsModal extends Component
 
     public function mount()
     {
-        $this->availableGeneralCoupons = Coupon::with(['service'])->get();
-        $this->availableDoctorServices = DoctorService::with(['service', 'doctor.user'])->get();
-        $this->availableDoctorCoupons = DoctorCoupon::with(['coupon', 'doctor.user'])->get();
+        $this->availableCoupons = Coupon::with(['service'])->get();
     }
 
     #[On('editBenefits')]
@@ -39,9 +34,8 @@ class PlanBenefitsModal extends Component
     {
         $this->planId = $planId;
         $this->selectedBenefitId = null;
-        $this->benefitType = 'General';
 
-        $this->loadBenefitsAndAvailable();
+        $this->loadBenefitsAvailable();
 
         $this->dispatch('open-plan-benefits-modal');
     }
@@ -54,20 +48,13 @@ class PlanBenefitsModal extends Component
 
         $data = [
             'plan_id' => $this->planId,
+            $data['coupon_id'] = $this->selectedBenefitId,
         ];
-
-        if ($this->benefitType === 'Service') {
-            $data['doctor_service_id'] = $this->selectedBenefitId;
-        } else if ($this->benefitType === 'Coupon') {
-            $data['doctor_coupon_id'] = $this->selectedBenefitId;
-        } else {
-            $data['coupon_id'] = $this->selectedBenefitId;
-        }
 
         PlanBenefit::create($data);
 
         $this->selectedBenefitId = null;
-        $this->loadBenefitsAndAvailable();
+        $this->loadBenefitsAvailable();
     }
 
     public function updateBenefits()
@@ -93,45 +80,20 @@ class PlanBenefitsModal extends Component
     {
         PlanBenefit::whereKey($benefitId)->delete();
 
-        $this->loadBenefitsAndAvailable();
+        $this->loadBenefitsAvailable();
     }
 
-    public function setBenefitType($type)
-    {
-        $this->benefitType = $type;
-        $this->selectedBenefitId = null;
-    }
-
-    private function loadBenefitsAndAvailable()
+    private function loadBenefitsAvailable()
     {
         if (!$this->planId) return;
 
-        $this->benefits = PlanBenefit::with([
-                'coupon.service', 
-                'doctorService.service', 
-                'doctorService.doctor.user', 
-                'doctorCoupon.coupon', 
-                'doctorCoupon.doctor.user'
-            ])
+        $this->benefits = PlanBenefit::with(['coupon.service'])
             ->where('plan_id', $this->planId)
+            ->whereNotNull('coupon_id')
             ->get()
-            ->sortBy(fn($benefit) => $benefit->doctor_coupon_id ? 0 : 1)
             ->values();
 
-        $this->availableDoctorServices = DoctorService::with(['service', 'doctor.user'])
-            ->whereHas('service', fn($q) => $q->where('status', 'Active'))
-            ->whereDoesntHave('planBenefits', fn ($query) =>
-                $query->where('plan_id', $this->planId)
-            )
-            ->get();
-
-        $this->availableDoctorCoupons = DoctorCoupon::with(['coupon', 'doctor.user'])
-            ->whereDoesntHave('planBenefits', fn ($query) =>
-                $query->where('plan_id', $this->planId)
-            )
-            ->get();
-
-        $this->availableGeneralCoupons = Coupon::with(['service'])
+        $this->availableCoupons = Coupon::with(['service'])
             ->whereDoesntHave('planBenefits', fn ($query) =>
                 $query->where('plan_id', $this->planId)
             )
