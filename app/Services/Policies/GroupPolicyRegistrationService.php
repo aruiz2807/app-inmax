@@ -76,8 +76,7 @@ class GroupPolicyRegistrationService
                 PolicyService::query()->create([
                     'policy_id' => $policy->id,
                     'service_id' => $coverage->service_id,
-                    'doctor_service_id' => null,
-                    'doctor_coupon_id' => null,
+                    'coupon_id' => null,
                     'included' => (int) round((($coverage->events ?? 0) * $payload['members']) / 2),
                 ]);
             }
@@ -91,8 +90,6 @@ class GroupPolicyRegistrationService
                     'policy_id' => $policy->id,
                     'service_id' => null,
                     'coupon_id' => $benefit->coupon_id,
-                    'doctor_service_id' => $benefit->doctor_service_id,
-                    'doctor_coupon_id' => $benefit->doctor_coupon_id,
                     'included' => (int) round((($benefit->events ?? 0) * $payload['members']) / 2),
                 ]);
             }

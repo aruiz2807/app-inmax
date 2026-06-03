@@ -75,8 +75,7 @@ class IndividualPolicyRegistrationService
                     PolicyService::query()->create([
                         'policy_id' => $policy->id,
                         'service_id' => $coverage->service_id,
-                        'doctor_service_id' => null,
-                        'doctor_coupon_id' => null,
+                        'coupon_id' => null,
                         'included' => $coverage->events ?? 0,
                     ]);
                 }
@@ -90,8 +89,6 @@ class IndividualPolicyRegistrationService
                         'policy_id' => $policy->id,
                         'service_id' => null,
                         'coupon_id' => $benefit->coupon_id,
-                        'doctor_service_id' => $benefit->doctor_service_id,
-                        'doctor_coupon_id' => $benefit->doctor_coupon_id,
                         'included' => $benefit->events ?? 0,
                     ]);
                 }
