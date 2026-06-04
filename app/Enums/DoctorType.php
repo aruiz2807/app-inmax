@@ -5,8 +5,7 @@ namespace App\Enums;
 enum DoctorType: string
 {
     case Doctor = 'Doctor';
-    case Lab = 'Lab';
-    case Hospital = 'Hospital';
+    case Provider = 'Provider';
 
     public function label(): string
     {

@@ -66,7 +66,7 @@
             Ver historial
         </a>
 
-        @if ($user->doctor->specialty_id != $paramGMSpeciality->value || $user->doctor->type === \App\Enums\DoctorType::Lab || $user->doctor->type === \App\Enums\DoctorType::Hospital)
+        @if ($user->doctor->specialty_id != $paramGMSpeciality->value || $user->doctor->type === \App\Enums\DoctorType::Provider)
             <a href="{{ route('doctor.requests') }}" class="inline-flex items-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 transition">
                 Ver solicitudes
             </a>

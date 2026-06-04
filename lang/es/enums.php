@@ -2,9 +2,8 @@
 
 return [
     'doctor_type' => [
-        'Doctor' => 'Medico',
-        'Hospital' => 'Hospital',
-        'Lab' => 'Laboratorio',
+        'Doctor' => 'Médico especialista',
+        'Provider' => 'Proveedor de servicios',
     ],
 
     'external_services_type' => [
