@@ -149,12 +149,9 @@ class DRNotesPage extends Component
         $subtotal = floatval(str_replace(',', '', $this->subtotal));
 
         $couponCheck = function ($q) use ($serviceIds, $subtotal, $doctorId) {
-            // Check if coupon is valid for this doctor
-            $q->where(function ($doctorQuery) use ($doctorId) {
-                $doctorQuery->whereDoesntHave('doctors')
-                    ->orWhereHas('doctors', function ($dq) use ($doctorId) {
-                        $dq->where('doctor_id', $doctorId);
-                    });
+            // Check if coupon is valid for this doctor (must be assigned to them)
+            $q->whereHas('doctors', function ($dq) use ($doctorId) {
+                $dq->where('doctor_id', $doctorId);
             });
 
             // Universal coupon (no service_id) or specific to one of the appointment services

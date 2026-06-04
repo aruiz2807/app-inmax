@@ -23,8 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DoctorCoupon> $doctorCoupons
- * @property-read int|null $doctor_coupons_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CouponDoctor> $couponDoctors
+ * @property-read int|null $coupon_doctors_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DoctorService> $doctorServices
  * @property-read int|null $doctor_services_count
  * @property-read mixed $formatted_status
@@ -150,14 +150,6 @@ class Doctor extends Model
     public function doctorServices(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(DoctorService::class);
-    }
-
-    /**
-     * Each doctor can have many doctor coupons.
-     */
-    public function doctorCoupons(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(DoctorCoupon::class);
     }
 
     /**

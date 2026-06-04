@@ -151,5 +151,4 @@
     </x-ui.modal>
 
     <livewire:doctors.doctor-services-modal />
-    <livewire:doctors.doctor-coupons-modal />
 </div>

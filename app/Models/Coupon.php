@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DoctorCoupon> $doctorCoupons
- * @property-read int|null $doctor_coupons_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CouponDoctor> $couponDoctors
+ * @property-read int|null $coupon_doctors_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Doctor> $doctors
  * @property-read int|null $doctors_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon newModelQuery()
@@ -49,11 +49,11 @@ class Coupon extends Model
     ];
 
     /**
-     * Each coupon may have one or many doctor coupons.
+     * Each coupon may have one or many coupon doctors.
      */
-    public function doctorCoupons(): HasMany
+    public function couponDoctors(): HasMany
     {
-        return $this->hasMany(DoctorCoupon::class);
+        return $this->hasMany(CouponDoctor::class);
     }
 
     /**
@@ -61,7 +61,7 @@ class Coupon extends Model
      */
     public function doctors()
     {
-        return $this->belongsToMany(Doctor::class, 'doctor_coupons');
+        return $this->belongsToMany(Doctor::class, 'coupon_doctors');
     }
 
     /**

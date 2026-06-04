@@ -15,14 +15,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read \App\Models\Doctor $doctor
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PlanBenefit> $planBenefits
  * @property-read int|null $plan_benefits_count
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon whereCouponId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon whereDoctorId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|DoctorCoupon whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor whereCouponId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor whereDoctorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CouponDoctor whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 class CouponDoctor extends Model

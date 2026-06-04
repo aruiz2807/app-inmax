@@ -181,11 +181,8 @@ class PaymentPage extends Component
             ->whereNotNull('coupon_id')
             ->whereColumn('used', '<', 'included')
             ->whereHas('coupon', function ($query) use ($serviceIds, $subtotal) {
-                $query->where(function ($doctorQuery) {
-                    $doctorQuery->whereDoesntHave('doctors')
-                        ->orWhereHas('doctors', function ($dq) {
-                            $dq->where('doctor_id', $this->appointment->doctor_id);
-                        });
+                $query->whereHas('doctors', function ($dq) {
+                    $dq->where('doctor_id', $this->appointment->doctor_id);
                 })
                 ->where(function ($serviceQuery) use ($serviceIds) {
                     $serviceQuery->whereNull('service_id')
