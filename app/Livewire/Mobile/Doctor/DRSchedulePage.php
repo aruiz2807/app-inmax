@@ -52,7 +52,7 @@ class DRSchedulePage extends Component
 
         $currentDoctor = Auth::user()?->doctor;
         $currentDoctorType = $currentDoctor?->type;
-        if (in_array($currentDoctorType, [DoctorType::Lab, DoctorType::Hospital], true)) {
+        if (in_array($currentDoctorType, [DoctorType::Provider], true)) {
             $doctorsQuery->where(function ($query) use ($paramSpecialty, $currentDoctor) {
                 $query->where(function ($doctorQuery) use ($paramSpecialty) {
                     $doctorQuery->where('type', DoctorType::Doctor)
