@@ -52,7 +52,7 @@
                 @foreach($selectedAppointmentServices as $service)
                     <div class="grid grid-cols-5 items-center gap-2">
                         <div class="col-span-3">
-                            <x-ui.text class="text-sm pr-2">{{$service->service->name}}</x-ui.text>
+                            <x-ui.text class="text-sm pr-2">{{$service->name}}</x-ui.text>
                             @if($service->attachment_name)
                                 <x-ui.text class="text-xs text-neutral-500 mt-1">Adjunto actual:</x-ui.text>
                                 <a href="{{ route('attachment.download', $service->id) }}" class="text-xs text-blue-600 hover:underline break-all">

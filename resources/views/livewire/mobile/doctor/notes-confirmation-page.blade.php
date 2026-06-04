@@ -49,7 +49,7 @@
                         @foreach ($note->appointment->services as $service)
                             @if($service->status === 'Completed')
                             <tr>
-                                <td class="desc">{!! nl2br(e($service->service->name)) !!}</td>
+                                <td class="desc">{!! nl2br(e($service->name)) !!}</td>
                                 <td class="price">
                                     <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
                                         {{ $service->covered_text }}

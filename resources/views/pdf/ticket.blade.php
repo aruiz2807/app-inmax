@@ -105,7 +105,7 @@
                 @if($service->status === 'Completed')
                 <tr>
                     <td class="qty">1</td>
-                    <td class="desc">{!! nl2br(e($service->service->name)) !!}</td>
+                    <td class="desc">{!! nl2br(e($service->name)) !!}</td>
                     <td class="price">{{ $service->covered ? 'Incluido' : 'Adicional' }}</td>
                 </tr>
                 @endif

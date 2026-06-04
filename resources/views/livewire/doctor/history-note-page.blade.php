@@ -39,7 +39,7 @@
                 <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">
                     @foreach($services as $service)
                         <div class="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3">
-                            <x-ui.text class="pr-2 text-base">{{ $service->service->name }}</x-ui.text>
+                            <x-ui.text class="pr-2 text-base">{{ $service->name }}</x-ui.text>
                             <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
                                 {{ $service->covered_text }}
                             </x-ui.badge>

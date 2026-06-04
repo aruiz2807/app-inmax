@@ -184,7 +184,7 @@
                 <table class="item-table">
                     <tr class="item-row">
                         <td>
-                            <div class="item-title">{!! nl2br(e($service->service->name)) !!}</div>
+                            <div class="item-title">{!! nl2br(e($service->name)) !!}</div>
                         </td>
                     </tr>
                 </table>

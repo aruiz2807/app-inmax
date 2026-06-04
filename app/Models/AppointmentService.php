@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $appointment_id
- * @property int $service_id
+ * @property int|null $service_id
+ * @property string|null $unregistered_service
  * @property int $covered
  * @property string|null $attachment_path
  * @property string|null $attachment_name
@@ -44,6 +45,7 @@ class AppointmentService extends Model
     protected $fillable = [
         'appointment_id',
         'service_id',
+        'unregistered_service',
         'covered',
         'status',
         'attachment_path',
@@ -88,5 +90,13 @@ class AppointmentService extends Model
     protected function getCoveredTextAttribute()
     {
         return $this->covered ? 'Incluido' : 'Adicional';
+    }
+
+    /**
+     * Get the service name (either from relationship or unregistered field)
+     */
+    protected function getNameAttribute()
+    {
+        return $this->service?->name ?? $this->unregistered_service;
     }
 }

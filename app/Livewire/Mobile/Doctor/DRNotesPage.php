@@ -455,7 +455,7 @@ class DRNotesPage extends Component
             }
 
             if (empty($this->form->attachments[$service->id])) {
-                $missingServiceNames[] = (string) $service->service->name;
+                $missingServiceNames[] = (string) $service->name;
             }
         }
 

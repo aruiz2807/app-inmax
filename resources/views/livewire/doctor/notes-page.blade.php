@@ -40,7 +40,7 @@
                     @foreach($services as $service)
                         <div class="grid grid-cols-12 items-center gap-2 pb-2">
                             <div class="col-span-5">
-                                <x-ui.text class="text-base pr-1">{{ $service->service->name }}</x-ui.text>
+                                <x-ui.text class="text-base pr-1">{{ $service->name }}</x-ui.text>
                             </div>
 
                             <div class="col-span-3 flex justify-center">
@@ -206,7 +206,7 @@
                         @if(!empty($form->services[$service->id]))
                             <div class="grid grid-cols-5 items-center gap-2 pb-2">
                                 <div class="col-span-2">
-                                    <x-ui.text class="text-base pr-2">{{ $service->service->name }}</x-ui.text>
+                                    <x-ui.text class="text-base pr-2">{{ $service->name }}</x-ui.text>
                                 </div>
 
                                 <div class="col-span-3">

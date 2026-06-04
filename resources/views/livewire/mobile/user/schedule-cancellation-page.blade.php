@@ -33,7 +33,7 @@
                     <x-ui.text>Servicios : </x-ui.text>
                     <div>
                     @foreach($appointment->services as $service)
-                        <x-ui.text class="font-semibold">{{ $service->service->name }}<br></x-ui.text>
+                        <x-ui.text class="font-semibold">{{ $service->name }}<br></x-ui.text>
                     @endforeach
                     </div>
                 </div>

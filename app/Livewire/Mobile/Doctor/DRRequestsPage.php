@@ -22,7 +22,8 @@ class DRRequestsPage extends Component
     {
         $user = Auth::user();
 
-        $this->requests = Appointment::where([
+        $this->requests = Appointment::with(['user.policy', 'services.service'])
+            ->where([
                 ['status', \App\Enums\AppointmentStatus::REQUESTED],
                 ['doctor_id', $user->doctor->id],
             ])

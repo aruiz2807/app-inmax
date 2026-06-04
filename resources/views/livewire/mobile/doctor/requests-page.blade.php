@@ -46,7 +46,7 @@
                     <div class="flex flex-col w-full">
                     @foreach($request->services as $service)
                         <div class="flex items-center justify-between pl-4 pb-2">
-                            <x-ui.text class="text-base pr-1">{{$service->service->name}}</x-ui.text>
+                            <x-ui.text class="text-base pr-1">{{$service->name}}</x-ui.text>
                             <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>{{$service->covered_text}}</x-ui.badge>
                         </div>
                     @endforeach

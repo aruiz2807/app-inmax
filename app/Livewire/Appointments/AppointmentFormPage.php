@@ -29,6 +29,8 @@ class AppointmentFormPage extends Component
     public $selectedDoctor;
     public $selectedOffice;
     public $selectedServices = [];
+    public $unregisteredServices = [];
+    public $newUnregisteredService = '';
 
     public $user;
     public $doctor;
@@ -81,6 +83,8 @@ class AppointmentFormPage extends Component
             'selectedDoctor',
             'selectedOffice',
             'selectedServices',
+            'unregisteredServices',
+            'newUnregisteredService',
             'selectedDate',
             'selectedTime',
             'offices',
@@ -90,14 +94,38 @@ class AppointmentFormPage extends Component
         $this->selectedTime = $this->availableHours[0]['id'] ?? null;
     }
 
+    public function addUnregisteredService()
+    {
+        $this->validate([
+            'newUnregisteredService' => 'required|string|max:255',
+        ]);
+
+        $this->unregisteredServices[] = $this->newUnregisteredService;
+        $this->newUnregisteredService = '';
+
+        $this->dispatch('close-custom-service-modal');
+    }
+
+    public function removeUnregisteredService($index)
+    {
+        unset($this->unregisteredServices[$index]);
+        $this->unregisteredServices = array_values($this->unregisteredServices);
+    }
+
     public function schedule(AppointmentRequestNotificationService $appointmentNotificationService)
     {
         $this->validate([
-            'selectedServices' => 'required|array|min:1',
+            'selectedServices' => 'required_without:unregisteredServices|array',
+            'unregisteredServices' => 'required_without:selectedServices|array',
         ], [
-            'selectedServices.required' => 'Debe seleccionar al menos un servicio.',
-            'selectedServices.min' => 'Debe seleccionar al menos un servicio.',
+            'selectedServices.required_without' => 'Debe seleccionar al menos un servicio.',
+            'unregisteredServices.required_without' => 'Debe seleccionar al menos un servicio.',
         ]);
+
+        if (empty($this->selectedServices) && empty($this->unregisteredServices)) {
+            $this->addError('selectedServices', 'Debe seleccionar al menos un servicio.');
+            return;
+        }
 
         $notificationResult = null;
 
@@ -128,7 +156,8 @@ class AppointmentFormPage extends Component
             {
                 AppointmentService::create([
                     'appointment_id' => $appointment->id,
-                    'service_id' => $service['id'],
+                    'service_id' => $service['id'] ?? null,
+                    'unregistered_service' => $service['unregistered_service'] ?? null,
                     'covered' => $service['included'],
                 ]);
             }
@@ -186,7 +215,8 @@ class AppointmentFormPage extends Component
         $this->selectedDate = $this->appointment->date->format('Y-m-d');
         $this->selectedTime = $this->appointment->time->format('H:i');
 
-        $this->selectedServices = $appointmentServices->pluck('service_id')->toArray();
+        $this->selectedServices = $appointmentServices->whereNotNull('service_id')->pluck('service_id')->toArray();
+        $this->unregisteredServices = $appointmentServices->whereNull('service_id')->pluck('unregistered_service')->toArray();
     }
 
     #[Computed]
@@ -207,7 +237,11 @@ class AppointmentFormPage extends Component
     #[Computed]
     public function servicesData()
     {
-        if (!$this->selectedUser || !$this->selectedServices || empty($this->selectedServices)) {
+        if (!$this->selectedUser) {
+            return [];
+        }
+
+        if (empty($this->selectedServices) && empty($this->unregisteredServices)) {
             return [];
         }
 
@@ -218,20 +252,37 @@ class AppointmentFormPage extends Component
             ? $user->policy->parent_policy_id
             : $user->policy->id;
 
-        $services = Service::whereIn('id', $this->selectedServices)->get();
+        $data = collect();
 
-        return $services->map(function ($service) use ($policyId) {
-            $isCovered = PolicyService::where('policy_id', $policyId)
-                ->where('service_id', $service->id)
-                ->whereColumn('used', '<', 'included')
-                ->exists();
+        if (!empty($this->selectedServices)) {
+            $services = Service::whereIn('id', $this->selectedServices)->get();
 
-            return [
-                'id' => $service->id,
-                'name' => $service->name,
-                'included' => $isCovered,
-            ];
-        })->toArray();
+            $data = $services->map(function ($service) use ($policyId) {
+                $isCovered = PolicyService::where('policy_id', $policyId)
+                    ->where('service_id', $service->id)
+                    ->whereColumn('used', '<', 'included')
+                    ->exists();
+
+                return [
+                    'id' => $service->id,
+                    'unregistered_service' => null,
+                    'name' => $service->name,
+                    'included' => $isCovered,
+                ];
+            });
+        }
+
+        foreach ($this->unregisteredServices as $index => $unregistered) {
+            $data->push([
+                'id' => null,
+                'unregistered_service' => $unregistered,
+                'name' => $unregistered,
+                'included' => false, // Custom services are not covered by default
+                'index' => $index,
+            ]);
+        }
+
+        return $data->toArray();
     }
 
     public function getAvailableDatesProperty()

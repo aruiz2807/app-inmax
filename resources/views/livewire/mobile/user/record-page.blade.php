@@ -127,7 +127,7 @@
 
                                             @foreach($record->services as $service)
                                                 @if($service->status === 'Completed')
-                                                <x-ui.text class="text-sm">{{$service->service->name}}</x-ui.text>
+                                                <x-ui.text class="text-sm">{{$service->name}}</x-ui.text>
                                                 @endif
                                             @endforeach
                                         </div>

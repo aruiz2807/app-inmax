@@ -46,7 +46,7 @@
                     if ($service->coupon_id) {
                         $name = $service->coupon->name ?? 'N/A';
                     } else {
-                        $name = $service->service->name ?? 'N/A';
+                        $name = $service->name ?? 'N/A';
                     }
                 @endphp
                 <div class="grid grid-cols-[auto_6rem_2rem] justify-stretch items-center p-4">
