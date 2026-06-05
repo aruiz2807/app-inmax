@@ -18,8 +18,10 @@ return new class extends Migration
             $table->boolean('adjustment')->default(false);
             $table->integer('quantity')->default(0);
             $table->text('reference')->nullable();
-            $table->foreignId('prescription_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('medication_purchase_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('prescription_id')->nullable()->constrained(
+                table: 'appointment_prescriptions'
+            )->nullOnDelete();
+            //$table->foreignId('medication_purchase_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
