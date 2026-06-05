@@ -129,7 +129,18 @@
                             @click="open = false"
                             class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-100 dark:border-neutral-700 last:border-0"
                         >
-                            <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
+                            <div class="flex items-center gap-2">
+                                <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
+                                @if($medication->quantity > 0)
+                                    <x-ui.badge color="green" pill size="sm">
+                                        {{ (int) $medication->quantity }}
+                                    </x-ui.badge>
+                                @else
+                                    <x-ui.badge color="red" pill size="sm">
+                                        0
+                                    </x-ui.badge>
+                                @endif
+                            </div>
                             <x-ui.text class="text-xs opacity-75">{{ $medication->packaging }} ({{ $medication->trade_name }})</x-ui.text>
                         </div>
                     @empty
