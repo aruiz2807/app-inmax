@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property int $id
  * @property string $code
+ * @property string $ean_code
  * @property string $name
  * @property string $trade_name
  * @property string $active_substance
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $packaging
  * @property numeric $price_public
  * @property numeric $price_members
+ * @property numeric $quantity
  * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -46,6 +48,7 @@ class Medication extends Model
      */
     protected $fillable = [
         'code',
+        'ean_code',
         'name',
         'trade_name',
         'active_substance',
@@ -53,6 +56,7 @@ class Medication extends Model
         'packaging',
         'price_public',
         'price_members',
+        'quantity',
         'status',
     ];
 }

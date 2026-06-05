@@ -47,6 +47,7 @@ final class MedicationsTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('code')
+            ->add('ean_code')
             ->add('name')
             ->add('trade_name')
             ->add('active_substance')
@@ -56,6 +57,7 @@ final class MedicationsTable extends PowerGridComponent
             ->add('price_public_formatted', fn ($model) => Number::currency($model->price_public, in: 'MXN', locale: 'es_MX'))
             ->add('price_members')
             ->add('price_members_formatted', fn ($model) => Number::currency($model->price_members, in: 'MXN', locale: 'es_MX'))
+            ->add('quantity')
             ->add('status')
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
@@ -70,6 +72,10 @@ final class MedicationsTable extends PowerGridComponent
             Column::make('Id', 'id'),
 
             Column::make('Código', 'code')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('EAN', 'ean_code')
                 ->sortable()
                 ->searchable(),
 
@@ -99,6 +105,9 @@ final class MedicationsTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Precio Miembros', 'price_members_formatted', 'price_members')
+                ->sortable(),
+
+            Column::make('Cantidad', 'quantity')
                 ->sortable(),
 
             Column::make('Estatus', 'status_toggle', 'status')
