@@ -34,17 +34,9 @@
 
             <a href="#" class="w-full mt-4 flex flex-col bg-[#E3F2FD] rounded-xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
             @foreach ($services as $service)
-                @php
-                    $name = null;
-                    if ($service->coupon_id) {
-                        $name = $service->coupon->name ?? 'N/A';
-                    } else {
-                        $name = $service->name ?? 'N/A';
-                    }
-                @endphp
                 <div class="grid grid-cols-[auto_6rem_2rem] justify-stretch items-center p-4">
                     <div class="flex flex-col pr-2">
-                        <x-ui.text>{{ $name }}</x-ui.text>
+                        <x-ui.text>{{ $service->name }}</x-ui.text>
                     </div>
                     <x-ui.text class="opacity-50">{{ $service->used }} de {{ $service->included }} usados</x-ui.text>
                     <x-ui.icon :name="$service->level" :class="'justify-self-end '.$service->color" />

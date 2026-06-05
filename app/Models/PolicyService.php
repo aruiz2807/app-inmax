@@ -94,6 +94,18 @@ class PolicyService extends Model
     }
 
     /**
+     * Get the service's name (either from service or coupon)
+     */
+    protected function getNameAttribute()
+    {
+        if ($this->coupon_id) {
+            return $this->coupon->name ?? 'N/A';
+        }
+
+        return $this->service->name ?? 'N/A';
+    }
+
+    /**
      * Each policy service belongs to one policy.
      */
     public function policy(): BelongsTo
