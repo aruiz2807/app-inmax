@@ -31,7 +31,7 @@
 
                                 <div class="flex flex-col w-full">
                                     <div class="flex items-center justify-between pl-4 pb-2">
-                                        <x-ui.text class="text-base pr-1">{{ $appointmentService->service?->name ?? 'Servicio' }}</x-ui.text>
+                                        <x-ui.text class="text-base pr-1">{{ $appointmentService->name ?? 'Servicio' }}</x-ui.text>
                                         <x-ui.badge :icon="$appointmentService->covered_icon" variant="outline" :color="$appointmentService->covered_color" pill>
                                             {{ $appointmentService->covered_text }}
                                         </x-ui.badge>
