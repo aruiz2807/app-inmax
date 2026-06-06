@@ -131,9 +131,9 @@
                         >
                             <div class="flex items-center gap-2">
                                 <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
-                                @if($medication->quantity > 0)
+                                @if($medication->existences > 0)
                                     <x-ui.badge color="green" pill size="sm">
-                                        {{ (int) $medication->quantity }}
+                                        {{ (int) $medication->existences }}
                                     </x-ui.badge>
                                 @else
                                     <x-ui.badge color="red" pill size="sm">

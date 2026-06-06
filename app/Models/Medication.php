@@ -59,4 +59,22 @@ class Medication extends Model
         'quantity',
         'status',
     ];
+
+    public function movements()
+    {
+        return $this->hasMany(MedicationMovement::class);
+    }
+
+    public function getExistencesAttribute()
+    {
+        $in = $this->movements()
+            ->where('type', 'IN')
+            ->sum('quantity');
+
+        $out = $this->movements()
+            ->where('type', 'OUT')
+            ->sum('quantity');
+
+        return $in - $out;
+    }
 }
