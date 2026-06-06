@@ -2,10 +2,14 @@
 
 namespace App\Livewire\Clerk;
 
+use App\Enums\MedicationMovementType;
+
 use App\Models\Appointment;
 use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Models\User;
+use App\Models\MedicationMovement;
+
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -194,6 +198,18 @@ class CheckoutModal extends Component
                 $prescription->update([
                     'status' => 'Dispensed',
                     'delivered_quantity' => $qty,
+                ]);
+
+                //update medications_movements table
+                MedicationMovement::create([
+                    'medication_id' => $prescription->medication_id,
+                    'type' => MedicationMovementType::OUT,
+                    'adjustment' => 0,
+                    'quantity' => $qty,
+                    'reference' => "Receta surtida - Cita #{$appointment->id}",
+                    'prescription_id' => $prescription->id,
+                    //'medication_purchase_id' => null,
+                    'user_id' => $this->user?->id,
                 ]);
 
                 $dispensedCount++;
