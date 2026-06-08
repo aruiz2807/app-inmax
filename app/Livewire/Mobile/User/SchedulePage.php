@@ -113,6 +113,7 @@ class SchedulePage extends Component
         if (!$this->selectedDate) {
             return [];
         }
+        $isSaturday = Carbon::parse($this->selectedDate)->isSaturday();
 
         $usedSlots = Appointment::whereDate('date', $this->selectedDate)
             ->where('office_id', $this->selectedOffice)
@@ -125,6 +126,13 @@ class SchedulePage extends Component
             ->sortBy(fn ($item) => Carbon::createFromFormat('h:i A', $item->slot))
             ->pluck('slot')
             ->toArray();
+
+        if ($isSaturday) {
+            $slots = array_filter($slots, function ($slot) {
+                $hour = Carbon::createFromFormat('h:i A', $slot)->hour;
+                return $hour >= 9 && $hour <= 13; // Only show slots from 9 AM to 1 PM on Saturdays
+            });
+        }
 
         return collect($slots)
             ->map(function ($slot) use ($usedSlots) {

@@ -317,6 +317,11 @@ class AppointmentFormPage extends Component
         $usedSlots = [];
         $endHour = 22; // 10 PM
 
+        // Fetch Medico General specialty
+        $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
+        $isMedicoGeneral = $doctor?->specialty_id == $paramSpecialty?->value;
+        $isSaturday = Carbon::parse($this->selectedDate)->isSaturday();
+
         if (Carbon::parse($this->selectedDate)->isToday()) {
             $startHour = now()->addHours(2)->hour;
         }
@@ -332,7 +337,7 @@ class AppointmentFormPage extends Component
             }
         }
 
-        if($doctor?->specialty_id == 1 && $this->selectedOffice)
+        if($isMedicoGeneral && $this->selectedOffice)
         {
             $usedSlots = Appointment::whereDate('date', $this->selectedDate)
                 ->where('office_id', $this->selectedOffice)
@@ -341,10 +346,17 @@ class AppointmentFormPage extends Component
                 ->map(fn ($time) => Carbon::parse($time)->format('H:i'))
                 ->toArray();
 
-            $slots = Office::find($this->selectedOffice)->officeHours
+            if($isSaturday) {
+                $slots = array_filter($slots, function ($slot) {
+                    $hour = Carbon::createFromFormat('h:i A', $slot)->hour;
+                    return $hour >= 9 && $hour <= 13; // Only show slots from 9 AM to 1 PM on Saturdays
+                });
+            } else {
+                $slots = Office::find($this->selectedOffice)->officeHours
                 ->sortBy(fn ($item) => Carbon::createFromFormat('h:i A', $item->slot))
                 ->pluck('slot')
                 ->toArray();
+            }
         }
 
         return collect($slots)
