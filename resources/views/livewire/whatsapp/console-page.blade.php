@@ -109,6 +109,7 @@
 
                             <button
                                 type="button"
+                                wire:key="conversation-list-item-{{ $conversation->id }}"
                                 wire:click="selectConversation({{ $conversation->id }})"
                                 class="{{ $isSelected ? 'border-teal-300 bg-teal-50' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50' }} w-full rounded-xl border p-3 text-left transition"
                             >
@@ -232,7 +233,10 @@
             </x-ui.card>
         </div>
 
-        <x-ui.card size="full">
+        <x-ui.card
+            size="full"
+            wire:key="conversation-detail-{{ $selectedConversation?->id ?? 'empty' }}"
+        >
             @if ($selectedConversation)
                 @php
                     $contact = $selectedConversation->contact;
@@ -438,7 +442,10 @@
                                 : 'bg-slate-50 text-slate-900 border-slate-200';
                         @endphp
 
-                        <div class="flex {{ $alignment }}">
+                        <div
+                            class="flex {{ $alignment }}"
+                            wire:key="conversation-message-{{ $message->id }}"
+                        >
                             <div class="{{ $bubbleClasses }} max-w-2xl rounded-2xl border px-4 py-3 shadow-sm">
                                 <div class="flex items-center justify-between gap-4">
                                     <span class="text-[11px] font-semibold uppercase tracking-wide {{ $isOutbound ? 'text-teal-100' : 'text-slate-500' }}">
