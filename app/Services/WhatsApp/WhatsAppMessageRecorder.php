@@ -184,6 +184,8 @@ class WhatsAppMessageRecorder
     ): void {
         $conversation->forceFill([
             'last_message_at' => $timestamp,
+            'status' => 'open',
+            'archived_at' => null,
         ])->save();
 
         $contact = $conversation->contact;

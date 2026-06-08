@@ -153,7 +153,7 @@ Route::middleware([
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
 
         Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
-        Route::get('/whatsapp/console', WhatsAppConsolePage::class)->name('whatsapp.console');
+        Route::get('/whatsapp/console', WhatsAppConsolePage::class)->middleware('admin')->name('whatsapp.console');
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
         Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');

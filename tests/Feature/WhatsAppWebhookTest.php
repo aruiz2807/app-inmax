@@ -40,6 +40,20 @@ class WhatsAppWebhookTest extends TestCase
             'app_secret' => 'meta_app_secret_12345',
         ]);
 
+        $contact = WhatsAppContact::query()->create([
+            'name' => 'Prospecto archivado',
+            'phone' => '5213318259507',
+            'normalized_phone' => '523318259507',
+            'wa_id' => '5213318259507',
+            'unread_count' => 0,
+        ]);
+
+        $conversation = WhatsAppConversation::query()->create([
+            'whatsapp_contact_id' => $contact->id,
+            'status' => 'archived',
+            'archived_at' => now()->subHour(),
+        ]);
+
         $payload = [
             'object' => 'whatsapp_business_account',
             'entry' => [
@@ -112,6 +126,10 @@ class WhatsAppWebhookTest extends TestCase
         $this->assertDatabaseHas('whatsapp_message_statuses', [
             'status' => 'received',
         ]);
+
+        $conversation->refresh();
+        $this->assertSame('open', $conversation->status);
+        $this->assertNull($conversation->archived_at);
 
         $this->assertSame('ok', $setting->fresh()->webhook_last_status);
         $this->assertNotNull($setting->fresh()->webhook_last_received_at);
