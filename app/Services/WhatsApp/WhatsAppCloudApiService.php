@@ -68,26 +68,16 @@ class WhatsAppCloudApiService
             $payload['template']['components'] = $components;
         }
 
-        $endpoint = sprintf(
-            'https://graph.facebook.com/%s/%s/messages',
-            $setting->api_version,
-            $setting->phone_number_id
-        );
-
-        $response = Http::acceptJson()
-            ->withToken($setting->access_token)
-            ->post($endpoint, $payload);
-
-        $responseData = $response->json();
+        $result = $this->dispatchMessage($setting, $payload);
 
         Log::info('WHATSAPP_TEMPLATE_SEND', [
-            'endpoint' => $endpoint,
-            'status' => $response->status(),
+            'endpoint' => $this->endpoint($setting),
+            'status' => $result['status'],
             'template' => $templateName,
             'language_code' => $languageCode,
             'to' => $payload['to'],
-            'ok' => $response->successful(),
-            'response' => $responseData,
+            'ok' => $result['ok'],
+            'response' => $result['data'],
         ]);
 
         try {
@@ -98,16 +88,83 @@ class WhatsAppCloudApiService
                 parameters: $parameters,
                 buttonUrlParameters: $buttonUrlParameters,
                 payload: $payload,
-                responseData: is_array($responseData) ? $responseData : [],
-                ok: $response->successful(),
+                responseData: $result['data'],
+                ok: $result['ok'],
             );
         } catch (Throwable $exception) {
             Log::warning('WHATSAPP_MESSAGE_RECORD_FAILED', [
+                'type' => 'template',
                 'template' => $templateName,
                 'to' => $payload['to'],
                 'error' => $exception->getMessage(),
             ]);
         }
+
+        return $result;
+    }
+
+    /**
+     * Send a free-form text message using WhatsApp Cloud API.
+     *
+     * @return array{ok: bool, status: int, data: array<string, mixed>, payload: array<string, mixed>}
+     */
+    public function sendTextMessage(
+        WhatsAppSetting $setting,
+        string $to,
+        string $body,
+    ): array {
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $this->normalizePhone($to),
+            'type' => 'text',
+            'text' => [
+                'preview_url' => false,
+                'body' => $body,
+            ],
+        ];
+
+        $result = $this->dispatchMessage($setting, $payload);
+
+        Log::info('WHATSAPP_TEXT_SEND', [
+            'endpoint' => $this->endpoint($setting),
+            'status' => $result['status'],
+            'to' => $payload['to'],
+            'ok' => $result['ok'],
+            'response' => $result['data'],
+        ]);
+
+        try {
+            $this->messageRecorder->recordOutboundText(
+                to: $payload['to'],
+                bodyText: $body,
+                payload: $payload,
+                responseData: $result['data'],
+                ok: $result['ok'],
+            );
+        } catch (Throwable $exception) {
+            Log::warning('WHATSAPP_MESSAGE_RECORD_FAILED', [
+                'type' => 'text',
+                'to' => $payload['to'],
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Dispatch a WhatsApp message payload through Meta Cloud API.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array{ok: bool, status: int, data: array<string, mixed>, payload: array<string, mixed>}
+     */
+    private function dispatchMessage(WhatsAppSetting $setting, array $payload): array
+    {
+        $response = Http::acceptJson()
+            ->withToken($setting->access_token)
+            ->post($this->endpoint($setting), $payload);
+
+        $responseData = $response->json();
 
         return [
             'ok' => $response->successful(),
@@ -115,6 +172,18 @@ class WhatsAppCloudApiService
             'data' => is_array($responseData) ? $responseData : [],
             'payload' => $payload,
         ];
+    }
+
+    /**
+     * Resolve the Graph API endpoint for outbound WhatsApp messages.
+     */
+    private function endpoint(WhatsAppSetting $setting): string
+    {
+        return sprintf(
+            'https://graph.facebook.com/%s/%s/messages',
+            $setting->api_version,
+            $setting->phone_number_id
+        );
     }
 
     /**

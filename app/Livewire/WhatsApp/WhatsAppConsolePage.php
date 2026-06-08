@@ -8,7 +8,9 @@ use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppSetting;
 use App\Models\WhatsAppWebhookEvent;
+use App\Services\WhatsApp\WhatsAppCloudApiService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -33,6 +35,7 @@ class WhatsAppConsolePage extends Component
     public bool $unreadOnly = false;
 
     public ?string $assignedUserId = null;
+    public string $replyMessage = '';
 
     #[Layout('layouts.app')]
     public function render()
@@ -122,6 +125,7 @@ class WhatsAppConsolePage extends Component
     public function selectConversation(int $conversationId): void
     {
         $this->selectedConversationId = $conversationId;
+        $this->replyMessage = '';
 
         $conversation = WhatsAppConversation::query()
             ->with('contact')
@@ -240,6 +244,104 @@ class WhatsAppConsolePage extends Component
     public function refreshConsole(): void
     {
         // Triggered by wire:poll to keep the console in sync with webhook traffic.
+    }
+
+    public function sendReply(WhatsAppCloudApiService $service): void
+    {
+        Validator::make([
+            'replyMessage' => $this->replyMessage,
+        ], [
+            'replyMessage' => ['required', 'string', 'max:4096'],
+        ], [
+            'replyMessage.required' => 'Escribe un mensaje antes de enviar.',
+        ])->validate();
+
+        if (! $this->selectedConversationId) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'Selecciona una conversación antes de responder.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $conversation = WhatsAppConversation::query()
+            ->with('contact')
+            ->find($this->selectedConversationId);
+
+        if (! $conversation || ! $conversation->contact) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'No se encontró la conversación seleccionada.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $phone = $conversation->contact->wa_id
+            ?: $conversation->contact->phone
+            ?: $conversation->contact->normalized_phone;
+
+        if (! filled($phone)) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'La conversación no tiene un número de teléfono válido.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $setting = WhatsAppSetting::query()->first();
+
+        if (! $setting || ! filled($setting->access_token) || ! filled($setting->phone_number_id)) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'Primero configura Access Token e ID de línea en WhatsApp.',
+                duration: 5000
+            );
+
+            return;
+        }
+
+        $body = trim($this->replyMessage);
+        $result = $service->sendTextMessage(
+            setting: $setting,
+            to: $phone,
+            body: $body,
+        );
+
+        if ($result['ok']) {
+            $this->replyMessage = '';
+
+            $this->dispatch(
+                'notify',
+                type: 'success',
+                content: 'Mensaje enviado correctamente.',
+                duration: 3000
+            );
+
+            return;
+        }
+
+        $errorMessage = data_get(
+            $result['data'],
+            'error.message',
+            'No fue posible enviar el mensaje de WhatsApp.'
+        );
+
+        $this->dispatch(
+            'notify',
+            type: 'error',
+            content: $errorMessage,
+            duration: 6000
+        );
     }
 
     private function markConversationAsRead(WhatsAppConversation $conversation): void

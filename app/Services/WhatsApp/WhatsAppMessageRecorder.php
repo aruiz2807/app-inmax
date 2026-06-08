@@ -28,38 +28,39 @@ class WhatsAppMessageRecorder
         array $responseData,
         bool $ok,
     ): WhatsAppMessage {
-        $contact = $this->contactService->findOrCreate($to);
-        $conversation = $this->findOrCreateConversation($contact->id);
-        $timestamp = now();
-        $message = WhatsAppMessage::query()->create([
-            'whatsapp_conversation_id' => $conversation->id,
-            'meta_message_id' => data_get($responseData, 'messages.0.id'),
-            'direction' => WhatsAppMessage::DIRECTION_OUTBOUND,
-            'type' => 'template',
-            'status' => $ok ? 'sent' : 'failed',
-            'to_phone' => $contact->normalized_phone,
-            'template_name' => $templateName,
-            'template_language_code' => $languageCode,
-            'body_text' => $this->buildTemplatePreview($templateName, $parameters, $buttonUrlParameters),
-            'payload' => [
-                'request' => $payload,
-                'response' => $responseData,
-            ],
-            'sent_at' => $ok ? $timestamp : null,
-            'failed_at' => $ok ? null : $timestamp,
-            'error_code' => $ok ? null : (string) data_get($responseData, 'error.code', ''),
-            'error_message' => $ok ? null : data_get($responseData, 'error.message'),
-        ]);
+        return $this->recordOutboundMessage(
+            to: $to,
+            type: 'template',
+            bodyText: $this->buildTemplatePreview($templateName, $parameters, $buttonUrlParameters),
+            payload: $payload,
+            responseData: $responseData,
+            ok: $ok,
+            templateName: $templateName,
+            languageCode: $languageCode,
+        );
+    }
 
-        $message->statuses()->create([
-            'status' => $message->status,
-            'meta_occurred_at' => $timestamp,
-            'payload' => $responseData,
-        ]);
-
-        $this->touchConversation($conversation, $timestamp, outbound: true);
-
-        return $message;
+    /**
+     * Persist an outbound free-form text message sent from the console.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $responseData
+     */
+    public function recordOutboundText(
+        string $to,
+        string $bodyText,
+        array $payload,
+        array $responseData,
+        bool $ok,
+    ): WhatsAppMessage {
+        return $this->recordOutboundMessage(
+            to: $to,
+            type: 'text',
+            bodyText: $bodyText,
+            payload: $payload,
+            responseData: $responseData,
+            ok: $ok,
+        );
     }
 
     /**
@@ -196,6 +197,57 @@ class WhatsAppMessageRecorder
             'last_outbound_at' => $outbound ? $timestamp : $contact->last_outbound_at,
             'unread_count' => $inbound ? $contact->unread_count + 1 : $contact->unread_count,
         ])->save();
+    }
+
+    /**
+     * Persist a generic outbound WhatsApp message and its first delivery state.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $responseData
+     */
+    private function recordOutboundMessage(
+        string $to,
+        string $type,
+        string $bodyText,
+        array $payload,
+        array $responseData,
+        bool $ok,
+        ?string $templateName = null,
+        ?string $languageCode = null,
+    ): WhatsAppMessage {
+        $contact = $this->contactService->findOrCreate($to);
+        $conversation = $this->findOrCreateConversation($contact->id);
+        $timestamp = now();
+
+        $message = WhatsAppMessage::query()->create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'meta_message_id' => data_get($responseData, 'messages.0.id'),
+            'direction' => WhatsAppMessage::DIRECTION_OUTBOUND,
+            'type' => $type,
+            'status' => $ok ? 'sent' : 'failed',
+            'to_phone' => $contact->normalized_phone,
+            'template_name' => $templateName,
+            'template_language_code' => $languageCode,
+            'body_text' => $bodyText,
+            'payload' => [
+                'request' => $payload,
+                'response' => $responseData,
+            ],
+            'sent_at' => $ok ? $timestamp : null,
+            'failed_at' => $ok ? null : $timestamp,
+            'error_code' => $ok ? null : (string) data_get($responseData, 'error.code', ''),
+            'error_message' => $ok ? null : data_get($responseData, 'error.message'),
+        ]);
+
+        $message->statuses()->create([
+            'status' => $message->status,
+            'meta_occurred_at' => $timestamp,
+            'payload' => $responseData,
+        ]);
+
+        $this->touchConversation($conversation, $timestamp, outbound: true);
+
+        return $message;
     }
 
     /**

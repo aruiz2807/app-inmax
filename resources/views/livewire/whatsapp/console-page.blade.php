@@ -375,6 +375,38 @@
                         </div>
                     @endforelse
                 </div>
+
+                <form wire:submit="sendReply" class="mt-4 border-t border-slate-200 pt-4">
+                    <div class="grid gap-3">
+                        <div>
+                            <x-ui.label>Responder por WhatsApp</x-ui.label>
+                            <x-ui.textarea
+                                wire:model.live="replyMessage"
+                                rows="4"
+                                placeholder="Escribe aquí la respuesta para el cliente..."
+                            />
+                            <p class="mt-1 text-xs text-slate-500">
+                                Meta solo permite texto libre dentro de la ventana activa de conversación.
+                            </p>
+                            <x-ui.error name="replyMessage" />
+                        </div>
+
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="text-xs text-slate-400">
+                                El mensaje se guardará también en esta consola.
+                            </p>
+
+                            <x-ui.button
+                                type="submit"
+                                icon="paper-airplane"
+                                variant="primary"
+                                color="teal"
+                            >
+                                Enviar mensaje
+                            </x-ui.button>
+                        </div>
+                    </div>
+                </form>
             @else
                 <div class="flex min-h-[28rem] items-center justify-center rounded-xl border border-dashed border-slate-300 text-sm text-slate-500">
                     Selecciona una conversación para ver el detalle.
