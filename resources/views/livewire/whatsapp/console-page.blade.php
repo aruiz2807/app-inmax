@@ -74,6 +74,18 @@
                                 <x-ui.select.option value="users">Usuarios vinculados</x-ui.select.option>
                             </x-ui.select>
                         </div>
+
+                        <div class="md:col-span-2 xl:col-span-1">
+                            <x-ui.label>Etiqueta</x-ui.label>
+                            <x-ui.select wire:model.live="filterTagId">
+                                <x-ui.select.option value="">Todas</x-ui.select.option>
+                                @foreach ($availableTags as $tag)
+                                    <x-ui.select.option value="{{ $tag->id }}">
+                                        {{ $tag->name }}
+                                    </x-ui.select.option>
+                                @endforeach
+                            </x-ui.select>
+                        </div>
                     </div>
 
                     <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
@@ -147,6 +159,12 @@
                                             Archivado
                                         </x-ui.badge>
                                     @endif
+
+                                    @foreach ($conversation->tags as $tag)
+                                        <x-ui.badge :color="$tag->color" variant="outline" size="sm" pill>
+                                            {{ $tag->name }}
+                                        </x-ui.badge>
+                                    @endforeach
                                 </div>
 
                                 <p class="truncate pt-2 text-xs text-slate-600">
@@ -314,6 +332,98 @@
                             @if ($selectedConversation->last_message_at)
                                 Último movimiento: {{ $selectedConversation->last_message_at->format('d/m/Y H:i') }}
                             @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 border-b border-slate-200 py-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+                    <div>
+                        <x-ui.label>Etiquetas asignadas</x-ui.label>
+
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            @forelse ($selectedConversation->tags as $tag)
+                                <div class="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1">
+                                    <x-ui.badge :color="$tag->color" variant="outline" size="sm" pill>
+                                        {{ $tag->name }}
+                                    </x-ui.badge>
+
+                                    <x-ui.button
+                                        type="button"
+                                        icon="x-mark"
+                                        size="sm"
+                                        variant="ghost"
+                                        color="rose"
+                                        wire:click="detachTag({{ $tag->id }})"
+                                    />
+                                </div>
+                            @empty
+                                <p class="text-sm text-slate-500">
+                                    Esta conversación aún no tiene etiquetas.
+                                </p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div class="grid gap-3">
+                        <div>
+                            <x-ui.label>Asignar etiqueta existente</x-ui.label>
+                            <div class="flex gap-2">
+                                <x-ui.select wire:model.live="selectedTagId" placeholder="Selecciona una etiqueta">
+                                    <x-ui.select.option value="">Selecciona una etiqueta</x-ui.select.option>
+                                    @foreach ($availableTags as $tag)
+                                        <x-ui.select.option value="{{ $tag->id }}">
+                                            {{ $tag->name }}
+                                        </x-ui.select.option>
+                                    @endforeach
+                                </x-ui.select>
+
+                                <x-ui.button
+                                    type="button"
+                                    icon="plus-circle"
+                                    variant="outline"
+                                    color="teal"
+                                    wire:click="attachSelectedTag"
+                                >
+                                    Agregar
+                                </x-ui.button>
+                            </div>
+                            <x-ui.error name="selectedTagId" />
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <p class="text-sm font-medium text-slate-900">Nueva etiqueta</p>
+
+                            <div class="grid gap-3 pt-3">
+                                <div>
+                                    <x-ui.label>Nombre</x-ui.label>
+                                    <x-ui.input wire:model.live="newTagName" placeholder="Ej. Urgente, Seguimiento, Cobranza" />
+                                    <x-ui.error name="newTagName" />
+                                </div>
+
+                                <div>
+                                    <x-ui.label>Color</x-ui.label>
+                                    <x-ui.select wire:model.live="newTagColor">
+                                        @foreach ($tagColors as $color)
+                                            <x-ui.select.option value="{{ $color }}">
+                                                {{ ucfirst($color) }}
+                                            </x-ui.select.option>
+                                        @endforeach
+                                    </x-ui.select>
+                                    <x-ui.error name="newTagColor" />
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <x-ui.button
+                                        type="button"
+                                        icon="plus-circle"
+                                        variant="primary"
+                                        color="teal"
+                                        wire:click="createTag"
+                                    >
+                                        Crear etiqueta
+                                    </x-ui.button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

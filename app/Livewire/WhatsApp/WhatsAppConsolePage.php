@@ -7,9 +7,11 @@ use App\Models\WhatsAppContact;
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppSetting;
+use App\Models\WhatsAppTag;
 use App\Models\WhatsAppWebhookEvent;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -32,10 +34,23 @@ class WhatsAppConsolePage extends Component
     #[Url(as: 'linked', except: 'all')]
     public string $linkedFilter = 'all';
 
+    #[Url(as: 'tag', except: '')]
+    public string $filterTagId = '';
+
     public bool $unreadOnly = false;
 
     public ?string $assignedUserId = null;
+    public string $selectedTagId = '';
+    public string $newTagName = '';
+    public string $newTagColor = 'blue';
     public string $replyMessage = '';
+
+    /**
+     * Allowed UI colors for conversation tags.
+     *
+     * @var array<int, string>
+     */
+    private const TAG_COLORS = ['blue', 'teal', 'emerald', 'amber', 'rose', 'indigo', 'purple'];
 
     #[Layout('layouts.app')]
     public function render()
@@ -49,7 +64,7 @@ class WhatsAppConsolePage extends Component
             : 'all';
 
         $conversations = WhatsAppConversation::query()
-            ->with(['contact.user', 'latestMessage', 'assignedUser'])
+            ->with(['contact.user', 'latestMessage', 'assignedUser', 'tags'])
             ->when($this->search !== '', function (Builder $query) {
                 $query->where(function (Builder $conversationQuery) {
                     $conversationQuery
@@ -67,6 +82,7 @@ class WhatsAppConsolePage extends Component
             ->when($this->statusFilter === 'archived', fn (Builder $query) => $query->where('status', 'archived'))
             ->when($this->linkedFilter === 'prospects', fn (Builder $query) => $query->whereHas('contact', fn (Builder $contactQuery) => $contactQuery->whereNull('user_id')))
             ->when($this->linkedFilter === 'users', fn (Builder $query) => $query->whereHas('contact', fn (Builder $contactQuery) => $contactQuery->whereNotNull('user_id')))
+            ->when($this->filterTagId !== '', fn (Builder $query) => $query->whereHas('tags', fn (Builder $tagQuery) => $tagQuery->whereKey((int) $this->filterTagId)))
             ->orderByDesc('last_message_at')
             ->limit(50)
             ->get();
@@ -81,13 +97,17 @@ class WhatsAppConsolePage extends Component
 
         $selectedConversation = $this->selectedConversationId
             ? WhatsAppConversation::query()
-                ->with(['contact.user', 'assignedUser', 'messages.statuses'])
+                ->with(['contact.user', 'assignedUser', 'messages.statuses', 'tags'])
                 ->find($this->selectedConversationId)
             : null;
 
         $this->assignedUserId = $selectedConversation?->assigned_user_id
             ? (string) $selectedConversation->assigned_user_id
             : null;
+
+        $availableTags = WhatsAppTag::query()
+            ->orderBy('name')
+            ->get();
 
         $summary = [
             'total_conversations' => WhatsAppConversation::query()->count(),
@@ -113,6 +133,8 @@ class WhatsAppConsolePage extends Component
 
         return view('livewire.whatsapp.console-page', [
             'assignableUsers' => $assignableUsers,
+            'availableTags' => $availableTags,
+            'tagColors' => self::TAG_COLORS,
             'conversations' => $conversations,
             'selectedConversation' => $selectedConversation,
             'selectedMessages' => $selectedConversation?->messages()->latest()->take(100)->get()->reverse()->values() ?? collect(),
@@ -125,6 +147,7 @@ class WhatsAppConsolePage extends Component
     public function selectConversation(int $conversationId): void
     {
         $this->selectedConversationId = $conversationId;
+        $this->selectedTagId = '';
         $this->replyMessage = '';
 
         $conversation = WhatsAppConversation::query()
@@ -246,6 +269,91 @@ class WhatsAppConsolePage extends Component
         // Triggered by wire:poll to keep the console in sync with webhook traffic.
     }
 
+    public function createTag(): void
+    {
+        Validator::make([
+            'newTagName' => $this->newTagName,
+            'newTagColor' => $this->newTagColor,
+        ], [
+            'newTagName' => ['required', 'string', 'max:50', 'unique:whatsapp_tags,name'],
+            'newTagColor' => ['required', 'in:'.implode(',', self::TAG_COLORS)],
+        ], [
+            'newTagName.required' => 'Escribe el nombre de la etiqueta.',
+            'newTagName.unique' => 'Ya existe una etiqueta con ese nombre.',
+        ])->validate();
+
+        $tag = WhatsAppTag::query()->create([
+            'name' => trim($this->newTagName),
+            'slug' => $this->generateUniqueTagSlug($this->newTagName),
+            'color' => $this->newTagColor,
+        ]);
+
+        if ($this->selectedConversationId) {
+            $conversation = WhatsAppConversation::query()->find($this->selectedConversationId);
+            $conversation?->tags()->syncWithoutDetaching([$tag->id]);
+        }
+
+        $this->selectedTagId = (string) $tag->id;
+        $this->newTagName = '';
+        $this->newTagColor = 'blue';
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: 'Etiqueta creada correctamente.',
+            duration: 3000
+        );
+    }
+
+    public function attachSelectedTag(): void
+    {
+        if (! $this->selectedConversationId) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'Selecciona una conversación antes de etiquetar.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        Validator::make([
+            'selectedTagId' => $this->selectedTagId,
+        ], [
+            'selectedTagId' => ['required', 'exists:whatsapp_tags,id'],
+        ], [
+            'selectedTagId.required' => 'Selecciona una etiqueta para asignarla.',
+        ])->validate();
+
+        $conversation = WhatsAppConversation::query()->find($this->selectedConversationId);
+        $conversation?->tags()->syncWithoutDetaching([(int) $this->selectedTagId]);
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: 'Etiqueta asignada correctamente.',
+            duration: 3000
+        );
+    }
+
+    public function detachTag(int $tagId): void
+    {
+        if (! $this->selectedConversationId) {
+            return;
+        }
+
+        $conversation = WhatsAppConversation::query()->find($this->selectedConversationId);
+        $conversation?->tags()->detach($tagId);
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: 'Etiqueta removida correctamente.',
+            duration: 3000
+        );
+    }
+
     public function sendReply(WhatsAppCloudApiService $service): void
     {
         Validator::make([
@@ -349,5 +457,19 @@ class WhatsAppConsolePage extends Component
         $conversation->contact->forceFill([
             'unread_count' => 0,
         ])->save();
+    }
+
+    private function generateUniqueTagSlug(string $name): string
+    {
+        $baseSlug = Str::slug($name);
+        $slug = $baseSlug !== '' ? $baseSlug : 'tag';
+        $counter = 2;
+
+        while (WhatsAppTag::query()->where('slug', $slug)->exists()) {
+            $slug = ($baseSlug !== '' ? $baseSlug : 'tag').'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 }

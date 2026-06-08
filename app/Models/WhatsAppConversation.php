@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -72,5 +73,18 @@ class WhatsAppConversation extends Model
     public function latestMessage(): HasOne
     {
         return $this->hasOne(WhatsAppMessage::class, 'whatsapp_conversation_id')->latestOfMany();
+    }
+
+    /**
+     * Tags assigned to the conversation.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            WhatsAppTag::class,
+            'whatsapp_conversation_tag',
+            'whatsapp_conversation_id',
+            'whatsapp_tag_id'
+        )->withTimestamps();
     }
 }

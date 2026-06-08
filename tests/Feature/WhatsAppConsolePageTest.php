@@ -8,6 +8,7 @@ use App\Models\WhatsAppContact;
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppSetting;
+use App\Models\WhatsAppTag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -231,6 +232,91 @@ class WhatsAppConsolePageTest extends TestCase
             'status' => 'sent',
             'to_phone' => '523315556677',
             'body_text' => 'Claro, con gusto te apoyamos.',
+        ]);
+    }
+
+    public function test_admin_can_create_assign_filter_and_remove_tags_from_conversations(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $firstContact = WhatsAppContact::query()->create([
+            'name' => 'Prospecto Etiqueta',
+            'phone' => '3312001111',
+            'normalized_phone' => '523312001111',
+            'last_message_at' => now(),
+        ]);
+
+        $firstConversation = WhatsAppConversation::query()->create([
+            'whatsapp_contact_id' => $firstContact->id,
+            'status' => 'open',
+            'last_message_at' => now(),
+        ]);
+
+        WhatsAppMessage::query()->create([
+            'whatsapp_conversation_id' => $firstConversation->id,
+            'direction' => WhatsAppMessage::DIRECTION_INBOUND,
+            'type' => 'text',
+            'status' => 'received',
+            'from_phone' => '523312001111',
+            'body_text' => 'Mensaje uno',
+            'received_at' => now(),
+        ]);
+
+        $secondContact = WhatsAppContact::query()->create([
+            'name' => 'Prospecto Sin Etiqueta',
+            'phone' => '3312002222',
+            'normalized_phone' => '523312002222',
+            'last_message_at' => now()->subMinute(),
+        ]);
+
+        $secondConversation = WhatsAppConversation::query()->create([
+            'whatsapp_contact_id' => $secondContact->id,
+            'status' => 'open',
+            'last_message_at' => now()->subMinute(),
+        ]);
+
+        WhatsAppMessage::query()->create([
+            'whatsapp_conversation_id' => $secondConversation->id,
+            'direction' => WhatsAppMessage::DIRECTION_INBOUND,
+            'type' => 'text',
+            'status' => 'received',
+            'from_phone' => '523312002222',
+            'body_text' => 'Mensaje dos',
+            'received_at' => now()->subMinute(),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(WhatsAppConsolePage::class)
+            ->call('selectConversation', $firstConversation->id)
+            ->set('newTagName', 'Urgente')
+            ->set('newTagColor', 'rose')
+            ->call('createTag')
+            ->assertHasNoErrors();
+
+        $tag = WhatsAppTag::query()->where('name', 'Urgente')->firstOrFail();
+
+        $this->assertDatabaseHas('whatsapp_conversation_tag', [
+            'whatsapp_conversation_id' => $firstConversation->id,
+            'whatsapp_tag_id' => $tag->id,
+        ]);
+
+        Livewire::test(WhatsAppConsolePage::class)
+            ->set('filterTagId', (string) $tag->id)
+            ->assertSee('Prospecto Etiqueta')
+            ->assertDontSee('Prospecto Sin Etiqueta');
+
+        Livewire::test(WhatsAppConsolePage::class)
+            ->call('selectConversation', $firstConversation->id)
+            ->call('detachTag', $tag->id);
+
+        $this->assertDatabaseMissing('whatsapp_conversation_tag', [
+            'whatsapp_conversation_id' => $firstConversation->id,
+            'whatsapp_tag_id' => $tag->id,
         ]);
     }
 }
