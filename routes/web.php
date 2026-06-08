@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 // Controllers
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\WhatsAppWebhookController;
 
 // Livewire - Appointments
 use App\Livewire\Appointments\AppointmentsPage;
@@ -59,6 +60,7 @@ use App\Livewire\Specialties\SpecialtiesPage;
 
 // Livewire - Users
 use App\Livewire\Users\UsersPage;
+use App\Livewire\WhatsApp\WhatsAppConsolePage;
 
 // Livewire - Mobile
 use App\Livewire\Mobile\ContactPage;
@@ -98,6 +100,9 @@ use App\Livewire\Reports\SalesPage;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->name('webhooks.whatsapp.verify');
+Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive'])->name('webhooks.whatsapp.receive');
 
 Route::middleware('guest')->group(function () {
     Route::get('/pin/setup/{token}', PinSetupPage::class)->name('pin.setup');
@@ -148,6 +153,7 @@ Route::middleware([
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
 
         Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
+        Route::get('/whatsapp/console', WhatsAppConsolePage::class)->name('whatsapp.console');
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
         Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');

@@ -7,6 +7,7 @@ return [
     'policies' => 'Membresías',
     'doctors' => 'Red',
     'users' => 'Usuarios',
+    'whatsapp_console' => 'Consola WhatsApp',
 
     'policy' => 'Membresía',
     'user' => 'Miembro',

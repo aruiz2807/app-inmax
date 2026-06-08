@@ -90,6 +90,14 @@
                                 x-on:click="closeSidebar()"
                             />
 
+                            <x-ui.navlist.item
+                                icon="chat-bubble-left-right"
+                                :label="__('app.whatsapp_console')"
+                                href="{{ route('whatsapp.console') }}"
+                                :active="request()->routeIs('whatsapp.console')"
+                                x-on:click="closeSidebar()"
+                            />
+
                             <x-ui.navlist.group
                                 :label="__('app.reports')"
                                 :collapsable="true"

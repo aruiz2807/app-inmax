@@ -5,9 +5,14 @@ namespace App\Services\WhatsApp;
 use App\Models\WhatsAppSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class WhatsAppCloudApiService
 {
+    public function __construct(
+        private readonly WhatsAppMessageRecorder $messageRecorder,
+    ) {}
+
     /**
      * Send a template message using WhatsApp Cloud API.
      *
@@ -84,6 +89,25 @@ class WhatsAppCloudApiService
             'ok' => $response->successful(),
             'response' => $responseData,
         ]);
+
+        try {
+            $this->messageRecorder->recordOutboundTemplate(
+                to: $payload['to'],
+                templateName: $templateName,
+                languageCode: $languageCode,
+                parameters: $parameters,
+                buttonUrlParameters: $buttonUrlParameters,
+                payload: $payload,
+                responseData: is_array($responseData) ? $responseData : [],
+                ok: $response->successful(),
+            );
+        } catch (Throwable $exception) {
+            Log::warning('WHATSAPP_MESSAGE_RECORD_FAILED', [
+                'template' => $templateName,
+                'to' => $payload['to'],
+                'error' => $exception->getMessage(),
+            ]);
+        }
 
         return [
             'ok' => $response->successful(),
