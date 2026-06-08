@@ -11,9 +11,10 @@ use App\Models\WhatsAppTag;
 use App\Models\WhatsAppWebhookEvent;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -21,6 +22,7 @@ class WhatsAppConsolePage extends Component
 {
     private const STATUS_FILTERS = ['all', 'open', 'archived'];
     private const LINKED_FILTERS = ['all', 'prospects', 'users'];
+    private const TAG_COLORS = ['blue', 'teal', 'emerald', 'amber', 'rose', 'indigo', 'purple'];
 
     #[Url(as: 'conversation', except: null)]
     public ?int $selectedConversationId = null;
@@ -38,19 +40,11 @@ class WhatsAppConsolePage extends Component
     public string $filterTagId = '';
 
     public bool $unreadOnly = false;
-
     public ?string $assignedUserId = null;
     public string $selectedTagId = '';
     public string $newTagName = '';
     public string $newTagColor = 'blue';
     public string $replyMessage = '';
-
-    /**
-     * Allowed UI colors for conversation tags.
-     *
-     * @var array<int, string>
-     */
-    private const TAG_COLORS = ['blue', 'teal', 'emerald', 'amber', 'rose', 'indigo', 'purple'];
 
     #[Layout('layouts.app')]
     public function render()
@@ -88,11 +82,8 @@ class WhatsAppConsolePage extends Component
             ->get();
 
         if ($this->selectedConversationId && ! $conversations->pluck('id')->contains($this->selectedConversationId)) {
-            $this->selectedConversationId = $conversations->first()?->id;
-        }
-
-        if (! $this->selectedConversationId && $conversations->isNotEmpty()) {
-            $this->selectedConversationId = $conversations->first()->id;
+            $this->selectedConversationId = null;
+            $this->resetConversationState();
         }
 
         $selectedConversation = $this->selectedConversationId
@@ -101,9 +92,13 @@ class WhatsAppConsolePage extends Component
                 ->find($this->selectedConversationId)
             : null;
 
-        $this->assignedUserId = $selectedConversation?->assigned_user_id
-            ? (string) $selectedConversation->assigned_user_id
-            : null;
+        if (! $selectedConversation) {
+            $this->assignedUserId = null;
+        } elseif ($this->assignedUserId === null) {
+            $this->assignedUserId = $selectedConversation->assigned_user_id
+                ? (string) $selectedConversation->assigned_user_id
+                : null;
+        }
 
         $availableTags = WhatsAppTag::query()
             ->orderBy('name')
@@ -134,11 +129,11 @@ class WhatsAppConsolePage extends Component
         return view('livewire.whatsapp.console-page', [
             'assignableUsers' => $assignableUsers,
             'availableTags' => $availableTags,
-            'tagColors' => self::TAG_COLORS,
             'conversations' => $conversations,
             'selectedConversation' => $selectedConversation,
             'selectedMessages' => $selectedConversation?->messages()->latest()->take(100)->get()->reverse()->values() ?? collect(),
             'summary' => $summary,
+            'tagColors' => self::TAG_COLORS,
             'webhookEvents' => $webhookEvents,
             'webhookSettings' => $settings,
         ]);
@@ -147,21 +142,16 @@ class WhatsAppConsolePage extends Component
     public function selectConversation(int $conversationId): void
     {
         $this->selectedConversationId = $conversationId;
-        $this->selectedTagId = '';
-        $this->replyMessage = '';
+        $this->resetConversationState();
+        $this->syncAssignedUser();
 
         $conversation = WhatsAppConversation::query()
             ->with('contact')
             ->find($conversationId);
 
-        if (! $conversation) {
-            $this->assignedUserId = null;
+        if (! $conversation || ! $conversation->contact) {
             return;
         }
-
-        $this->assignedUserId = $conversation->assigned_user_id
-            ? (string) $conversation->assigned_user_id
-            : null;
 
         $this->markConversationAsRead($conversation);
     }
@@ -193,14 +183,12 @@ class WhatsAppConsolePage extends Component
                 'assigned_user_id' => $assigneeId,
             ]);
 
-        $message = $assigneeId
-            ? 'Conversación asignada correctamente.'
-            : 'Asignación removida correctamente.';
-
         $this->dispatch(
             'notify',
             type: 'success',
-            content: $message,
+            content: $assigneeId
+                ? 'Conversación asignada correctamente.'
+                : 'Asignación removida correctamente.',
             duration: 3000
         );
     }
@@ -257,13 +245,14 @@ class WhatsAppConsolePage extends Component
             ->with('contact')
             ->find($this->selectedConversationId);
 
-        if (! $conversation) {
+        if (! $conversation || ! $conversation->contact) {
             return;
         }
 
         $this->markConversationAsRead($conversation);
     }
 
+    #[On('conversation-detail-updated')]
     public function refreshConsole(): void
     {
         // Triggered by wire:poll to keep the console in sync with webhook traffic.
@@ -450,6 +439,29 @@ class WhatsAppConsolePage extends Component
             content: $errorMessage,
             duration: 6000
         );
+    }
+
+    private function resetConversationState(): void
+    {
+        $this->selectedTagId = '';
+        $this->newTagName = '';
+        $this->newTagColor = 'blue';
+        $this->replyMessage = '';
+    }
+
+    private function syncAssignedUser(): void
+    {
+        if (! $this->selectedConversationId) {
+            $this->assignedUserId = null;
+
+            return;
+        }
+
+        $conversation = WhatsAppConversation::query()->find($this->selectedConversationId);
+
+        $this->assignedUserId = $conversation?->assigned_user_id
+            ? (string) $conversation->assigned_user_id
+            : null;
     }
 
     private function markConversationAsRead(WhatsAppConversation $conversation): void

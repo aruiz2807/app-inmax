@@ -32,6 +32,34 @@ class WhatsAppConsolePageTest extends TestCase
         $response->assertSee('Conversaciones');
     }
 
+    public function test_console_does_not_select_a_conversation_by_default(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $contact = WhatsAppContact::query()->create([
+            'name' => 'Cliente Sin Seleccion',
+            'phone' => '3311112233',
+            'normalized_phone' => '523311112233',
+            'last_message_at' => now(),
+        ]);
+
+        WhatsAppConversation::query()->create([
+            'whatsapp_contact_id' => $contact->id,
+            'status' => 'open',
+            'last_message_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(WhatsAppConsolePage::class)
+            ->assertSet('selectedConversationId', null)
+            ->assertSee('Selecciona una conversación para ver el detalle.');
+    }
+
     public function test_non_admin_cannot_access_whatsapp_console_page(): void
     {
         $user = User::factory()->create([
@@ -124,7 +152,12 @@ class WhatsAppConsolePageTest extends TestCase
             ->assertSee('Prospecto Uno')
             ->assertDontSee('Usuario Vinculado')
             ->call('selectConversation', $prospectConversation->id)
-            ->set('assignedUserId', (string) $sales->id);
+            ->assertSet('selectedConversationId', $prospectConversation->id);
+
+        Livewire::test(WhatsAppConsolePage::class)
+            ->call('selectConversation', $prospectConversation->id)
+            ->set('assignedUserId', (string) $sales->id)
+            ->assertHasNoErrors();
 
         $this->assertDatabaseHas('whatsapp_conversations', [
             'id' => $prospectConversation->id,
@@ -147,7 +180,9 @@ class WhatsAppConsolePageTest extends TestCase
 
         Livewire::test(WhatsAppConsolePage::class)
             ->set('statusFilter', 'archived')
-            ->assertSee('Prospecto Uno')
+            ->assertSee('Prospecto Uno');
+
+        Livewire::test(WhatsAppConsolePage::class)
             ->call('selectConversation', $prospectConversation->id)
             ->call('reopenSelectedConversation');
 
