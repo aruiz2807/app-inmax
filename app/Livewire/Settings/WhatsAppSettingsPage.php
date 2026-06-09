@@ -207,10 +207,6 @@ class WhatsAppSettingsPage extends Component
 
         if ($this->webhookEnabled) {
             $rules['webhookVerifyToken'] = ['required', 'string', 'max:255'];
-
-            if (! $this->hasStoredAppSecret || filled($this->appSecret)) {
-                $rules['appSecret'] = ['required', 'string', 'min:10'];
-            }
         }
 
         Validator::make([

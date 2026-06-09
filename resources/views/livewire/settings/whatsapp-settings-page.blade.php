@@ -30,9 +30,10 @@
                         <x-ui.error name="phoneNumberId" />
                     </x-ui.field>
 
-                    <x-ui.field required>
+                    <x-ui.field :required="! $hasStoredAccessToken">
                         <x-ui.label>Access Token</x-ui.label>
                         <x-ui.input wire:model="accessToken" type="password" placeholder="{{ $hasStoredAccessToken ? 'Token guardado. Escribe uno nuevo para reemplazar.' : 'Pega aqui el token de Meta' }}" />
+                        <p class="mt-1 text-xs text-slate-500">Si ya existe uno guardado, deja el campo vacío para conservarlo.</p>
                         <x-ui.error name="accessToken" />
                     </x-ui.field>
                 </x-ui.fieldset>
@@ -67,6 +68,7 @@
                         <x-ui.field>
                             <x-ui.label>App Secret</x-ui.label>
                             <x-ui.input wire:model="appSecret" type="password" placeholder="{{ $hasStoredAppSecret ? 'Secret guardado. Escribe uno nuevo para reemplazar.' : 'Pega aqui el app secret de Meta' }}" />
+                            <p class="mt-1 text-xs text-slate-500">Es opcional. Si dejas el campo vacío, se mantiene el valor guardado.</p>
                             <x-ui.error name="appSecret" />
                         </x-ui.field>
 
