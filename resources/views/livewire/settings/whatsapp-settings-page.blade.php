@@ -68,7 +68,8 @@
                         <x-ui.field>
                             <x-ui.label>App Secret</x-ui.label>
                             <x-ui.input wire:model="appSecret" type="password" placeholder="{{ $hasStoredAppSecret ? 'Secret guardado. Escribe uno nuevo para reemplazar.' : 'Pega aqui el app secret de Meta' }}" />
-                            <p class="mt-1 text-xs text-slate-500">Es opcional. Si dejas el campo vacío, se mantiene el valor guardado.</p>
+                            <p class="mt-1 text-xs text-slate-500">Es opcional para guardar la configuración. Si dejas el campo vacío, se mantiene el valor guardado.</p>
+                            <p class="mt-1 text-xs text-slate-500">Actualmente no bloquea los webhooks entrantes. Solo sirve si después quieres validar la firma de Meta.</p>
                             <x-ui.error name="appSecret" />
                         </x-ui.field>
 

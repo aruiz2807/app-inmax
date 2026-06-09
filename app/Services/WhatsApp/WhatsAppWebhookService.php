@@ -4,6 +4,7 @@ namespace App\Services\WhatsApp;
 
 use App\Models\WhatsAppSetting;
 use App\Models\WhatsAppWebhookEvent;
+use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookService
 {
@@ -45,9 +46,18 @@ class WhatsAppWebhookService
             ]
         );
 
-        if ($event->processed_at !== null || ! $signatureValid) {
+        if ($event->processed_at !== null) {
+            Log::info('WHATSAPP_WEBHOOK_DUPLICATE', [
+                'event_id' => $event->id,
+                'event_type' => $event->event_type,
+                'signature_valid' => $signatureValid,
+            ]);
+
             return $event;
         }
+
+        $messagesRecorded = 0;
+        $statusesRecorded = 0;
 
         foreach ((array) data_get($payload, 'entry', []) as $entry) {
             foreach ((array) data_get($entry, 'changes', []) as $change) {
@@ -56,12 +66,14 @@ class WhatsAppWebhookService
                 foreach ((array) data_get($value, 'messages', []) as $messagePayload) {
                     if (is_array($messagePayload)) {
                         $this->messageRecorder->recordInboundMessage($messagePayload, $value);
+                        $messagesRecorded++;
                     }
                 }
 
                 foreach ((array) data_get($value, 'statuses', []) as $statusPayload) {
                     if (is_array($statusPayload)) {
                         $this->messageRecorder->recordStatusUpdate($statusPayload);
+                        $statusesRecorded++;
                     }
                 }
             }
@@ -73,7 +85,51 @@ class WhatsAppWebhookService
 
         $this->updateWebhookStatus('ok');
 
+        Log::info('WHATSAPP_WEBHOOK_PROCESSED', [
+            'event_id' => $event->id,
+            'event_type' => $event->event_type,
+            'signature_valid' => $signatureValid,
+            'messages_recorded' => $messagesRecorded,
+            'statuses_recorded' => $statusesRecorded,
+        ]);
+
         return $event->refresh();
+    }
+
+    /**
+     * Count inbound message payloads present in a webhook request.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function countMessages(array $payload): int
+    {
+        $count = 0;
+
+        foreach ((array) data_get($payload, 'entry', []) as $entry) {
+            foreach ((array) data_get($entry, 'changes', []) as $change) {
+                $count += count((array) data_get($change, 'value.messages', []));
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Count delivery status payloads present in a webhook request.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function countStatuses(array $payload): int
+    {
+        $count = 0;
+
+        foreach ((array) data_get($payload, 'entry', []) as $entry) {
+            foreach ((array) data_get($entry, 'changes', []) as $change) {
+                $count += count((array) data_get($change, 'value.statuses', []));
+            }
+        }
+
+        return $count;
     }
 
     /**
