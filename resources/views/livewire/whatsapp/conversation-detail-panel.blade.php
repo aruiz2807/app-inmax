@@ -38,23 +38,8 @@
 
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <div class="flex flex-wrap items-end gap-3">
                 <div>
-                    <x-ui.label>Asignado a</x-ui.label>
-                    <select
-                        wire:model.live="assignedUserId"
-                        class="w-full rounded-box border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15"
-                    >
-                        <option value="">Sin asignar</option>
-                        @foreach ($assignableUsers as $user)
-                            <option value="{{ $user->id }}">
-                                {{ $user->name }} ({{ $user->profile }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex items-end">
                     <x-ui.button
                         type="button"
                         icon="check-circle"
@@ -67,7 +52,7 @@
                 </div>
 
                 @if ($selectedConversation->status === 'archived')
-                    <div class="flex items-end">
+                    <div>
                         <x-ui.button
                             type="button"
                             icon="arrow-path"
@@ -79,7 +64,7 @@
                         </x-ui.button>
                     </div>
                 @else
-                    <div class="flex items-end">
+                    <div>
                         <x-ui.button
                             type="button"
                             icon="archive-box"
@@ -95,105 +80,14 @@
         </div>
 
         <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3">
-            <div class="flex flex-col gap-3">
-                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                        <span class="font-medium text-slate-700">Último movimiento</span>
-                        <span>{{ $selectedConversation->last_message_at?->format('d/m/Y H:i') ?? 'Sin fecha' }}</span>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                <span class="font-medium text-slate-700">Último movimiento</span>
+                <span>{{ $selectedConversation->last_message_at?->format('d/m/Y H:i') ?? 'Sin fecha' }}</span>
 
-                        @if ($selectedConversation->archived_at)
-                            <span class="hidden h-1 w-1 rounded-full bg-slate-300 lg:block"></span>
-                            <span>Archivado el {{ $selectedConversation->archived_at->format('d/m/Y H:i') }}</span>
-                        @endif
-                    </div>
-
-                    <details class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm lg:w-auto lg:min-w-[20rem]">
-                        <summary class="cursor-pointer list-none text-sm font-medium text-slate-700">
-                            Nueva etiqueta
-                        </summary>
-
-                        <div class="mt-3 grid gap-3">
-                            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
-                                <input
-                                    wire:model.live="newTagName"
-                                    type="text"
-                                    placeholder="Ej. Seguimiento"
-                                    class="w-full rounded-box border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15"
-                                />
-
-                                <select
-                                    wire:model.live="newTagColor"
-                                    class="w-full rounded-box border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15"
-                                >
-                                    @foreach ($tagColors as $color)
-                                        <option value="{{ $color }}">
-                                            {{ ucfirst($color) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                <x-ui.button
-                                    type="button"
-                                    icon="plus-circle"
-                                    variant="outline"
-                                    color="teal"
-                                    size="sm"
-                                    wire:click="createTag"
-                                >
-                                    Crear
-                                </x-ui.button>
-                            </div>
-
-                            <div class="space-y-1">
-                                <x-ui.error name="newTagName" />
-                                <x-ui.error name="newTagColor" />
-                            </div>
-                        </div>
-                    </details>
-                </div>
-
-                <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                    <div class="flex min-w-0 flex-wrap items-center gap-2 text-[11px]">
-                        <span class="font-medium uppercase tracking-wide text-slate-500">Etiquetas</span>
-
-                        @forelse ($selectedConversation->tags as $tag)
-                            <span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 font-medium text-slate-600 shadow-sm">
-                                {{ $tag->name }}
-                            </span>
-                        @empty
-                            <span class="rounded-full border border-dashed border-slate-300 px-2.5 py-1 font-medium text-slate-400">
-                                Sin etiquetas
-                            </span>
-                        @endforelse
-                    </div>
-
-                    <div class="flex w-full gap-2 xl:w-auto xl:min-w-[22rem]">
-                        <select
-                            wire:model.live="selectedTagId"
-                            class="w-full rounded-box border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15"
-                        >
-                            <option value="">Selecciona una etiqueta</option>
-                            @foreach ($availableTags as $tag)
-                                <option value="{{ $tag->id }}">
-                                    {{ $tag->name }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <x-ui.button
-                            type="button"
-                            icon="plus-circle"
-                            variant="outline"
-                            color="teal"
-                            size="sm"
-                            wire:click="attachSelectedTag"
-                        >
-                            Agregar
-                        </x-ui.button>
-                    </div>
-                </div>
-
-                <x-ui.error name="selectedTagId" />
+                @if ($selectedConversation->archived_at)
+                    <span class="hidden h-1 w-1 rounded-full bg-slate-300 lg:block"></span>
+                    <span>Archivado el {{ $selectedConversation->archived_at->format('d/m/Y H:i') }}</span>
+                @endif
             </div>
         </div>
     </div>
