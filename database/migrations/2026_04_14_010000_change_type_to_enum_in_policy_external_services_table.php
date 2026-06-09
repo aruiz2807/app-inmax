@@ -3,6 +3,7 @@
 use App\Enums\ExternalServicesType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,12 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
             return;
         }
 
         $values = implode(",", array_map(
-            fn ($value) => "'{$value}'",
+            fn($value) => "'{$value}'",
             array_column(ExternalServicesType::cases(), 'value')
         ));
 
@@ -28,7 +29,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (DB::getDriverName() === 'sqlite') {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
             return;
         }
 

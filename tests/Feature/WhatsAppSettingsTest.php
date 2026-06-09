@@ -54,6 +54,9 @@ class WhatsAppSettingsTest extends TestCase
             ->set('apiVersion', 'v22.0')
             ->set('phoneNumberId', '113206948334320')
             ->set('accessToken', 'meta_test_token_12345')
+            ->set('webhookEnabled', true)
+            ->set('webhookVerifyToken', 'meta_verify_token_12345')
+            ->set('appSecret', 'meta_app_secret_12345')
             ->set('systemUserActivationTemplateName', 'system_user_pin_template')
             ->set('systemUserActivationLanguageCode', 'es')
             ->set('systemUserActivationBodyParameters', ['user_name', 'user_phone'])
@@ -85,6 +88,7 @@ class WhatsAppSettingsTest extends TestCase
         $this->assertDatabaseHas('whatsapp_settings', [
             'api_version' => 'v22.0',
             'phone_number_id' => '113206948334320',
+            'webhook_enabled' => true,
             'system_user_activation_template_name' => 'system_user_pin_template',
             'system_user_activation_language_code' => 'es',
             'activation_template_name' => 'activation_pin_template',
@@ -103,7 +107,11 @@ class WhatsAppSettingsTest extends TestCase
         $setting = WhatsAppSetting::query()->firstOrFail();
 
         $this->assertSame('meta_test_token_12345', $setting->access_token);
+        $this->assertSame('meta_verify_token_12345', $setting->webhook_verify_token);
+        $this->assertSame('meta_app_secret_12345', $setting->app_secret);
         $this->assertNotSame('meta_test_token_12345', (string) $setting->getRawOriginal('access_token'));
+        $this->assertNotSame('meta_verify_token_12345', (string) $setting->getRawOriginal('webhook_verify_token'));
+        $this->assertNotSame('meta_app_secret_12345', (string) $setting->getRawOriginal('app_secret'));
         $this->assertSame(['user_name', 'user_phone'], $setting->system_user_activation_body_parameters);
         $this->assertSame(['pin_token'], $setting->system_user_activation_button_parameters);
         $this->assertSame(['user_name', 'policy_number', 'sales_user_name'], $setting->activation_body_parameters);

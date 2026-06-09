@@ -12,11 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Make medication_id nullable
-        DB::statement("
-            ALTER TABLE appointment_prescriptions
-            MODIFY medication_id BIGINT UNSIGNED NULL
-        ");
+        if (DB::getDriverName() !== 'sqlite') {
+            // Make medication_id nullable
+            DB::statement("
+                ALTER TABLE appointment_prescriptions
+                MODIFY medication_id BIGINT UNSIGNED NULL
+            ");
+        }
 
         // Add description column
         Schema::table('appointment_prescriptions', function (Blueprint $table) {
@@ -36,10 +38,12 @@ return new class extends Migration
             $table->dropColumn('description');
         });
 
-        // Revert medication_id to NOT NULL
-        DB::statement("
-            ALTER TABLE appointment_prescriptions
-            MODIFY medication_id BIGINT UNSIGNED NOT NULL
-        ");
+        if (DB::getDriverName() !== 'sqlite') {
+            // Revert medication_id to NOT NULL
+            DB::statement("
+                ALTER TABLE appointment_prescriptions
+                MODIFY medication_id BIGINT UNSIGNED NOT NULL
+            ");
+        }
     }
 };

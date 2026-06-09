@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $api_version
  * @property string|null $phone_number_id
  * @property string|null $access_token
+ * @property string|null $webhook_verify_token
+ * @property string|null $app_secret
+ * @property bool $webhook_enabled
+ * @property \Illuminate\Support\Carbon|null $webhook_last_received_at
+ * @property string|null $webhook_last_status
  * @property string|null $activation_template_name
  * @property string|null $system_user_activation_template_name
  * @property string|null $system_user_activation_language_code
@@ -90,6 +95,11 @@ class WhatsAppSetting extends Model
         'api_version',
         'phone_number_id',
         'access_token',
+        'webhook_verify_token',
+        'app_secret',
+        'webhook_enabled',
+        'webhook_last_received_at',
+        'webhook_last_status',
         'activation_template_name',
         'system_user_activation_template_name',
         'system_user_activation_language_code',
@@ -124,6 +134,8 @@ class WhatsAppSetting extends Model
      */
     protected $hidden = [
         'access_token',
+        'webhook_verify_token',
+        'app_secret',
     ];
 
     /**
@@ -135,6 +147,10 @@ class WhatsAppSetting extends Model
     {
         return [
             'access_token' => 'encrypted',
+            'webhook_verify_token' => 'encrypted',
+            'app_secret' => 'encrypted',
+            'webhook_enabled' => 'boolean',
+            'webhook_last_received_at' => 'datetime',
             'system_user_activation_body_parameters' => 'array',
             'system_user_activation_button_parameters' => 'array',
             'activation_body_parameters' => 'array',

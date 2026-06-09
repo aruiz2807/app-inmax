@@ -22,7 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ? route('admin.login', absolute: false)
                 : route('login', absolute: false);
         });
-
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/whatsapp',
+        ]);
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'not-user' => \App\Http\Middleware\EnsureProfileIsNotUser::class,

@@ -30,11 +30,59 @@
                         <x-ui.error name="phoneNumberId" />
                     </x-ui.field>
 
-                    <x-ui.field required>
+                    <x-ui.field :required="! $hasStoredAccessToken">
                         <x-ui.label>Access Token</x-ui.label>
                         <x-ui.input wire:model="accessToken" type="password" placeholder="{{ $hasStoredAccessToken ? 'Token guardado. Escribe uno nuevo para reemplazar.' : 'Pega aqui el token de Meta' }}" />
+                        <p class="mt-1 text-xs text-slate-500">Si ya existe uno guardado, deja el campo vacío para conservarlo.</p>
                         <x-ui.error name="accessToken" />
                     </x-ui.field>
+                </x-ui.fieldset>
+
+                <x-ui.fieldset label="Webhook Meta" class="mt-4">
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-ui.field>
+                            <x-ui.label>URL del webhook</x-ui.label>
+                            <x-ui.input value="{{ route('webhooks.whatsapp.verify') }}" readonly />
+                            <p class="mt-1 text-xs text-slate-500">Usa esta misma URL en Meta para verificacion y eventos.</p>
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Webhook activo</x-ui.label>
+                            <div class="pt-2">
+                                <x-ui.switch
+                                    wire:model.live="webhookEnabled"
+                                    :checked="$webhookEnabled"
+                                    color="teal"
+                                    label="Recibir eventos de mensajes y estatus"
+                                />
+                            </div>
+                            <x-ui.error name="webhookEnabled" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Verify Token</x-ui.label>
+                            <x-ui.input wire:model="webhookVerifyToken" placeholder="token-de-verificacion-meta" />
+                            <x-ui.error name="webhookVerifyToken" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>App Secret</x-ui.label>
+                            <x-ui.input wire:model="appSecret" type="password" placeholder="{{ $hasStoredAppSecret ? 'Secret guardado. Escribe uno nuevo para reemplazar.' : 'Pega aqui el app secret de Meta' }}" />
+                            <p class="mt-1 text-xs text-slate-500">Es opcional para guardar la configuración. Si dejas el campo vacío, se mantiene el valor guardado.</p>
+                            <p class="mt-1 text-xs text-slate-500">Actualmente no bloquea los webhooks entrantes. Solo sirve si después quieres validar la firma de Meta.</p>
+                            <x-ui.error name="appSecret" />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Ultimo evento recibido</x-ui.label>
+                            <x-ui.input value="{{ $webhookLastReceivedAt ?: 'Sin eventos aun' }}" readonly />
+                        </x-ui.field>
+
+                        <x-ui.field>
+                            <x-ui.label>Ultimo estado webhook</x-ui.label>
+                            <x-ui.input value="{{ $webhookLastStatus ?: 'Sin estado' }}" readonly />
+                        </x-ui.field>
+                    </div>
                 </x-ui.fieldset>
 
                 <x-ui.fieldset label="Idioma global" class="mt-4">

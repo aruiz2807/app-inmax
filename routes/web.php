@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ReceptionistTicketController;
+use App\Http\Controllers\WhatsAppWebhookController;
 
 // Livewire - Appointments
 use App\Livewire\Appointments\AppointmentsPage;
@@ -62,6 +63,7 @@ use App\Livewire\Specialties\SpecialtiesPage;
 
 // Livewire - Users
 use App\Livewire\Users\UsersPage;
+use App\Livewire\WhatsApp\WhatsAppConsolePage;
 
 // Livewire - Mobile
 use App\Livewire\Mobile\ContactPage;
@@ -103,6 +105,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->name('webhooks.whatsapp.verify');
+Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive'])->name('webhooks.whatsapp.receive');
+
 Route::middleware('guest')->group(function () {
     Route::get('/pin/setup/{token}', PinSetupPage::class)->name('pin.setup');
     Route::get('/policy-registration/{token}', PolicyPreregistrationPage::class)->name('policy.preregistration');
@@ -131,7 +136,7 @@ Route::middleware([
         Route::get('/appointments', AppointmentsPage::class)->name('appointments');
 
         Route::get('/coupons', CouponsPage::class)->name('coupons');
-        
+
         Route::get('/doctors', DoctorsPage::class)->name('doctors');
 
         Route::get('/medications', MedicationsPage::class)->name('medications');
@@ -152,11 +157,11 @@ Route::middleware([
         Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
 
         Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
+        Route::get('/whatsapp/console', WhatsAppConsolePage::class)->middleware('admin')->name('whatsapp.console');
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
         Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');
         Route::get('/settings/parameters', ParametersPage::class)->middleware('admin')->name('settings.parameters');
-
     });
 
     Route::prefix('user')->middleware('profile:User,Admin')->group(function () {
