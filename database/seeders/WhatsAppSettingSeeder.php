@@ -17,6 +17,7 @@ class WhatsAppSettingSeeder extends Seeder
         WhatsAppSetting::create([
             'api_version' => 'v22.0',
             'phone_number_id' => '953464767857532',
+            'webhook_enabled' => false,
             'activation_template_name' => 'confirmacion_registro',
             'system_user_activation_template_name' => 'registro_usuario',
             'system_user_activation_language_code' => 'es',

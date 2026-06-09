@@ -74,7 +74,7 @@
                 <button type="button" class="{{ Arr::toCssClasses($switchClasses) }}"
                     x-bind:class="_checked ? '[:where(&)]:bg-neutral-800 [:where(&)]:dark:bg-white {{ $onClass }}' :
                         '{{ $offClass }} [:where(&)]:bg-neutral-300 [:where(&)]:dark:bg-white/10'"
-                    x-on:click="_checked = !_checked" @disabled($disabled) x-bind:aria-_checked="_checked"
+                    x-on:click="_checked = !_checked" @disabled($disabled) x-bind:aria-checked="_checked"
                     role="switch" aria-labelledby="{{ $id }}-label">
                     <span
                         x-bind:class="_checked ?
