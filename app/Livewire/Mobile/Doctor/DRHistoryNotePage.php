@@ -5,6 +5,7 @@ namespace App\Livewire\Mobile\Doctor;
 use App\Enums\DoctorType;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
+use App\Models\Parameter;
 use Livewire\Component;
 
 
@@ -17,14 +18,11 @@ class DRHistoryNotePage extends Component
 
     public function render()
     {
-        /*$view = $this->isMobileDevice
+        $view = $this->isMobileDevice
             ? 'livewire.mobile.doctor.history-note-page'
             : 'livewire.doctor.history-note-page';
 
-        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';*/
-
-        $view = 'livewire.mobile.doctor.history-note-page';
-        $layout = 'layouts.mobile';
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
 
         return view($view)->layout($layout);
     }
@@ -32,6 +30,9 @@ class DRHistoryNotePage extends Component
     public function mount($appointment)
     {
         $this->isMobileDevice = $this->detectMobileDevice();
+        $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
+        $desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+
         $this->appointment = Appointment::with(['note', 'prescriptions.medication', 'doctor', 'user.policy'])->findOrFail($appointment);
         $this->services = AppointmentService::where([
             ['appointment_id', $this->appointment->id],

@@ -24,6 +24,12 @@
                     <x-ui.text class="pt-1 text-lg">{{ $appointment->doctor->user->name }}</x-ui.text>
                     <x-ui.text class="text-sm opacity-75">{{ $appointment->doctor->specialty?->name }}</x-ui.text>
                 </div>
+
+                <div class="pl-4 ml-auto flex items-right">
+                    <x-ui.button href="{{ route('doctor.record', ['user' => $appointment->user->id]) }}" color="teal" icon="clipboard-document-list" class="w-full mt-2">
+                        Historial del paciente
+                    </x-ui.button>
+                </div>
             </div>
         </div>
     </x-ui.card>
@@ -36,7 +42,7 @@
                     <x-ui.text class="ml-2 text-base">Servicios</x-ui.text>
                 </x-ui.heading>
 
-                <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                <div class="grid grid-cols-1 gap-2 lg:grid-cols-1">
                     @foreach($services as $service)
                         <div class="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3">
                             <x-ui.text class="pr-2 text-base">{{ $service->name }}</x-ui.text>
@@ -84,7 +90,7 @@
                     </x-ui.heading>
 
                     @if(count($appointment->prescriptions) > 0)
-                        <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-2 lg:grid-cols-1">
                             @foreach($appointment->prescriptions as $prescription)
                                 <div class="rounded-lg border border-gray-100 bg-gray-50 p-2 shadow-sm">
                                     <x-ui.text class="text-sm font-bold">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
