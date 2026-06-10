@@ -62,7 +62,7 @@
                         Buscar conversación
                     </label>
                     <input wire:model.live.debounce.300ms="search" type="text"
-                        placeholder="Buscar por nombre, teléfono o asignado..."
+                        placeholder="Buscar por nombre o teléfono..."
                         class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15" />
                 </div>
 
@@ -90,19 +90,6 @@
                     </select>
                 </div>
 
-                <div class="w-full sm:w-48">
-                    <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Etiqueta
-                    </label>
-                    <select wire:model.live="filterTagId"
-                        class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15">
-                        <option value="">Todas</option>
-                        @foreach ($availableTags as $tag)
-                            <option value="{{ $tag->id }}">{{ $tag->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 <div class="min-w-[16rem] flex-[1_1_18rem]">
                     <label
                         class="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
@@ -123,7 +110,7 @@
         </div>
 
         <div
-            class="mt-4 grid min-h-[48rem] gap-0 overflow-hidden rounded-2xl border border-slate-200 xl:h-[42rem] xl:min-h-0 xl:grid-cols-[22rem_minmax(0,1fr)]">
+            class="mt-4 grid min-h-[56rem] gap-0 overflow-hidden rounded-2xl border border-slate-200 xl:h-[54rem] xl:min-h-0 xl:grid-cols-[22rem_minmax(0,1fr)]">
             <aside
                 class="flex min-h-[20rem] flex-col border-b border-slate-200 bg-slate-50/70 xl:min-h-0 xl:border-b-0 xl:border-r">
                 <div class="flex items-center justify-between border-b border-slate-200 px-4 py-4">
@@ -183,13 +170,6 @@
                                     {{ $contact->user?->profile ?? 'Prospecto' }}
                                 </span>
 
-                                @if ($conversation->assignedUser)
-                                    <span
-                                        class="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 font-medium text-blue-700">
-                                        {{ $conversation->assignedUser->name }}
-                                    </span>
-                                @endif
-
                                 @if ($conversation->status === 'archived')
                                     <span
                                         class="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 font-medium text-rose-700">
@@ -237,58 +217,6 @@
                     </div>
                 @endif
             </section>
-        </div>
-    </x-ui.card>
-
-    <x-ui.card size="full">
-        <div class="flex items-center justify-between gap-3">
-            <div>
-                <x-ui.heading level="h3" size="sm">
-                    Eventos Webhook
-                </x-ui.heading>
-                <p class="mt-1 text-sm text-slate-500">
-                    Últimos eventos recibidos desde Meta.
-                </p>
-            </div>
-
-            <div class="text-xs text-slate-500">
-                {{ $webhookEvents->count() }} recientes
-            </div>
-        </div>
-
-        <div class="mt-4 grid gap-3 xl:grid-cols-4">
-            @forelse ($webhookEvents as $event)
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <x-ui.badge variant="outline" size="sm" pill>
-                            {{ $event->event_type ?? 'unknown' }}
-                        </x-ui.badge>
-
-                        <x-ui.badge :color="$event->signature_valid ? 'emerald' : 'rose'" size="sm" pill>
-                            {{ $event->signature_valid ? 'firma_ok' : 'firma_invalida' }}
-                        </x-ui.badge>
-
-                        @if ($event->processed_at)
-                            <x-ui.badge color="blue" variant="outline" size="sm" pill>
-                                procesado
-                            </x-ui.badge>
-                        @endif
-                    </div>
-
-                    <p class="mt-3 text-xs text-slate-500">
-                        {{ $event->created_at?->format('d/m/Y H:i:s') ?? 'Sin fecha' }}
-                    </p>
-
-                    <p class="mt-1 font-mono text-[11px] text-slate-400">
-                        {{ substr($event->event_hash, 0, 16) }}...
-                    </p>
-                </div>
-            @empty
-                <div
-                    class="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 xl:col-span-4">
-                    Aún no hay eventos webhook persistidos.
-                </div>
-            @endforelse
         </div>
     </x-ui.card>
 </div>
