@@ -103,4 +103,120 @@
             </div>
         </form>
     </x-ui.modal>
+
+    <x-ui.modal
+        id="adjustment-modal"
+        animation="fade"
+        width="lg"
+        heading="Ajuste de existencias"
+        description="Modifique las existencias del medicamento"
+        x-on:close-adjustment-modal.window="$data.close()"
+        x-on:open-adjustment-modal.window="$data.open()"
+    >
+        <form wire:submit="saveAdjustment" x-data="{ confirmAdjustment: false }">
+            @csrf
+
+            <x-ui.fieldset label="Información del ajuste">
+
+                <div class="space-y-5">
+
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-sm text-gray-500">Medicamento</p>
+                        <p class="font-semibold text-lg text-gray-900">
+                            {{ $medication?->name }}
+                        </p>
+
+                        <div class="pt-3">
+                            <p class="text-sm text-gray-500">Existencia actual</p>
+                            <p class="font-semibold text-2xl text-teal-700">
+                                {{ number_format($medication?->existences ?? 0) }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <x-ui.field>
+                        <x-ui.label>Tipo de ajuste</x-ui.label>
+
+                        <x-ui.select wire:model="adjustmentForm.type" placeholder="Selecciona un tipo">
+                            <x-ui.select.option value="IN">Entrada (+)</x-ui.select.option>
+                            <x-ui.select.option value="OUT">Salida (-)</x-ui.select.option>
+                        </x-ui.select>
+
+                        <x-ui.error name="adjustmentForm.type" />
+                    </x-ui.field>
+
+                    <x-ui.field>
+                        <x-ui.label>Cantidad a ajustar</x-ui.label>
+
+                        <div class="flex items-center gap-2">
+
+                            <x-ui.button
+                                type="button"
+                                variant="outline"
+                                wire:click="decrementQuantity"
+                            >
+                                -
+                            </x-ui.button>
+
+                            <x-ui.input
+                                wire:model="adjustmentForm.quantity"
+                                type="number"
+                                min="1"
+                                class="text-center"
+                            />
+
+                            <x-ui.button
+                                type="button"
+                                variant="outline"
+                                wire:click="incrementQuantity"
+                            >
+                                +
+                            </x-ui.button>
+
+                        </div>
+
+                        <x-ui.error name="adjustmentForm.quantity" />
+                    </x-ui.field>
+
+                    <x-ui.field>
+                        <x-ui.label>Comentario</x-ui.label>
+
+                        <x-ui.textarea
+                            wire:model="adjustmentForm.adjustment_comment"
+                            rows="3"
+                            placeholder="Motivo del ajuste..."
+                        />
+
+                        <x-ui.error name="adjustmentForm.adjustment_comment" />
+                    </x-ui.field>
+
+                    <x-ui.alerts variant="warning" icon="exclamation-triangle">
+                        <x-ui.alerts.heading>Confirmación requerida</x-ui.alerts.heading>
+                        <x-ui.alerts.description>
+                            Este ajuste modificará las existencias del medicamento de forma inmediata.
+                        </x-ui.alerts.description>
+
+                        <label class="mt-3 flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" x-model="confirmAdjustment" class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                            Confirmo que deseo aplicar este ajuste.
+                        </label>
+                    </x-ui.alerts>
+
+                </div>
+
+            </x-ui.fieldset>
+
+            <div class="w-full flex justify-end gap-3 pt-4">
+                <x-ui.button x-on:click="$data.close();" wire:click="resetAdjustmentForm" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+
+                <x-ui.button type="submit" icon="check" variant="primary" color="teal" x-bind:disabled="!confirmAdjustment">
+                    Guardar
+                </x-ui.button>
+
+            </div>
+
+        </form>
+    </x-ui.modal>
 </div>

@@ -15,7 +15,7 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 final class DispensationTable extends PowerGridComponent
 {
     public string $tableName = 'dispensationTable';
-    public string $tab = 'all';
+    public string $tab = 'pending';
     public string $sortField = 'date';
     public string $sortDirection = 'desc';
     public ?string $dateFrom = null;

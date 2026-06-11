@@ -19,7 +19,7 @@ class DRHistoryPage extends Component
     public bool $isMobileDevice = true;
     public ?string $dateFrom = null;
     public ?string $dateTo = null;
-    public string $tab = 'all';
+    public string $tab = 'pending';
 
     public function render()
     {

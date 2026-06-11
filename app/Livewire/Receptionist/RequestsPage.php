@@ -15,7 +15,7 @@ use Livewire\Component;
 class RequestsPage extends Component
 {
     #[Url(as: 'tab')]
-    public string $tab = 'all';
+    public string $tab = 'pending';
     public ?string $dateFrom = null;
     public ?string $dateTo = null;
     public ?Appointment $selectedRequest = null;

@@ -304,6 +304,6 @@ class PaymentPage extends Component
 
     private function formatMoney(null|string|float|int $value): string
     {
-        return number_format($this->parseMoney($value), 2, '.', '');
+        return number_format($this->parseMoney($value), 2, '.', ',');
     }
 }

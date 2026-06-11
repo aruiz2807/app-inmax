@@ -18,7 +18,7 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 final class RequestsTable extends PowerGridComponent
 {
     public string $tableName = 'receptionistRequestsTable';
-    public string $tab = 'all';
+    public string $tab = 'pending';
     public string $sortField = 'date';
     public string $sortDirection = 'asc';
     public ?string $dateFrom = null;

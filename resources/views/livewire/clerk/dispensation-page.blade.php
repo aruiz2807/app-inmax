@@ -36,18 +36,6 @@
             <div class="flex gap-2 mb-4 border-b border-neutral-200">
                 <button
                     type="button"
-                    wire:click="setTab('all')"
-                    @class([
-                        'px-4 py-2 text-sm font-medium transition-colors',
-                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'all',
-                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'all',
-                    ])
-                >
-                    Todos
-                </button>
-
-                <button
-                    type="button"
                     wire:click="setTab('pending')"
                     @class([
                         'px-4 py-2 text-sm font-medium transition-colors',
@@ -92,6 +80,18 @@
                     ])
                 >
                     Vencidas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('all')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'all',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'all',
+                    ])
+                >
+                    Todos
                 </button>
             </div>
 

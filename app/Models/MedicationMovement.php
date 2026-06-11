@@ -10,10 +10,11 @@ class MedicationMovement extends Model
         'medication_id',
         'type',
         'adjustment',
+        'adjustment_comment',
         'quantity',
         'reference',
         'prescription_id',
-        //'medication_purchase_id',
+        'medication_purchase_id',
         'user_id',
     ];
 
@@ -35,5 +36,10 @@ class MedicationMovement extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function purchase()
+    {
+        return $this->belongsTo(MedicationPurchase::class, 'medication_purchase_id');
     }
 }

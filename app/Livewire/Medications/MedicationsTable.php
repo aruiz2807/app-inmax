@@ -57,7 +57,7 @@ final class MedicationsTable extends PowerGridComponent
             ->add('price_public_formatted', fn ($model) => Number::currency($model->price_public, in: 'MXN', locale: 'es_MX'))
             ->add('price_members')
             ->add('price_members_formatted', fn ($model) => Number::currency($model->price_members, in: 'MXN', locale: 'es_MX'))
-            ->add('quantity')
+            ->add('existences')
             ->add('status')
             ->add('status_toggle', fn ($model) => $model->status === 'Active')
             ->add('created_at')
@@ -107,8 +107,7 @@ final class MedicationsTable extends PowerGridComponent
             Column::make('Precio Miembros', 'price_members_formatted', 'price_members')
                 ->sortable(),
 
-            Column::make('Cantidad', 'quantity')
-                ->sortable(),
+            Column::make('Cantidad', 'existences'),
 
             Column::make('Estatus', 'status_toggle', 'status')
                 ->toggleable(),
@@ -135,6 +134,11 @@ final class MedicationsTable extends PowerGridComponent
                 ->id()
                 ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('editMedication', ['medicationId' => $row->id]),
+            Button::add('adjustment')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="arrows-right-left" variant="outline" class="w-5 h-5"/><span>Ajustar</span></div>'))
+                ->id()
+                ->class('text-cyan-600 hover:bg-cyan-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('adjustMedication', ['medicationId' => $row->id]),
         ];
     }
 

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->foreignId('prescription_id')->nullable()->constrained(
                 table: 'appointment_prescriptions'
             )->nullOnDelete();
-            //$table->foreignId('medication_purchase_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });

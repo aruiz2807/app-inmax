@@ -17,7 +17,7 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 final class AppointmentsTable extends PowerGridComponent
 {
     public string $tableName = 'receptionistAppointmentsTable';
-    public string $tab = 'all';
+    public string $tab = 'pending';
     public string $sortField = 'date';
     public string $sortDirection = 'desc';
     public ?string $dateFrom = null;

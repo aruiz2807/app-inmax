@@ -13,7 +13,7 @@ use Livewire\Component;
 class DispensationPage extends Component
 {
     #[Url(as: 'tab')]
-    public string $tab = 'all';
+    public string $tab = 'pending';
 
     public ?array $selectedAppointment = null;
 
