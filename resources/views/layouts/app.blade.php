@@ -268,13 +268,14 @@
                         @break
 
                         @case('Receptionist')
-                            {{--<x-ui.navlist.item
-                                icon="home"
-                                :label="__('app.home')"
-                                href="{{ route('receptionist.appointments') }}"
-                                :active="request()->routeIs('receptionist.appointments')"
+                            <x-ui.navlist.item
+                                icon="identification"
+                                :label="__('app.policies')"
+                                href="{{ route('policies') }}"
+                                :active="request()->routeIs('policies')"
                                 x-on:click="closeSidebar()"
-                            />--}}
+                            />
+                            
                             <x-ui.navlist.item
                                 icon="clipboard-document-list"
                                 :label="'Solicitudes'"
