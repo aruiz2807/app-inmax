@@ -82,7 +82,7 @@
                 </button>
             </div>
 
-            <livewire:doctors.appointments-table :tab="$tab" :key="'doctor-appointments-table-'.$tab" />
+            <livewire:doctor.appointments-table :tab="$tab" :key="'doctor-appointments-table-'.$tab" />
         </x-ui.card>
     </div>
 

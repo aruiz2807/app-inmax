@@ -47,6 +47,7 @@ class DatabaseSeeder extends Seeder
             ParameterDiscountMedicationsSeeder::class,
             ParameterCouponValueSeeder::class,
             ParameterMembersDiscountSeeder::class,
+            ParameterDoctorDesktopVersionSeeder::class,
         ]);
     }
 }

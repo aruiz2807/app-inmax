@@ -7,6 +7,7 @@ use App\Enums\ExternalServicesType;
 use App\Models\PolicyExternalService;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\Parameter;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -19,14 +20,29 @@ class DRRecordPage extends Component
     public $externalServices;
     
     public bool $showUploadForm = false;
+    public bool $isMobileDevice = true;
 
-    #[Layout('layouts.mobile')]
     public function render()
     {
-        return view('livewire.mobile.user.record-page');
+        $view = $this->isMobileDevice
+            ? 'livewire.mobile.user.record-page'
+            : 'livewire.doctor.record-page';
+
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
+
+        return view($view)->layout($layout);
     }
 
     public function mount($user)
+    {
+        $this->isMobileDevice = $this->detectMobileDevice();
+        $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
+        $desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+
+        $this->loadRecord($user);
+    }
+
+    public function loadRecord($user)
     {
         $this->user = User::findOrFail($user);
 
@@ -61,5 +77,22 @@ class DRRecordPage extends Component
         } else {
             $this->externalServices = collect();
         }
+    }
+
+    protected function detectMobileDevice()
+    {
+        $forcedDevice = request()->query('device');
+
+        if ($forcedDevice === 'mobile') {
+            return true;
+        }
+
+        if ($forcedDevice === 'desktop') {
+            return false;
+        }
+
+        $userAgent = strtolower((string) request()->userAgent());
+
+        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
     }
 }

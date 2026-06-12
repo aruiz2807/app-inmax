@@ -40,14 +40,26 @@ class DRSchedulePage extends Component
     public $doctors;
     public $offices;
 
-    #[Layout('layouts.mobile')]
+    public bool $isMobileDevice = true;
+
     public function render()
     {
-        return view('livewire.mobile.doctor.schedule-page');
+        $view = $this->isMobileDevice
+            ? 'livewire.mobile.doctor.schedule-page'
+            : 'livewire.doctor.schedule-page';
+
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
+
+
+        return view($view)->layout($layout);
     }
 
     public function mount($appointment)
     {
+        $this->isMobileDevice = $this->detectMobileDevice();
+        $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
+        $desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+
         $this->appointment = Appointment::findOrFail($appointment);
         $doctorsQuery = Doctor::where('status', 'Active');
         $paramSpecialty = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();
@@ -72,6 +84,23 @@ class DRSchedulePage extends Component
 
         $this->selectedDate = $this->availableDates[0]['id'];
         $this->selectedTime = $this->availableHours[0]['id'] ?? null;
+    }
+
+    protected function detectMobileDevice()
+    {
+        $forcedDevice = request()->query('device');
+
+        if ($forcedDevice === 'mobile') {
+            return true;
+        }
+
+        if ($forcedDevice === 'desktop') {
+            return false;
+        }
+
+        $userAgent = strtolower((string) request()->userAgent());
+
+        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
     }
 
     public function updatedSelectedDoctor($value)

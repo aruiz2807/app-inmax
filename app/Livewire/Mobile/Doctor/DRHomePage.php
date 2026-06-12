@@ -18,23 +18,21 @@ class DRHomePage extends Component
 
     public function render()
     {
-        // DESACTIVADO POR EL MOMENTO, SE MANTIENE VERSION MOBILE.
-        
-        /*$view = $this->isMobileDevice
+        $view = $this->isMobileDevice
             ? 'livewire.mobile.doctor.home-page'
             : 'livewire.doctor.home-page';
 
-        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';]*/
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
         
-        $view = 'livewire.mobile.doctor.home-page';
-        $layout = 'layouts.mobile';
-
         return view($view)->layout($layout);
     }
 
     public function mount()
     {
         $this->isMobileDevice = $this->detectMobileDevice();
+        $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
+        $desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+
         $this->loadTodayAppointments();
         $this->checkPendingRequests();
         $this->paramGMSpeciality = Parameter::where('type', 'MG')->where('key', 'Especialidad')->first();

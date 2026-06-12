@@ -4,6 +4,7 @@ namespace App\Livewire\Mobile\Doctor;
 
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
 use App\Models\Appointment;
+use App\Models\Parameter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -22,14 +23,11 @@ class DRHistoryPage extends Component
 
     public function render()
     {
-        /*$view = $this->isMobileDevice
+        $view = $this->isMobileDevice
             ? 'livewire.mobile.doctor.history-page'
             : 'livewire.doctor.appointments-page';
 
-        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';*/
-
-        $view = 'livewire.mobile.doctor.history-page';
-        $layout = 'layouts.mobile';
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
 
         return view($view)->layout($layout);
     }
@@ -37,6 +35,9 @@ class DRHistoryPage extends Component
     public function mount()
     {
         $this->isMobileDevice = $this->detectMobileDevice();
+
+        $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
+        $desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
 
         if (! $this->isMobileDevice) {
             $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();

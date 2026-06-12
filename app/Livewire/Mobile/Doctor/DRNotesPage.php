@@ -52,14 +52,11 @@ class DRNotesPage extends Component
 
     public function render()
     {
-        /*$view = $this->isMobileDevice
+        $view = $this->isMobileDevice
             ? 'livewire.mobile.doctor.notes-page'
             : 'livewire.doctor.notes-page';
 
-        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';*/
-
-        $view = 'livewire.mobile.doctor.notes-page';
-        $layout = 'layouts.mobile';
+        $layout = $this->isMobileDevice ? 'layouts.mobile' : 'layouts.app';
 
         return view($view)->layout($layout);
     }
@@ -67,6 +64,9 @@ class DRNotesPage extends Component
     public function mount($appointment)
     {
         $this->isMobileDevice = $this->detectMobileDevice();
+        $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
+        $desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+
         $this->user = Auth::user();
         $this->appointment = Appointment::with(['user.policy', 'doctor'])->findOrFail($appointment);
         $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();

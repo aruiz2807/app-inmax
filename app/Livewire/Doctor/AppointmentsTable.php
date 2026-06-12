@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Doctors;
+namespace App\Livewire\Doctor;
 
 use App\Enums\AppointmentStatus;
 use App\Enums\DoctorType;
@@ -192,7 +192,7 @@ final class AppointmentsTable extends PowerGridComponent
         ];
     }
 
-    public function actions(Appointment $row): array
+    public function actions(Appointment $row)
     {
         $status = $row->status instanceof AppointmentStatus
             ? $row->status
@@ -217,33 +217,33 @@ final class AppointmentsTable extends PowerGridComponent
                 ? Button::add('noshow')
                     ->slot(Blade::render('<div class="inline-flex items-center gap-2"><x-ui.icon name="eye-slash" variant="outline" class="w-5 h-5"/><span>No asistio</span></div>'))
                     ->id()
-                    ->class('text-rose-600 hover:bg-rose-50 px-2 py-1 rounded transition-colors')
+                    ->class('w-[111px] text-rose-600 hover:bg-rose-50 px-2 py-1 rounded transition-colors')
                     ->dispatch('openDoctorNoshowModal', ['appointmentId' => $row->id])
                 : Button::add('record')
                     ->slot(Blade::render('<a href="'.route('doctor.record', ['user' => $row->user_id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Historial</span></a>'))
                     ->id()
-                    ->class('text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors'),
+                    ->class('w-[120px] text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors'),
 
             $isCompleted
                 ? Button::add('schedule')
                     ->slot(Blade::render('<a href="'.route('doctor.schedule', ['appointment' => $row->id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="calendar" variant="outline" class="w-5 h-5"/><span>Agendar</span></a>'))
                     ->id()
-                    ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                    ->class('w-[120px] text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 : Button::add('schedule_disabled')
-                    ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed"><x-ui.icon name="calendar" variant="outline" class="w-5 h-5"/><span>Agendar</span></div>'))
+                    ->slot(Blade::render('<div class="inline-flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="calendar" variant="outline" class="w-5 h-5"/><span>Agendar</span></div>'))
                     ->id()
-                    ->class('text-neutral-500'),
+                    ->class('w-[120px] text-neutral-500'),
 
             $isCompleted
                 ? Button::add('print')
                     ->slot(Blade::render('<div class="inline-flex items-center gap-2"><x-ui.icon name="document" variant="outline" class="w-5 h-5"/><span>Receta</span></div>'))
                     ->id()
-                    ->class('text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
+                    ->class('w-[120px] text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
                     ->dispatch('doctorPrintAppointment', ['appointmentId' => $row->id])
                 : Button::add('print_disabled')
-                    ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed"><x-ui.icon name="document" variant="outline" class="w-5 h-5"/><span>Receta</span></div>'))
+                    ->slot(Blade::render('<div class="inline-flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="document" variant="outline" class="w-5 h-5"/><span>Receta</span></div>'))
                     ->id()
-                    ->class('text-neutral-500'),
+                    ->class('w-[120px] text-neutral-500'),
         ];
     }
 
