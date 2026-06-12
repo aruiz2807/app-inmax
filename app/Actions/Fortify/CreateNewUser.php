@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
 
@@ -30,7 +31,7 @@ class CreateNewUser implements CreatesNewUsers
         return User::create([
             'name' => $input['name'],
             'profile' => 'User',
-            'email' => $input['email'],
+            'email' => Str::lower($input['email']),
             'phone' => $input['phone'] ?? $this->generateUniquePhone(),
             'password' => Hash::make($input['password']),
         ]);

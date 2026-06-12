@@ -35,7 +35,7 @@ class UsersForm extends Form
 
         return User::create([
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => Str::lower($this->email),
             'phone' => $this->phone,
             'profile' => $this->profile,
             // Password remains as compatibility fallback, but pin is now used for login.
@@ -79,7 +79,7 @@ class UsersForm extends Form
 
         $user->update([
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => Str::lower($this->email),
             'phone' => $this->phone,
             'profile' => $this->profile,
         ]);
