@@ -271,7 +271,7 @@
                             <x-ui.navlist.item
                                 icon="identification"
                                 :label="__('app.policies')"
-                                href="{{ route('policies') }}"
+                                href="{{ route('recepcionist.policies') }}"
                                 :active="request()->routeIs('policies')"
                                 x-on:click="closeSidebar()"
                             />
