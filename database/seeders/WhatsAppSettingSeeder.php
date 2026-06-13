@@ -12,9 +12,7 @@ class WhatsAppSettingSeeder extends Seeder
      */
     public function run(): void
     {
-        WhatsAppSetting::truncate();
-
-        WhatsAppSetting::create([
+        WhatsAppSetting::query()->firstOrCreate([], [
             'api_version' => 'v22.0',
             'phone_number_id' => '953464767857532',
             'webhook_enabled' => false,

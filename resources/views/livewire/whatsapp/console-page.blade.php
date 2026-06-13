@@ -165,10 +165,12 @@
                             </div>
 
                             <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
-                                <span
-                                    class="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
-                                    {{ $contact->user?->profile ?? 'Prospecto' }}
-                                </span>
+                                @if ($contact->user)
+                                    <span
+                                        class="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
+                                        {{ $contact->user->profile }}
+                                    </span>
+                                @endif
 
                                 @if ($conversation->status === 'archived')
                                     <span
