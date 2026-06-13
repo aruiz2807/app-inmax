@@ -61,6 +61,7 @@ class WhatsAppSettingsPage extends Component
     public array $appointmentCompletedButtonParameters = [];
     public string $defaultLanguage = 'es_MX';
     public bool $hasStoredAccessToken = false;
+    public bool $hasStoredWebhookVerifyToken = false;
     public bool $hasStoredAppSecret = false;
     public array $parameterOptions = [];
     public array $templateSections = [];
@@ -94,7 +95,7 @@ class WhatsAppSettingsPage extends Component
 
         $this->apiVersion = $setting->api_version;
         $this->phoneNumberId = $setting->phone_number_id ?? '';
-        $this->webhookVerifyToken = $setting->webhook_verify_token ?? '';
+        $this->webhookVerifyToken = '';
         $this->webhookEnabled = (bool) ($setting->webhook_enabled ?? false);
         $this->webhookLastReceivedAt = $setting->webhook_last_received_at?->format('d/m/Y H:i:s');
         $this->webhookLastStatus = $setting->webhook_last_status;
@@ -149,6 +150,7 @@ class WhatsAppSettingsPage extends Component
         $this->defaultLanguage = $setting->default_language;
         $this->testLanguageCode = $setting->default_language;
         $this->hasStoredAccessToken = filled($setting->access_token);
+        $this->hasStoredWebhookVerifyToken = filled($setting->webhook_verify_token);
         $this->hasStoredAppSecret = filled($setting->app_secret);
     }
 
@@ -205,7 +207,7 @@ class WhatsAppSettingsPage extends Component
             $rules['accessToken'] = ['required', 'string', 'min:10'];
         }
 
-        if ($this->webhookEnabled) {
+        if ($this->webhookEnabled && (! $this->hasStoredWebhookVerifyToken || filled($this->webhookVerifyToken))) {
             $rules['webhookVerifyToken'] = ['required', 'string', 'max:255'];
         }
 
@@ -252,9 +254,6 @@ class WhatsAppSettingsPage extends Component
 
         $setting->api_version = $this->apiVersion;
         $setting->phone_number_id = $this->phoneNumberId;
-        $setting->webhook_verify_token = filled($this->webhookVerifyToken)
-            ? $this->webhookVerifyToken
-            : null;
         $setting->webhook_enabled = $this->webhookEnabled;
         $setting->system_user_activation_template_name = $this->systemUserActivationTemplateName;
         $setting->system_user_activation_language_code = filled($this->systemUserActivationTemplateName)
@@ -288,6 +287,13 @@ class WhatsAppSettingsPage extends Component
             $setting->access_token = $this->accessToken;
             $this->accessToken = '';
             $this->hasStoredAccessToken = true;
+        }
+
+        if (filled($this->webhookVerifyToken)) {
+            $setting->webhook_verify_token = $this->webhookVerifyToken;
+            $this->hasStoredWebhookVerifyToken = true;
+        } elseif (! $setting->exists) {
+            $setting->webhook_verify_token = null;
         }
 
         if (filled($this->appSecret)) {
