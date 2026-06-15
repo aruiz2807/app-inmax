@@ -92,9 +92,7 @@ class MedicationsPage extends Component
 
     public function decrementQuantity()
     {
-        if ($this->adjustmentForm->quantity > 1) {
-            $this->adjustmentForm->quantity--;
-        }
+        $this->adjustmentForm->quantity--;
     }
 
     public function saveAdjustment()

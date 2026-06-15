@@ -191,6 +191,30 @@ final class PoliciesTable extends PowerGridComponent
 
     public function actions(Policy $row): array
     {
+        $profile = Auth::user()->profile;
+
+        if($profile === 'Receptionist'){
+            return [
+                Button::add('show')
+                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
+                    ->id()
+                    ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
+                    ->dispatch('showStatus', ['policyId' => $row->id]),
+
+                Button::add('activate')
+                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="check-circle" variant="outline" class="w-5 h-5"/><span>Activar</span></div>'))
+                    ->id()
+                    ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                    ->dispatch('activatePolicy', ['policyId' => $row->id]),
+
+                Button::add('members')
+                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="user-group" variant="outline" class="w-5 h-5"/><span>Miembros</span></div>'))
+                    ->id()
+                    ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                    ->dispatch('addMember', ['policyId' => $row->id]),
+            ];
+        }
+
         return [
             Button::add('show')
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))

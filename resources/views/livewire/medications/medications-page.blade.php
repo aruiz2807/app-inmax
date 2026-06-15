@@ -135,17 +135,6 @@
                     </div>
 
                     <x-ui.field>
-                        <x-ui.label>Tipo de ajuste</x-ui.label>
-
-                        <x-ui.select wire:model="adjustmentForm.type" placeholder="Selecciona un tipo">
-                            <x-ui.select.option value="IN">Entrada (+)</x-ui.select.option>
-                            <x-ui.select.option value="OUT">Salida (-)</x-ui.select.option>
-                        </x-ui.select>
-
-                        <x-ui.error name="adjustmentForm.type" />
-                    </x-ui.field>
-
-                    <x-ui.field>
                         <x-ui.label>Cantidad a ajustar</x-ui.label>
 
                         <div class="flex items-center gap-2">
@@ -161,7 +150,6 @@
                             <x-ui.input
                                 wire:model="adjustmentForm.quantity"
                                 type="number"
-                                min="1"
                                 class="text-center"
                             />
 

@@ -11,10 +11,7 @@ use Livewire\Form;
 
 class MedicationAdjustmentForm extends Form
 {
-    #[Validate('required|in:IN,OUT')]
-    public $type = 'IN';
-
-    #[Validate('required|integer|min:1')]
+    #[Validate('required|integer')]
     public $quantity = 1;
 
     #[Validate('nullable|string|max:1000')]
@@ -29,7 +26,9 @@ class MedicationAdjustmentForm extends Form
 
         $medication = Medication::findOrFail($medicationId);
 
-        if ($this->type === MedicationMovementType::OUT->value && $this->quantity > $medication->existences) {
+        $type = $this->quantity > 0 ? MedicationMovementType::IN->value : MedicationMovementType::OUT->value;
+
+        if ($type === MedicationMovementType::OUT->value && $this->quantity > $medication->existences) {
             throw ValidationException::withMessages([
                 'adjustmentForm.quantity' => 'La cantidad a descontar no puede ser mayor a la existencia actual.',
             ]);
@@ -37,10 +36,10 @@ class MedicationAdjustmentForm extends Form
 
         MedicationMovement::create([
             'medication_id' => $medication->id,
-            'type' => $this->type,
+            'type' => $type,
             'adjustment' => true,
             'adjustment_comment' => $this->adjustment_comment ?: null,
-            'quantity' => $this->quantity,
+            'quantity' => abs($this->quantity),
             'reference' => 'Ajuste manual de existencias',
             'prescription_id' => null,
             'medication_purchase_id' => null,

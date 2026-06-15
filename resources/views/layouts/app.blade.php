@@ -258,13 +258,13 @@
                                 x-on:click="closeSidebar()"
                             />
 
-                            <x-ui.navlist.item
+                            {{--<x-ui.navlist.item
                                 icon="archive-box"
                                 :label="__('app.inventory')"
                                 href="{{ route('clerk.inventory') }}"
                                 :active="request()->routeIs('clerk.inventory')"
                                 x-on:click="closeSidebar()"
-                            />
+                            />--}}
                         @break
 
                         @case('Receptionist')
@@ -275,6 +275,15 @@
                                 :active="request()->routeIs('receptionist.appointments')"
                                 x-on:click="closeSidebar()"
                             />--}}
+
+                            <x-ui.navlist.item
+                                icon="identification"
+                                :label="__('app.policies')"
+                                href="{{ route('receptionist.policies') }}"
+                                :active="request()->routeIs('receptionist.policies')"
+                                x-on:click="closeSidebar()"
+                            />
+
                             <x-ui.navlist.item
                                 icon="clipboard-document-list"
                                 :label="'Solicitudes'"

@@ -223,5 +223,7 @@ Route::middleware([
         Route::get('/requests', ReceptionistRequestsPage::class)->name('receptionist.requests');
         Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)->name('receptionist.payment');
         Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)->name('receptionist.payment.ticket');
+
+        Route::get('/policies', PoliciesPage::class)->name('receptionist.policies');
     });
 });
