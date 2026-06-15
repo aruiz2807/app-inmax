@@ -8,11 +8,13 @@
             <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
                 <span>Catalogo de membresías</span>
 
+                @if(auth()->user()->profile === 'Admin')
                 <x-ui.modal.trigger id="policy-modal" wire:click="resetForm">
                     <x-ui.button color="teal" icon="plus-circle">
                         Registrar membresías
                     </x-ui.button>
                 </x-ui.modal.trigger>
+                @endif
             </x-ui.heading>
             <p>Resgistre y administre las membresías de los clientes</p>
         </x-ui.card>

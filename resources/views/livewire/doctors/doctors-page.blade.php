@@ -126,13 +126,13 @@
 
                 <x-ui.field required>
                     <x-ui.label>Descuento</x-ui.label>
-                    <x-ui.input wire:model="form.discount" name="discount" prefixIcon="percent-badge" type="number" min="0" max="100"/>
+                    <x-ui.input wire:model="form.discount" name="discount" prefixIcon="percent-badge" x-mask:dynamic="$money($input)" min="0" max="100"/>
                     <x-ui.error name="form.discount" />
                 </x-ui.field>
 
                 <x-ui.field required>
                     <x-ui.label>Comisión</x-ui.label>
-                    <x-ui.input wire:model="form.commission" name="commission" prefixIcon="percent-badge" type="number" min="0" max="100" />
+                    <x-ui.input wire:model="form.commission" name="commission" prefixIcon="percent-badge" x-mask:dynamic="$money($input)" min="0" max="100" />
                     <x-ui.error name="form.commission" />
                 </x-ui.field>
 

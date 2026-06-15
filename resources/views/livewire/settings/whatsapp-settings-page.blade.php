@@ -61,7 +61,11 @@
 
                         <x-ui.field>
                             <x-ui.label>Verify Token</x-ui.label>
-                            <x-ui.input wire:model="webhookVerifyToken" placeholder="token-de-verificacion-meta" />
+                            <x-ui.input
+                                wire:model="webhookVerifyToken"
+                                placeholder="{{ $hasStoredWebhookVerifyToken ? 'Token guardado. Escribe uno nuevo para reemplazar.' : 'token-de-verificacion-meta' }}"
+                            />
+                            <p class="mt-1 text-xs text-slate-500">Si ya existe uno guardado, deja el campo vacío para conservarlo.</p>
                             <x-ui.error name="webhookVerifyToken" />
                         </x-ui.field>
 

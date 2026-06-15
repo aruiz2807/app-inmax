@@ -218,6 +218,7 @@ Route::middleware([
     });
 
     Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
+        Route::get('/policies', PoliciesPage::class)->name('recepcionist.policies');
         Route::get('/appointments', ReceptionistAppointmentsPage::class)->name('receptionist.appointments');
         Route::get('/pending-results', ReceptionistPendingResultsPage::class)->name('receptionist.pending-results');
         Route::get('/requests', ReceptionistRequestsPage::class)->name('receptionist.requests');

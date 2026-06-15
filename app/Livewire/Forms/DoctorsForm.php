@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Doctor;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -45,10 +46,10 @@ class DoctorsForm extends Form
     #[Validate('required|max:2048')]
     public $maps_url = '';
 
-    #[Validate('integer|min:0|max:100')]
+    #[Validate('numeric|min:0|max:100')]
     public $discount = 0;
 
-    #[Validate('integer|min:0|max:100')]
+    #[Validate('numeric|min:0|max:100')]
     public $commission = 0;
 
     protected function rules()
@@ -104,7 +105,7 @@ class DoctorsForm extends Form
         return User::create([
             'name' => $input['name'],
             'profile' => 'Doctor',
-            'email' => $input['email'],
+            'email' => Str::lower($input['email']),
             'phone' => $input['phone'],
             // for now, the phone number will be the user's password
             'password' => Hash::make($input['phone']),
