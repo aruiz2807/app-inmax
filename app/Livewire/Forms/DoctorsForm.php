@@ -46,10 +46,10 @@ class DoctorsForm extends Form
     #[Validate('required|max:2048')]
     public $maps_url = '';
 
-    #[Validate('integer|min:0|max:100')]
+    #[Validate('numeric|min:0|max:100')]
     public $discount = 0;
 
-    #[Validate('integer|min:0|max:100')]
+    #[Validate('numeric|min:0|max:100')]
     public $commission = 0;
 
     protected function rules()
