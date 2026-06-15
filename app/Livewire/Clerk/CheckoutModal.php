@@ -60,7 +60,7 @@ class CheckoutModal extends Component
 
         foreach ($this->prescriptions as $prescription) 
         {
-            if (!is_null($prescription->medication_id)) {
+            if (!is_null($prescription->medication_id) && $prescription->status === 'Prescribed') {
                 $quantity = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
                 $subtotalPublic += $quantity * $prescription->medication->price_public;
                 $subtotalMembers += $quantity * $prescription->medication->price_members;

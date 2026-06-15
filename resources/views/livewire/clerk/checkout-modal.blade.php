@@ -2,7 +2,7 @@
     <x-ui.modal
         id="checkout-modal"
         animation="fade"
-        width="2xl"
+        width="3xl"
         heading="Surtir medicamentos"
         description="Seleccione el beneficio que usara el cliente"
         x-on:close-checkout-modal.window="$data.close()"
@@ -127,7 +127,7 @@
                         $subtotalPublic = 0;
                         $subtotalMembers = 0;
                         foreach ($prescriptions as $prescription) {
-                            if (!is_null($prescription->medication_id)) {
+                            if (!is_null($prescription->medication_id) && $prescription->status === 'Prescribed') {
                                 $qty = (int) ($deliveryQuantities[$prescription->id] ?? 0);
                                 $subtotalPublic += $qty * $prescription->medication->price_public;
                                 $subtotalMembers += $qty * $prescription->medication->price_members;

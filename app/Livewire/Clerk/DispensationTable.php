@@ -222,7 +222,7 @@ final class DispensationTable extends PowerGridComponent
     {
         return [
             Button::add('show_details')
-                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="clipboard-document-check" variant="outline" class="w-5 h-5"/><span>Surtir</span></div>'))
                 ->id()
                 ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('openPrescription', ['appointmentId' => (int) data_get($row, 'id')]),
