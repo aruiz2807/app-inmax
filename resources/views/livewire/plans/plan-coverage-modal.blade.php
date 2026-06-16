@@ -52,7 +52,7 @@
                             <tr wire:key="coverage-{{ $included->id }}">
                                 <td>
                                     <div class="flex flex-col">
-                                        <x-ui.text class="font-medium"> {{ $included->service->name }} </x-ui.text>
+                                        <x-ui.text class="font-medium"> {{ $included->service?->name }} </x-ui.text>
                                     </div>
                                 </td>
 
