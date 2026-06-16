@@ -297,6 +297,6 @@ class WhatsAppMessageRecorder
             return null;
         }
 
-        return Carbon::createFromTimestamp((int) $value);
+        return Carbon::createFromTimestamp((int) $value, config('app.timezone'));
     }
 }
