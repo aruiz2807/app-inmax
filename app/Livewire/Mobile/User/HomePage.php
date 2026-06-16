@@ -10,6 +10,7 @@ use Livewire\Component;
 class HomePage extends Component
 {
     public $unratedAppointments;
+    public $unratedAppointmentsCount;
 
     public function mount()
     {
@@ -17,7 +18,14 @@ class HomePage extends Component
             ->where('status', \App\Enums\AppointmentStatus::COMPLETED)
             ->whereNull('rating')
             ->with('doctor.user')
+            ->orderBy('created_at', 'desc')
+            ->limit(2)
             ->get();
+        $this->unratedAppointmentsCount = Appointment::where('user_id', Auth::user()->id)
+            ->where('status', \App\Enums\AppointmentStatus::COMPLETED)
+            ->whereNull('rating')
+            ->with('doctor.user')
+            ->count() - 2;
     }
 
     public function dismissRatingAlert($appointmentId)
@@ -25,6 +33,7 @@ class HomePage extends Component
         $this->unratedAppointments = $this->unratedAppointments->reject(function ($appointment) use ($appointmentId) {
             return $appointment->id == $appointmentId;
         })->values();
+        $this->unratedAppointmentsCount = $this->unratedAppointmentsCount - 1;
     }
 
     #[Layout('layouts.mobile')]

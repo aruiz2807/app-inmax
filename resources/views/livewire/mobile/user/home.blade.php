@@ -1,55 +1,77 @@
 
 <div>
     <div class="relative w-full">
-        <img src="/img/home.png" alt="Header" class="w-full object-cover">
+    <img src="/img/home.png" alt="Header" class="w-full object-cover">
 
-        <!-- User Profile Button -->
-        <div class="absolute bottom-0 left-3">
-            <x-dropdown align="left" width="48">
-                <x-slot name="trigger">
-                    @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+    <!-- User Profile Button -->
+    <div class="absolute bottom-0 left-3">
+        <x-dropdown align="left" width="48">
+            <x-slot name="trigger">
+                @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+                    <button class="flex text-sm border-2 border-white rounded-full shadow-md focus:outline-none focus:border-neutral-300 transition">
+                        <img class="size-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                    </button>
+                @else
+                    <span class="inline-flex rounded-md">
                         <button class="flex text-sm border-2 border-white rounded-full shadow-md focus:outline-none focus:border-neutral-300 transition">
-                            <img class="size-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="h-6 w-6 text-[#1A3A5A]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                                />
+                            </svg>
                         </button>
-                    @else
-                        <span class="inline-flex rounded-md">
-                            <button class="flex text-sm border-2 border-white rounded-full shadow-md focus:outline-none focus:border-neutral-300 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="h-6 w-6 text-[#1A3A5A]"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                                    />
-                                </svg>
-                            </button>
-                        </span>
-                    @endif
-                </x-slot>
+                    </span>
+                @endif
+            </x-slot>
 
-                <x-slot name="content">
-                    <x-dropdown-link href="{{ route('user.my-profile') }}">
-                        {{ __('app.profile') }}
-                    </x-dropdown-link>
+            <x-slot name="content">
+                <x-dropdown-link href="{{ route('user.my-profile') }}">
+                    {{ __('app.profile') }}
+                </x-dropdown-link>
 
-                    <div class="col-span-full border-t border-neutral-200"></div>
+                <div class="col-span-full border-t border-neutral-200"></div>
 
-                    <!-- Authentication -->
-                    
-                    <form class="col-span-full" method="POST" action="{{ route('logout') }}" x-data>
-                        @csrf
-                        <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-neutral-800 hover:bg-neutral-100 rounded-[calc(var(--dropdown-radius)-var(--dropdown-padding))] transition-colors duration-200 cursor-pointer">
-                            {{ __('app.logout') }}
-                        </button>
-                    </form>
-                    
-                </x-slot>
-            </x-dropdown>
-        </div>
+                <!-- Authentication -->
+                <form class="col-span-full" method="POST" action="{{ route('logout') }}" x-data>
+                    @csrf
+                    <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-neutral-800 hover:bg-neutral-100 rounded-[calc(var(--dropdown-radius)-var(--dropdown-padding))] transition-colors duration-200 cursor-pointer">
+                        {{ __('app.logout') }}
+                    </button>
+                </form>
+            </x-slot>
+        </x-dropdown>
     </div>
+
+    <!-- Notification Bell -->
+    <div class="absolute bottom-0 right-3">
+        <button class="relative flex items-center justify-center size-9 border-2 border-white rounded-full shadow-md bg-white/20 hover:bg-white/40 transition focus:outline-none focus:border-neutral-300">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-[#1A3A5A]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+                />
+            </svg>
+
+            {{-- Badge de notificaciones (mostrar solo si hay notificaciones) --}}
+            @if($unratedAppointmentsCount > 2)
+                <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold text-white bg-red-500 rounded-full">
+                    {{ $unratedAppointmentsCount > 99 ? '99+' : $unratedAppointmentsCount }}
+                </span>
+            @endif
+        </button>
+    </div>
+</div>
 
     <div class="px-6 pt-12 pb-8">
         <h1 class="text-2xl font-bold text-center text-[#1A3A5A] mb-8">
