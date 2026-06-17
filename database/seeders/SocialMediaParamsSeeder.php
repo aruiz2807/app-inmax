@@ -12,56 +12,68 @@ class SocialMediaParamsSeeder extends Seeder
      */
     public function run(): void
     {
-        Parameter::insertOrIgnore([
+        $parameters = [
             [
-                'id' => 1,
+                'type' => 'RS',
+                'key' => 'Facebook',
+                'description' => 'Facebook',
+                'value' => 'https://www.facebook.com/share/18j2wXAju6/?mibextid=wwXIfr',
+            ],
+            [
                 'type' => 'RS',
                 'key' => 'Instagram',
                 'description' => 'Instagram',
                 'value' => 'https://www.instagram.com/inmaxsure?igsh=MW9kaHl0Mndibm4zMg==',
             ],
             [
-                'id' => 2,
                 'type' => 'RS',
                 'key' => 'Phone',
                 'description' => 'Teléfono',
                 'value' => '+ 52 33 1366 6626',
             ],
             [
-                'id' => 3,
                 'type' => 'RS',
                 'key' => 'Email',
                 'description' => 'Correo',
-                'value' => 'contacto@inmax-sure.com',
+                'value' => 'contacto@inmax.mx',
             ],
             [
-                'id' => 4,
                 'type' => 'RS',
                 'key' => 'Whatsapp',
                 'description' => 'Whatsapp',
                 'value' => '+ 52 33 1366 6626',
             ],
             [
-                'id' => 5,
                 'type' => 'RS',
                 'key' => 'Tiktok',
                 'description' => 'Tiktok',
-                'value' => 'https://www.tiktok.com/@inmaxsure',
+                'value' => 'https://www.tiktok.com/@inmax.sure?_r=1&_t=ZS-97IBTt2pd0H',
             ],
             [
-                'id' => 6,
                 'type' => 'RS',
                 'key' => 'Maps',
                 'description' => 'Ubicación',
                 'value' => 'https://maps.app.goo.gl/4u4jt7dhaLhGw3qS7?g_st=iw',
             ],
             [
-                'id' => 7,
                 'type' => 'RS',
                 'key' => 'Page',
                 'description' => 'Página INMAX',
-                'value' => 'https://inmax-sure.com/',
+                'value' => 'https://inmax.mx/',
             ],
-        ]);
+        ];
+
+        foreach ($parameters as $parameter) {
+            Parameter::updateOrCreate(
+                [
+                    'type' => $parameter['type'],
+                    'key' => $parameter['key'],
+                ],
+                [
+                    'description' => $parameter['description'],
+                    'value' => $parameter['value'],
+                ]
+            );
+        }
     }
 }
