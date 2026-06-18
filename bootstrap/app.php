@@ -18,9 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {
-            return $request->is('admin') || $request->is('admin/*')
-                ? route('admin.login', absolute: false)
-                : route('login', absolute: false);
+            return route('login', absolute: false);
         });
         $middleware->validateCsrfTokens(except: [
             'webhooks/whatsapp',
