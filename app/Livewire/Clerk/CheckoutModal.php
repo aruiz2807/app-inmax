@@ -17,6 +17,7 @@ use Livewire\Attributes\On;
 class CheckoutModal extends Component
 {
     public ?int $appointmentId = null;
+    public ?Appointment $appointment = null;
     public ?User $user = null;
     public $prescriptions = [];
     public array $deliveryQuantities = [];
@@ -102,6 +103,7 @@ class CheckoutModal extends Component
         $this->appointmentId = $appointmentId;
 
         $appointment = Appointment::with(['user.policy', 'prescriptions.medication'])->find($this->appointmentId);
+        $this->appointment = $appointment;
         $this->user = $appointment?->user;
         $this->prescriptions = $appointment?->prescriptions ?? [];
 

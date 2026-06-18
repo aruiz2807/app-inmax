@@ -28,6 +28,8 @@
             $profile = auth()->user()?->profile;
             $isClerk = $profile === 'Clerk';
             $homeRoute = $isClerk ? 'clerk.dispensation' : 'dashboard';
+
+            $hasAccessMemberships = App\Models\Parameter::where('type', 'RC')->where('key', 'Recepcionista')->value('value') == auth()->user()?->name;
         @endphp
 
         <x-ui.layout variant="sidebar-main" collapsable>
@@ -268,13 +270,16 @@
                         @break
 
                         @case('Receptionist')
-                            <x-ui.navlist.item
-                                icon="identification"
-                                :label="__('app.policies')"
-                                href="{{ route('recepcionist.policies') }}"
-                                :active="request()->routeIs('policies')"
-                                x-on:click="closeSidebar()"
-                            />
+
+                            @if ($hasAccessMemberships)
+                                <x-ui.navlist.item
+                                    icon="identification"
+                                    :label="__('app.policies')"
+                                    href="{{ route('recepcionist.policies') }}"
+                                    :active="request()->routeIs('policies')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endif
                             
                             <x-ui.navlist.item
                                 icon="clipboard-document-list"

@@ -28,14 +28,15 @@
             <div class="flex flex-col gap-2">
                 @foreach($prescriptions as $prescription)
                     @php 
-                        $disabled = $prescription->status === 'Dispensed'; 
+                        $isDispensed = $prescription->status === 'Dispensed'; 
+                        $isPartial = $appointment->status_prescription === 'Partial'; 
                         $isManual = is_null($prescription->medication_id);
                     @endphp
 
                     <div 
                         class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center gap-4
-                            {{ $disabled ? 'opacity-50 border-gray-300' : 'border-gray-100' }}"
-                        aria-disabled="{{ $disabled ? 'true' : 'false' }}"
+                            {{ $isDispensed ? 'opacity-50 border-gray-300' : 'border-gray-100' }}"
+                        aria-disabled="{{ $isDispensed ? 'true' : 'false' }}"
                     >
                         <div class="flex-1">
                             <x-ui.text class="font-bold text-base">
@@ -46,7 +47,7 @@
                                 {{ $prescription->quantity }} • {{ $prescription->dose }} • cada {{ $prescription->frequency }} • durante {{ $prescription->duration }}
                             </x-ui.text>
 
-                            @if($disabled)
+                            @if($isDispensed)
                                 <x-ui.text class="text-xs text-gray-500 mt-1">
                                     Surtida
                                 </x-ui.text>
@@ -60,7 +61,7 @@
                         @if(!$isManual)
                         <div class="flex items-center gap-4">
                             <div class="w-24">
-                                @if($disabled)
+                                @if($isDispensed)
                                     <x-ui.input 
                                         type="number" 
                                         min="0"
@@ -97,7 +98,8 @@
                             <p class="text-sm text-teal-700">Aplicar cupón de descuento de ${{ number_format($couponValue, 2) }}</p>
                         </div>
                     </div>
-                    @if($disabled)
+                    {{--@if($isDispensed && !$isPartial)--}}
+                    @if($isDispensed)
                         <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" disabled/>
                     @else
                         <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
@@ -114,7 +116,8 @@
                             <p class="text-sm text-blue-700">Beneficio por membresía activa</p>
                         </div>
                     </div>
-                    @if($disabled)
+                    {{--@if($isDispensed && !$isPartial)--}}
+                    @if($isDispensed)
                         <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" disabled/>
                     @else               
                         <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" />
