@@ -107,7 +107,7 @@ class PlanCoverageModal extends Component
 
         foreach ($this->coverage as $included)
         {
-            $value = match ($included->service->type) {
+            $value = match ($included->service?->type) {
                 'Amount' => $included->amount,
                 'Event'  => $included->events,
                 default  => null,

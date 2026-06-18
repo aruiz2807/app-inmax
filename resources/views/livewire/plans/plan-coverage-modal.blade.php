@@ -52,7 +52,7 @@
                             <tr wire:key="coverage-{{ $included->id }}">
                                 <td>
                                     <div class="flex flex-col">
-                                        <x-ui.text class="font-medium"> {{ $included->service->name }} </x-ui.text>
+                                        <x-ui.text class="font-medium"> {{ $included->service?->name }} </x-ui.text>
                                     </div>
                                 </td>
 
@@ -61,13 +61,13 @@
                                 </td>
 
                                 <td class="pl-4">
-                                @if($included->service->type === 'Amount')
+                                @if($included->service?->type === 'Amount')
                                     <x-ui.field>
                                         <x-ui.input wire:model.defer="values.{{ $included->id }}" x-mask:dynamic="$money($input)" placeholder="0.00">
                                             <x-slot name="prefix">$</x-slot>
                                         </x-ui.input>
                                     </x-ui.field>
-                                @elseif($included->service->type === 'Event')
+                                @elseif($included->service?->type === 'Event')
                                     <x-ui.field>
                                         <x-ui.input wire:model.defer="values.{{ $included->id }}" type="number" min="0"/>
                                     </x-ui.field>
