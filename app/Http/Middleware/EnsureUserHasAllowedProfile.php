@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
+use App\Services\Auth\HomeRouteResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +21,7 @@ class EnsureUserHasAllowedProfile
         $user = $request->user();
 
         if (! $user || empty($profiles) || ! in_array($user->profile, $profiles, true)) {
-            if ($user && ($redirect = $this->redirectToAllowedHome($request, $user->profile))) {
+            if ($user && ($redirect = $this->redirectToAllowedHome($request, $user))) {
                 return $redirect;
             }
 
@@ -32,7 +34,7 @@ class EnsureUserHasAllowedProfile
     /**
      * Redirect authenticated users only when they tried to access another profile's home/dashboard.
      */
-    protected function redirectToAllowedHome(Request $request, string $profile): ?RedirectResponse
+    protected function redirectToAllowedHome(Request $request, User $user): ?RedirectResponse
     {
         $currentRouteName = $request->route()?->getName();
 
@@ -40,7 +42,7 @@ class EnsureUserHasAllowedProfile
             return null;
         }
 
-        $homeRouteName = $this->homeRouteNameForProfile($profile);
+        $homeRouteName = app(HomeRouteResolver::class)->routeNameFor($user);
 
         if (! $homeRouteName || $homeRouteName === $currentRouteName) {
             return null;
@@ -63,20 +65,5 @@ class EnsureUserHasAllowedProfile
             'clerk.dispensation',
             'receptionist.requests',
         ];
-    }
-
-    /**
-     * Resolve the allowed home route for a given profile.
-     */
-    protected function homeRouteNameForProfile(string $profile): ?string
-    {
-        return match ($profile) {
-            'Admin', 'Sales' => 'dashboard',
-            'User' => 'user.home',
-            'Doctor' => 'doctor.home',
-            'Clerk' => 'clerk.dispensation',
-            'Receptionist' => 'receptionist.requests',
-            default => null,
-        };
     }
 }

@@ -127,43 +127,88 @@ Route::middleware([
     'verified',
 ])->group(function () {
 
-    Route::get('/dashboard', DashboardPage::class)->middleware('profile:Admin,Sales')->name('dashboard');
+    Route::get('/dashboard', DashboardPage::class)
+        ->middleware('profile:Admin,Sales')
+        ->middleware('permission:view.dashboard')
+        ->name('dashboard');
 
     Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
     Route::get('/external-service/{external_service_id}', [AttachmentController::class, 'downloadExternalService'])->name('external-service.download');
 
     Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
 
-        Route::get('/appointments', AppointmentsPage::class)->name('appointments');
+        Route::get('/appointments', AppointmentsPage::class)
+            ->middleware('permission:view.admin.appointments')
+            ->name('appointments');
 
-        Route::get('/coupons', CouponsPage::class)->name('coupons');
+        Route::get('/coupons', CouponsPage::class)
+            ->middleware('permission:view.settings.coupons')
+            ->name('coupons');
 
-        Route::get('/doctors', DoctorsPage::class)->name('doctors');
+        Route::get('/doctors', DoctorsPage::class)
+            ->middleware('permission:view.admin.doctors')
+            ->name('doctors');
 
-        Route::get('/medications', MedicationsPage::class)->name('medications');
+        Route::get('/medications', MedicationsPage::class)
+            ->middleware('permission:view.settings.medications')
+            ->name('medications');
 
-        Route::get('/offices', OfficesPage::class)->name('offices');
+        Route::get('/offices', OfficesPage::class)
+            ->middleware('permission:view.settings.offices')
+            ->name('offices');
 
-        Route::get('/plans', PlansPage::class)->name('plans');
+        Route::get('/plans', PlansPage::class)
+            ->middleware('permission:view.settings.plans')
+            ->name('plans');
 
-        Route::get('/preregistrations', PolicyPreregistrationsPage::class)->name('preregistrations');
+        Route::get('/preregistrations', PolicyPreregistrationsPage::class)
+            ->middleware('permission:view.admin.preregistrations')
+            ->name('preregistrations');
 
-        Route::get('/policies', PoliciesPage::class)->name('policies');
+        Route::get('/policies', PoliciesPage::class)
+            ->middleware('permission:view.admin.policies')
+            ->name('policies');
 
-        Route::get('/reports/commissions', CommissionsPage::class)->name('reports.commissions');
-        Route::get('/reports/sales', SalesPage::class)->name('reports.sales');
+        Route::get('/reports/commissions', CommissionsPage::class)
+            ->middleware('permission:view.reports.commissions')
+            ->name('reports.commissions');
+        Route::get('/reports/sales', SalesPage::class)
+            ->middleware('permission:view.reports.sales')
+            ->name('reports.sales');
 
-        Route::get('/services', ServicesPage::class)->name('services');
+        Route::get('/services', ServicesPage::class)
+            ->middleware('permission:view.settings.services')
+            ->name('services');
 
-        Route::get('/specialties', SpecialtiesPage::class)->name('specialties');
+        Route::get('/specialties', SpecialtiesPage::class)
+            ->middleware('permission:view.settings.specialties')
+            ->name('specialties');
 
-        Route::get('/users', UsersPage::class)->middleware('admin')->name('users');
-        Route::get('/whatsapp/console', WhatsAppConsolePage::class)->middleware('admin')->name('whatsapp.console');
+        Route::get('/users', UsersPage::class)
+            ->middleware('admin')
+            ->middleware('permission:view.admin.users')
+            ->name('users');
+        Route::get('/whatsapp/console', WhatsAppConsolePage::class)
+            ->middleware('admin')
+            ->middleware('permission:view.admin.whatsapp_console')
+            ->name('whatsapp.console');
 
-        Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
-        Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');
-        Route::get('/settings/parameters', ParametersPage::class)->middleware('admin')->name('settings.parameters');
-        Route::get('/settings/permissions', PermissionsPage::class)->middleware('admin')->name('settings.permissions');
+        Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)
+            ->middleware('admin')
+            ->middleware('permission:view.settings.whatsapp')
+            ->name('settings.whatsapp');
+        Route::get('/settings/legal', LegalSettingsPage::class)
+            ->middleware('admin')
+            ->middleware('permission:view.settings.legal')
+            ->name('settings.legal');
+        Route::get('/settings/parameters', ParametersPage::class)
+            ->middleware('admin')
+            ->middleware('permission:view.settings.parameters')
+            ->name('settings.parameters');
+        Route::get('/settings/permissions', PermissionsPage::class)
+            ->middleware('admin')
+            ->middleware('permission:view.settings.permissions')
+            ->name('settings.permissions');
     });
 
     Route::prefix('user')->middleware('profile:User,Admin')->group(function () {
@@ -189,12 +234,16 @@ Route::middleware([
 
     Route::prefix('doctor')->middleware('profile:Doctor,Admin')->group(function () {
 
-        Route::get('/home', DRHomePage::class)->name('doctor.home');
+        Route::get('/home', DRHomePage::class)
+            ->middleware('permission:view.doctor.home')
+            ->name('doctor.home');
 
         Route::get('/schedule/{appointment}', DRSchedulePage::class)->name('doctor.schedule');
         Route::get('/schedule-confirmation', DRScheduleConfirmationPage::class)->name('doctor.schedule-confirmation');
 
-        Route::get('/history', DRHistoryPage::class)->name('doctor.history');
+        Route::get('/history', DRHistoryPage::class)
+            ->middleware('permission:view.doctor.history')
+            ->name('doctor.history');
         Route::get('/history/note/{appointment}', DRHistoryNotePage::class)->name('history.notes');
         Route::get('/results-pending', DRResultsPendingPage::class)->name('doctor.results-pending');
 
@@ -214,17 +263,33 @@ Route::middleware([
 
     Route::prefix('clerk')->middleware('profile:Clerk')->group(function () {
         Route::get('/dashboard', ClerkDashboardPage::class)->name('clerk.dashboard');
-        Route::get('/dispensation', DispensationPage::class)->name('clerk.dispensation');
+        Route::get('/dispensation', DispensationPage::class)
+            ->middleware('permission:view.clerk.dispensation')
+            ->name('clerk.dispensation');
         Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
-        Route::get('/medications', MedicationsPage::class)->name('clerk.medications');
+        Route::get('/medications', MedicationsPage::class)
+            ->middleware('permission:view.clerk.medications')
+            ->name('clerk.medications');
     });
 
     Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
-        Route::get('/policies', PoliciesPage::class)->name('recepcionist.policies');
-        Route::get('/appointments', ReceptionistAppointmentsPage::class)->name('receptionist.appointments');
-        Route::get('/pending-results', ReceptionistPendingResultsPage::class)->name('receptionist.pending-results');
-        Route::get('/requests', ReceptionistRequestsPage::class)->name('receptionist.requests');
-        Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)->name('receptionist.payment');
-        Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)->name('receptionist.payment.ticket');
+        Route::get('/policies', PoliciesPage::class)
+            ->middleware('permission:view.receptionist.policies')
+            ->name('recepcionist.policies');
+        Route::get('/appointments', ReceptionistAppointmentsPage::class)
+            ->middleware('permission:view.receptionist.appointments')
+            ->name('receptionist.appointments');
+        Route::get('/pending-results', ReceptionistPendingResultsPage::class)
+            ->middleware('permission:view.receptionist.pending_results')
+            ->name('receptionist.pending-results');
+        Route::get('/requests', ReceptionistRequestsPage::class)
+            ->middleware('permission:view.receptionist.requests')
+            ->name('receptionist.requests');
+        Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)
+            ->middleware('permission:view.receptionist.appointments')
+            ->name('receptionist.payment');
+        Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)
+            ->middleware('permission:view.receptionist.appointments')
+            ->name('receptionist.payment.ticket');
     });
 });

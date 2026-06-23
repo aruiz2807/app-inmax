@@ -141,17 +141,18 @@
                             <p class="text-xs text-neutral-500">Selecciona los permisos que el usuario podra utilizar dentro del sistema.</p>
                         </div>
 
-                        <div class="grid gap-3 md:grid-cols-2">
-                            @foreach ($permissions as $permission)
-                                <x-ui.checkbox
-                                    wire:model="assignedPermissionIds"
-                                    value="{{ $permission->id }}"
-                                    :label="$permission->name"
-                                    :description="$permission->description ?: $permission->code"
-                                    variant="card"
-                                />
-                            @endforeach
-                        </div>
+                        <x-ui.checkbox.group wire:model="assignedPermissionIds">
+                            <div class="grid gap-3 md:grid-cols-2">
+                                @foreach ($permissions as $permission)
+                                    <x-ui.checkbox
+                                        value="{{ (string) $permission->id }}"
+                                        :label="$permission->name"
+                                        :description="$permission->description ?: $permission->code"
+                                        variant="card"
+                                    />
+                                @endforeach
+                            </div>
+                        </x-ui.checkbox.group>
                     </div>
                 @empty
                     <p class="text-sm text-neutral-500 italic">No hay permisos activos disponibles para asignar.</p>
