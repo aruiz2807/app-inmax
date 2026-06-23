@@ -4,6 +4,7 @@ namespace App\Livewire\Users;
 
 use App\Livewire\Forms\UsersForm;
 use App\Models\Doctor;
+use App\Models\Permission;
 use App\Models\User;
 use App\Services\Auth\PinSetupTokenService;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,9 @@ class UsersPage extends Component
     public ?string $lastPinSetupUrl = null;
     public ?string $lastPinSetupName = null;
     public ?string $lastPinSetupPhone = null;
+    public ?int $permissionsUserId = null;
+    public ?string $permissionsUserName = null;
+    public array $assignedPermissionIds = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -26,7 +30,17 @@ class UsersPage extends Component
             ->orderBy('id')
             ->get();
 
-        return view('livewire.users.users-page', ['doctors' => $doctors]);
+        $permissionsByGroup = Permission::query()
+            ->where('is_active', true)
+            ->orderBy('group_name')
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'group_name', 'description'])
+            ->groupBy(fn (Permission $permission): string => $permission->group_name ?: 'Sin grupo');
+
+        return view('livewire.users.users-page', [
+            'doctors' => $doctors,
+            'permissionsByGroup' => $permissionsByGroup,
+        ]);
     }
 
     #[On('editUser')]
@@ -130,9 +144,61 @@ class UsersPage extends Component
         $this->resetForm();
     }
 
+    #[On('manageUserPermissions')]
+    public function manageUserPermissions(int $userId): void
+    {
+        $user = User::query()
+            ->with('permissions:id')
+            ->findOrFail($userId);
+
+        $this->permissionsUserId = $user->id;
+        $this->permissionsUserName = $user->name;
+        $this->assignedPermissionIds = $user->permissions
+            ->pluck('id')
+            ->map(fn (int $id): string => (string) $id)
+            ->all();
+
+        $this->dispatch('open-user-permissions-modal');
+    }
+
+    public function saveUserPermissions(): void
+    {
+        if (! $this->permissionsUserId) {
+            return;
+        }
+
+        $user = User::query()->findOrFail($this->permissionsUserId);
+
+        $permissionIds = Permission::query()
+            ->whereIn('id', $this->assignedPermissionIds)
+            ->pluck('id')
+            ->map(fn (int $id): int => $id)
+            ->all();
+
+        $user->permissions()->sync($permissionIds);
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: 'Permisos del usuario actualizados exitosamente.',
+            duration: 4000
+        );
+
+        $this->dispatch('close-user-permissions-modal');
+        $this->dispatch('pg:eventRefresh-usersTable');
+        $this->resetPermissionAssignment();
+    }
+
     public function resetForm(): void
     {
         $this->form->reset();
         $this->userId = null;
+    }
+
+    public function resetPermissionAssignment(): void
+    {
+        $this->permissionsUserId = null;
+        $this->permissionsUserName = null;
+        $this->assignedPermissionIds = [];
     }
 }

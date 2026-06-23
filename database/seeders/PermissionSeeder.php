@@ -15,7 +15,7 @@ class PermissionSeeder extends Seeder
     {
         $permissionIds = collect(config('permissions.catalog', []))
             ->map(function (array $attributes, string $code): int {
-                $permission = Permission::query()->updateOrCreate(
+                $permission = Permission::query()->firstOrCreate(
                     ['code' => $code],
                     [
                         'name' => $attributes['name'],

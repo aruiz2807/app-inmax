@@ -34,6 +34,7 @@ final class UsersTable extends PowerGridComponent
     {
         return User::query()
             ->select('users.*')
+            ->withCount('permissions')
             ->addSelect([
                 'legal_accepted_at' => UserLegalAcceptance::query()
                     ->select('accepted_at')
@@ -57,6 +58,7 @@ final class UsersTable extends PowerGridComponent
             ->add('email')
             ->add('phone')
             ->add('profile')
+            ->add('permissions_count')
             ->add('pin_status', fn (User $user) => $user->pin_set_at ? 'Configurado' : 'Pendiente')
             ->add('legal_accepted_at')
             ->add('legal_accepted_at_formatted', function (User $user): string {
@@ -86,6 +88,9 @@ final class UsersTable extends PowerGridComponent
                 ->searchable(),
 
             Column::make('Perfil', 'profile')
+                ->sortable(),
+
+            Column::make('Permisos', 'permissions_count')
                 ->sortable(),
 
             Column::make('PIN', 'pin_status')
@@ -132,6 +137,12 @@ final class UsersTable extends PowerGridComponent
                 ->id()
                 ->class('text-neutral-600 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
                 ->dispatch('sendUserPinSetupLink', ['userId' => $row->id]),
+
+            Button::add('permissions')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="shield-check" variant="outline" class="w-5 h-5"/><span>Permisos</span></div>'))
+                ->id()
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('manageUserPermissions', ['userId' => $row->id]),
         ];
     }
 }

@@ -44,6 +44,7 @@ use App\Livewire\Offices\OfficesPage;
 
 // Livewire - Plans
 use App\Livewire\Plans\PlansPage;
+use App\Livewire\Permissions\PermissionsPage;
 
 // Livewire - Policies
 use App\Livewire\Policies\PolicyPreregistrationPage;
@@ -162,6 +163,7 @@ Route::middleware([
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)->middleware('admin')->name('settings.whatsapp');
         Route::get('/settings/legal', LegalSettingsPage::class)->middleware('admin')->name('settings.legal');
         Route::get('/settings/parameters', ParametersPage::class)->middleware('admin')->name('settings.parameters');
+        Route::get('/settings/permissions', PermissionsPage::class)->middleware('admin')->name('settings.permissions');
     });
 
     Route::prefix('user')->middleware('profile:User,Admin')->group(function () {
