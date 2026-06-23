@@ -48,6 +48,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read int|null $legal_acceptances_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permission> $permissions
+ * @property-read int|null $permissions_count
  * @property-read \App\Models\Policy|null $policy
  * @property-read string $profile_photo_url
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Doctor> $staffDoctors
@@ -214,6 +216,63 @@ class User extends Authenticatable
     public function legalAcceptances(): HasMany
     {
         return $this->hasMany(UserLegalAcceptance::class);
+    }
+
+    /**
+     * Permissions assigned directly to this user.
+     */
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class)->withTimestamps();
+    }
+
+    /**
+     * Determine whether the user has the given active permission.
+     */
+    public function hasPermission(string $code): bool
+    {
+        if ($code === '') {
+            return false;
+        }
+
+        if ($this->relationLoaded('permissions')) {
+            return $this->permissions->contains(
+                fn (Permission $permission): bool => $permission->code === $code && $permission->is_active
+            );
+        }
+
+        return $this->permissions()
+            ->where('code', $code)
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    /**
+     * Determine whether the user has at least one active permission from the given set.
+     *
+     * @param  iterable<int, string>  $codes
+     */
+    public function hasAnyPermission(iterable $codes): bool
+    {
+        $codes = collect($codes)
+            ->filter(fn (mixed $code): bool => is_string($code) && $code !== '')
+            ->values()
+            ->all();
+
+        if ($codes === []) {
+            return false;
+        }
+
+        if ($this->relationLoaded('permissions')) {
+            return $this->permissions->contains(
+                fn (Permission $permission): bool => $permission->is_active && in_array($permission->code, $codes, true)
+            );
+        }
+
+        return $this->permissions()
+            ->whereIn('code', $codes)
+            ->where('is_active', true)
+            ->exists();
     }
 
     /**
