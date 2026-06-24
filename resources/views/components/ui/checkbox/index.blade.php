@@ -84,7 +84,7 @@
                     // CASE 1: Checkbox is part of a group wrapper
                     if (this.inInGroup()) {
                         // Check if this checkbox's value exists in the group's state array
-                        this._checked = this._state.includes(this.value);
+                        this._checked = Array.isArray(this._state) && this._state.includes(this.value);
                     }
                     // CASE 2: Standalone checkbox with model binding
                     else {
@@ -111,7 +111,15 @@
                         // Sync with Alpine.js model binding
                         this.$root?._x_model?.set(isChecked);                
                     }
-                });           
+                });
+
+                this.$watch('_state', (values) => {
+                    if (!Array.isArray(values)) {
+                        return;
+                    }
+
+                    this._checked = values.includes(this.value);
+                });
             },
 
             // ====================================================================

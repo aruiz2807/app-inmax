@@ -122,4 +122,52 @@
             </div>
         </form>
     </x-ui.modal>
+
+    <x-ui.modal
+        id="user-permissions-modal"
+        animation="fade"
+        width="3xl"
+        heading="Permisos del usuario"
+        description="{{ $permissionsUserName ? 'Asigne los permisos directos para '.$permissionsUserName.'.' : 'Asigne permisos directos al usuario.' }}"
+        x-on:close-user-permissions-modal.window="$data.close()"
+        x-on:open-user-permissions-modal.window="$data.open()"
+    >
+        <form wire:submit="saveUserPermissions">
+            <x-ui.fieldset label="Permisos asignados">
+                @forelse ($permissionsByGroup as $groupName => $permissions)
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-sm font-semibold text-neutral-800">{{ $groupName }}</h4>
+                            <p class="text-xs text-neutral-500">Selecciona los permisos que el usuario podra utilizar dentro del sistema.</p>
+                        </div>
+
+                        <x-ui.checkbox.group wire:model="assignedPermissionIds">
+                            <div class="grid gap-3 md:grid-cols-2">
+                                @foreach ($permissions as $permission)
+                                    <x-ui.checkbox
+                                        value="{{ (string) $permission->id }}"
+                                        :label="$permission->name"
+                                        :description="$permission->description ?: $permission->code"
+                                        variant="card"
+                                    />
+                                @endforeach
+                            </div>
+                        </x-ui.checkbox.group>
+                    </div>
+                @empty
+                    <p class="text-sm text-neutral-500 italic">No hay permisos activos disponibles para asignar.</p>
+                @endforelse
+            </x-ui.fieldset>
+
+            <div class="w-full flex justify-end gap-3 pt-4">
+                <x-ui.button x-on:click="$data.close();" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+
+                <x-ui.button type="submit" icon="check" variant="primary" color="teal">
+                    Guardar permisos
+                </x-ui.button>
+            </div>
+        </form>
+    </x-ui.modal>
 </div>

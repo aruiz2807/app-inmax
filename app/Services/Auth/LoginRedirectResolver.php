@@ -13,6 +13,10 @@ class LoginRedirectResolver
 {
     public const LAST_VISITED_URL_KEY = 'auth.last_visited_url';
 
+    public function __construct(
+        private readonly HomeRouteResolver $homeRouteResolver,
+    ) {}
+
     /**
      * Resolve the best post-login destination for the authenticated user.
      */
@@ -63,13 +67,7 @@ class LoginRedirectResolver
      */
     public function fallbackFor(?User $user): string
     {
-        return match ($user?->profile) {
-            'User' => route('user.home', absolute: false),
-            'Doctor' => route('doctor.home', absolute: false),
-            'Clerk' => route('clerk.dispensation', absolute: false),
-            'Receptionist' => route('receptionist.requests', absolute: false),
-            default => route('dashboard', absolute: false),
-        };
+        return $this->homeRouteResolver->pathFor($user);
     }
 
     /**
@@ -100,6 +98,14 @@ class LoginRedirectResolver
                 $allowedProfiles = array_filter(explode(',', Str::after($entry, 'profile:')));
 
                 if (! in_array($user->profile, $allowedProfiles, true)) {
+                    return false;
+                }
+            }
+
+            if (Str::startsWith($entry, 'permission:')) {
+                $allowedPermissions = array_filter(explode(',', Str::after($entry, 'permission:')));
+
+                if (! $user->hasAnyPermission($allowedPermissions)) {
                     return false;
                 }
             }

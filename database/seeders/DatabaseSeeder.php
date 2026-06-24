@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
         ])->save();
 
         $this->call([
+            PermissionSeeder::class,
             OfficesSeeder::class,
             SocialMediaParamsSeeder::class,
             WhatsAppSettingSeeder::class,
