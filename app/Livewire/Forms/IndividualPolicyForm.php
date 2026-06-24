@@ -5,6 +5,8 @@ namespace App\Livewire\Forms;
 use App\Models\Policy;
 use App\Models\User;
 use App\Services\Policies\IndividualPolicyRegistrationService;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -31,7 +33,7 @@ class IndividualPolicyForm extends Form
     #[Validate('required')]
     public $plan = null;
 
-    #[Validate('required|file|mimes:jpg,jpeg,png|max:2048')]
+    #[Validate('required|file|mimes:jpg,jpeg,png')]
     public $attachment = null;
 
     #[Validate('nullable')]
@@ -58,7 +60,7 @@ class IndividualPolicyForm extends Form
     ): Policy {
         $this->validate();
 
-        $path = $this->attachment->store('profile-photos', 'public');
+        $path = $this->optimizeAndStoreAttachment();
 
         return $registrationService->create([
             'name' => $this->name,
@@ -119,7 +121,9 @@ class IndividualPolicyForm extends Form
 
         $policy = Policy::find($policyId);
         $user = User::find($policy->user_id);
-        $path = $this->attachment->store('profile-photos', 'public');
+        $path = $this->attachment
+            ? $this->optimizeAndStoreAttachment()
+            : $user->profile_photo_path;
 
         $user->update([
             'name' => $this->name,
@@ -131,6 +135,81 @@ class IndividualPolicyForm extends Form
         $policy->update([
             'insurance' => $this->insurance
         ]);
+    }
+
+    private function optimizeAndStoreAttachment()
+    {
+        $maxBytes = 2 * 1024 * 1024;
+        $originalContent = file_get_contents($this->attachment->getRealPath());
+        $sourceImage = $originalContent ? imagecreatefromstring($originalContent) : false;
+
+        if ($sourceImage === false) {
+            return $this->attachment->store('profile-photos', 'public');
+        }
+
+        $originalWidth = imagesx($sourceImage);
+        $originalHeight = imagesy($sourceImage);
+        $quality = 85;
+        $scale = 1.0;
+        $optimizedContent = null;
+
+        // First reduce JPEG quality, then reduce dimensions if needed.
+        while ($scale >= 0.4) {
+            $targetImage = $sourceImage;
+
+            if ($scale < 1.0) {
+                $newWidth = max(1, (int) round($originalWidth * $scale));
+                $newHeight = max(1, (int) round($originalHeight * $scale));
+
+                $targetImage = imagecreatetruecolor($newWidth, $newHeight);
+                imagecopyresampled(
+                    $targetImage,
+                    $sourceImage,
+                    0,
+                    0,
+                    0,
+                    0,
+                    $newWidth,
+                    $newHeight,
+                    $originalWidth,
+                    $originalHeight
+                );
+            }
+
+            ob_start();
+            imagejpeg($targetImage, null, $quality);
+            $candidateContent = ob_get_clean();
+
+            if ($targetImage !== $sourceImage) {
+                imagedestroy($targetImage);
+            }
+
+            if ($candidateContent !== false) {
+                $optimizedContent = $candidateContent;
+
+                if (strlen($candidateContent) <= $maxBytes) {
+                    break;
+                }
+            }
+
+            if ($quality > 45) {
+                $quality -= 10;
+            } else {
+                $scale -= 0.1;
+                $quality = 75;
+            }
+        }
+
+        imagedestroy($sourceImage);
+
+        if (! $optimizedContent) {
+            return $this->attachment->store('profile-photos', 'public');
+        }
+
+        $path = 'profile-photos/' . Str::uuid() . '.jpg';
+        Storage::disk('public')->put($path, $optimizedContent);
+
+        return $path;
     }
 
 }
