@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Models\WhatsAppContact;
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
+use App\Models\WhatsAppMessageAttachment;
 use App\Models\WhatsAppSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WhatsAppWebhookTest extends TestCase
@@ -282,6 +285,83 @@ class WhatsAppWebhookTest extends TestCase
 
         $setting = WhatsAppSetting::query()->firstOrFail();
         $this->assertSame('invalid_signature', $setting->webhook_last_status);
+    }
+
+    public function test_webhook_persists_and_downloads_an_inbound_image_attachment(): void
+    {
+        Storage::fake('local');
+
+        $setting = WhatsAppSetting::query()->create([
+            'api_version' => 'v22.0',
+            'phone_number_id' => '113206948334320',
+            'access_token' => 'meta_test_token_12345',
+            'default_language' => 'es_MX',
+            'app_secret' => 'meta_app_secret_12345',
+        ]);
+
+        Http::fake([
+            'https://graph.facebook.com/v22.0/media-image-001*' => Http::response([
+                'messaging_product' => 'whatsapp',
+                'url' => 'https://lookaside.fbsbx.com/whatsapp/media-image-001',
+                'mime_type' => 'image/jpeg',
+                'sha256' => 'abc123sha',
+                'file_size' => 12345,
+                'id' => 'media-image-001',
+            ], 200),
+            'https://lookaside.fbsbx.com/whatsapp/media-image-001' => Http::response('fake-image-binary', 200, [
+                'Content-Type' => 'image/jpeg',
+            ]),
+        ]);
+
+        $payload = [
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => '123456789',
+                'changes' => [[
+                    'field' => 'messages',
+                    'value' => [
+                        'messaging_product' => 'whatsapp',
+                        'metadata' => [
+                            'display_phone_number' => '5213310000000',
+                            'phone_number_id' => '113206948334320',
+                        ],
+                        'contacts' => [[
+                            'profile' => ['name' => 'Ana Imagen'],
+                            'wa_id' => '5213319990001',
+                        ]],
+                        'messages' => [[
+                            'from' => '5213319990001',
+                            'id' => 'wamid.INBOUND.IMAGE.001',
+                            'timestamp' => '1770000001',
+                            'type' => 'image',
+                            'image' => [
+                                'id' => 'media-image-001',
+                                'mime_type' => 'image/jpeg',
+                                'sha256' => 'abc123sha',
+                                'caption' => 'Comprobante',
+                            ],
+                        ]],
+                    ],
+                ]],
+            ]],
+        ];
+
+        $response = $this->postWebhookPayload($payload, $setting->app_secret);
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+            ]);
+
+        $attachment = WhatsAppMessageAttachment::query()->firstOrFail();
+
+        $this->assertSame('image', $attachment->type);
+        $this->assertSame('Comprobante', $attachment->caption);
+        $this->assertSame(WhatsAppMessageAttachment::STATUS_DOWNLOADED, $attachment->download_status);
+        $this->assertSame('local', $attachment->storage_disk);
+        $this->assertNotNull($attachment->storage_path);
+        Storage::disk('local')->assertExists($attachment->storage_path);
     }
 
     /**

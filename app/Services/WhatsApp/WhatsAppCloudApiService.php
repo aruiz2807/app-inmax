@@ -3,6 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use App\Models\WhatsAppSetting;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -11,6 +12,7 @@ class WhatsAppCloudApiService
 {
     public function __construct(
         private readonly WhatsAppMessageRecorder $messageRecorder,
+        private readonly WhatsAppMediaService $mediaService,
     ) {}
 
     /**
@@ -153,6 +155,115 @@ class WhatsAppCloudApiService
     }
 
     /**
+     * Send a media message using an uploaded file and persist it locally.
+     *
+     * @return array{
+     *   ok: bool,
+     *   status: int,
+     *   data: array<string, mixed>,
+     *   payload: array<string, mixed>,
+     *   upload: array{ok: bool, status: int, data: array<string, mixed>},
+     *   attachment: array<string, mixed>
+     * }
+     */
+    public function sendMediaMessage(
+        WhatsAppSetting $setting,
+        string $to,
+        UploadedFile $file,
+        ?string $caption = null,
+    ): array {
+        $attachmentData = $this->mediaService->prepareOutboundAttachment($file, $caption);
+        $uploadResult = $this->mediaService->uploadOutboundMedia(
+            setting: $setting,
+            storagePath: (string) $attachmentData['storage_path'],
+            mimeType: (string) $attachmentData['mime_type'],
+            fileName: (string) $attachmentData['file_name'],
+        );
+
+        if (! $uploadResult['ok']) {
+            $failedResult = [
+                'ok' => false,
+                'status' => $uploadResult['status'],
+                'data' => $uploadResult['data'],
+                'payload' => [
+                    'upload' => [
+                        'storage_path' => $attachmentData['storage_path'],
+                        'mime_type' => $attachmentData['mime_type'],
+                        'file_name' => $attachmentData['file_name'],
+                    ],
+                ],
+                'upload' => $uploadResult,
+                'attachment' => $attachmentData,
+            ];
+
+            $this->recordOutboundMediaAttempt($to, $attachmentData, $failedResult);
+
+            return $failedResult;
+        }
+
+        $providerMediaId = (string) data_get($uploadResult['data'], 'id', '');
+
+        if ($providerMediaId === '') {
+            $failedResult = [
+                'ok' => false,
+                'status' => $uploadResult['status'],
+                'data' => [
+                    'error' => [
+                        'message' => 'Meta no devolvio media_id despues del upload.',
+                    ],
+                ],
+                'payload' => [
+                    'upload' => [
+                        'storage_path' => $attachmentData['storage_path'],
+                        'mime_type' => $attachmentData['mime_type'],
+                        'file_name' => $attachmentData['file_name'],
+                    ],
+                ],
+                'upload' => $uploadResult,
+                'attachment' => $attachmentData,
+            ];
+
+            $this->recordOutboundMediaAttempt($to, $attachmentData, $failedResult);
+
+            return $failedResult;
+        }
+
+        $attachmentData['provider_media_id'] = $providerMediaId !== '' ? $providerMediaId : null;
+        $payload = $this->mediaService->buildOutboundMessagePayload($to, $attachmentData, $providerMediaId);
+        $result = $this->dispatchMessage($setting, $payload);
+
+        Log::info('WHATSAPP_MEDIA_SEND', [
+            'endpoint' => $this->endpoint($setting),
+            'upload_endpoint' => sprintf(
+                'https://graph.facebook.com/%s/%s/media',
+                $setting->api_version,
+                $setting->phone_number_id
+            ),
+            'status' => $result['status'],
+            'type' => $attachmentData['type'],
+            'mime_type' => $attachmentData['mime_type'],
+            'file_name' => $attachmentData['file_name'],
+            'to' => $payload['to'],
+            'ok' => $result['ok'],
+            'response' => $result['data'],
+            'upload_response' => $uploadResult['data'],
+        ]);
+
+        $finalResult = [
+            'ok' => $result['ok'],
+            'status' => $result['status'],
+            'data' => $result['data'],
+            'payload' => $payload,
+            'upload' => $uploadResult,
+            'attachment' => $attachmentData,
+        ];
+
+        $this->recordOutboundMediaAttempt($to, $attachmentData, $finalResult);
+
+        return $finalResult;
+    }
+
+    /**
      * Dispatch a WhatsApp message payload through Meta Cloud API.
      *
      * @param  array<string, mixed>  $payload
@@ -192,5 +303,41 @@ class WhatsAppCloudApiService
     private function normalizePhone(string $phone): string
     {
         return preg_replace('/\D+/', '', $phone) ?? '';
+    }
+
+    /**
+     * Persist the outbound media attempt without duplicating cloud-service flow control.
+     *
+     * @param  array<string, mixed>  $attachmentData
+     * @param  array{
+     *   ok: bool,
+     *   status: int,
+     *   data: array<string, mixed>,
+     *   payload: array<string, mixed>,
+     *   upload?: array{ok: bool, status: int, data: array<string, mixed>}
+     * }  $result
+     */
+    private function recordOutboundMediaAttempt(string $to, array $attachmentData, array $result): void
+    {
+        try {
+            $this->messageRecorder->recordOutboundMedia(
+                to: $this->normalizePhone($to),
+                type: (string) $attachmentData['type'],
+                bodyText: $this->mediaService->buildOutboundPreview($attachmentData),
+                payload: [
+                    'message' => $result['payload'],
+                    'upload' => $result['upload'] ?? null,
+                ],
+                responseData: $result['data'],
+                ok: $result['ok'],
+                attachmentData: $attachmentData,
+            );
+        } catch (Throwable $exception) {
+            Log::warning('WHATSAPP_MESSAGE_RECORD_FAILED', [
+                'type' => $attachmentData['type'] ?? 'media',
+                'to' => $this->normalizePhone($to),
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

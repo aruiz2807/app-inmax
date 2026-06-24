@@ -2,7 +2,9 @@
 
 namespace App\Services\WhatsApp;
 
+use App\Jobs\WhatsApp\DownloadIncomingMediaJob;
 use App\Models\WhatsAppSetting;
+use App\Models\WhatsAppMessageAttachment;
 use App\Models\WhatsAppWebhookEvent;
 use Illuminate\Support\Facades\Log;
 
@@ -65,7 +67,8 @@ class WhatsAppWebhookService
 
                 foreach ((array) data_get($value, 'messages', []) as $messagePayload) {
                     if (is_array($messagePayload)) {
-                        $this->messageRecorder->recordInboundMessage($messagePayload, $value);
+                        $message = $this->messageRecorder->recordInboundMessage($messagePayload, $value);
+                        $this->dispatchAttachmentDownload($message->primaryAttachment);
                         $messagesRecorded++;
                     }
                 }
@@ -166,5 +169,28 @@ class WhatsAppWebhookService
             'webhook_last_received_at' => now(),
             'webhook_last_status' => $status,
         ])->save();
+    }
+
+    /**
+     * Queue a media download when the inbound message contains a supported attachment.
+     */
+    private function dispatchAttachmentDownload(?WhatsAppMessageAttachment $attachment): void
+    {
+        if (! $attachment) {
+            return;
+        }
+
+        if (! in_array($attachment->download_status, [
+            WhatsAppMessageAttachment::STATUS_PENDING,
+            WhatsAppMessageAttachment::STATUS_FAILED,
+        ], true)) {
+            return;
+        }
+
+        if (! filled($attachment->provider_media_id)) {
+            return;
+        }
+
+        DownloadIncomingMediaJob::dispatch($attachment->id);
     }
 }
