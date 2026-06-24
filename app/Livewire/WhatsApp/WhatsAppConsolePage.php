@@ -46,7 +46,7 @@ class WhatsAppConsolePage extends Component
             : 'all';
 
         $conversations = WhatsAppConversation::query()
-            ->with(['contact.user', 'latestMessage'])
+            ->with(['contact.user', 'latestMessage.primaryAttachment'])
             ->when($this->search !== '', function (Builder $query) {
                 $query->whereHas('contact', function (Builder $contactQuery) {
                     $contactQuery
@@ -71,7 +71,7 @@ class WhatsAppConsolePage extends Component
 
         $selectedConversation = $this->selectedConversationId
             ? WhatsAppConversation::query()
-                ->with(['contact.user', 'messages.statuses'])
+                ->with(['contact.user', 'messages.statuses', 'messages.primaryAttachment'])
                 ->find($this->selectedConversationId)
             : null;
 
@@ -91,7 +91,7 @@ class WhatsAppConsolePage extends Component
         return view('livewire.whatsapp.console-page', [
             'conversations' => $conversations,
             'selectedConversation' => $selectedConversation,
-            'selectedMessages' => $selectedConversation?->messages()->latest()->take(100)->get()->reverse()->values() ?? collect(),
+            'selectedMessages' => $selectedConversation?->messages()->with('primaryAttachment')->latest()->take(100)->get()->reverse()->values() ?? collect(),
             'summary' => $summary,
             'webhookSettings' => $settings,
         ]);

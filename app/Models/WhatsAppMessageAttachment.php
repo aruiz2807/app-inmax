@@ -64,4 +64,52 @@ class WhatsAppMessageAttachment extends Model
     {
         return $this->belongsTo(WhatsAppMessage::class, 'whatsapp_message_id');
     }
+
+    /**
+     * Determine whether the attachment has been downloaded locally.
+     */
+    public function isDownloaded(): bool
+    {
+        return $this->download_status === self::STATUS_DOWNLOADED && filled($this->storage_path);
+    }
+
+    /**
+     * Determine whether the attachment is an image.
+     */
+    public function isImage(): bool
+    {
+        return $this->type === 'image';
+    }
+
+    /**
+     * Determine whether the attachment is an audio file.
+     */
+    public function isAudio(): bool
+    {
+        return $this->type === 'audio';
+    }
+
+    /**
+     * Determine whether the attachment is a video file.
+     */
+    public function isVideo(): bool
+    {
+        return $this->type === 'video';
+    }
+
+    /**
+     * Determine whether the attachment is a document.
+     */
+    public function isDocument(): bool
+    {
+        return $this->type === 'document';
+    }
+
+    /**
+     * Determine whether the document can be embedded as PDF.
+     */
+    public function isPdf(): bool
+    {
+        return $this->mime_type === 'application/pdf';
+    }
 }

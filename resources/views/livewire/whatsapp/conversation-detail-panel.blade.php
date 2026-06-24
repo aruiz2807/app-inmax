@@ -107,6 +107,7 @@
                     $bubbleClasses = $isOutbound
                         ? 'bg-teal-600 text-white border-teal-500'
                         : 'bg-white text-slate-900 border-slate-200';
+                    $attachment = $message->primaryAttachment;
                 @endphp
 
                 <div class="flex {{ $alignment }}" wire:key="conversation-message-{{ $message->id }}">
@@ -121,9 +122,18 @@
                             </span>
                         </div>
 
-                        <div class="pt-2 text-sm leading-6">
-                            {{ $message->body_text ?: '[Sin vista previa]' }}
-                        </div>
+                        @if ($attachment)
+                            @include('livewire.whatsapp.partials.message-attachment', [
+                                'attachment' => $attachment,
+                                'isOutbound' => $isOutbound,
+                            ])
+                        @endif
+
+                        @if ($message->body_text)
+                            <div class="pt-2 text-sm leading-6">
+                                {{ $message->body_text }}
+                            </div>
+                        @endif
 
                         <div class="flex flex-wrap items-center gap-2 pt-3">
                             <span class="rounded-full {{ $isOutbound ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600' }} px-2.5 py-1 text-[11px] font-medium">
