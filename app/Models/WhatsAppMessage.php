@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class WhatsAppMessage extends Model
 {
@@ -77,5 +78,21 @@ class WhatsAppMessage extends Model
     public function statuses(): HasMany
     {
         return $this->hasMany(WhatsAppMessageStatus::class, 'whatsapp_message_id');
+    }
+
+    /**
+     * Attachments stored for this message.
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(WhatsAppMessageAttachment::class, 'whatsapp_message_id');
+    }
+
+    /**
+     * Primary attachment for single-media WhatsApp messages.
+     */
+    public function primaryAttachment(): HasOne
+    {
+        return $this->hasOne(WhatsAppMessageAttachment::class, 'whatsapp_message_id')->latestOfMany();
     }
 }
