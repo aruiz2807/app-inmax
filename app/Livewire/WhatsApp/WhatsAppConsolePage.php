@@ -13,9 +13,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class WhatsAppConsolePage extends Component
 {
+    use WithFileUploads;
+
     private const STATUS_FILTERS = ['all', 'open', 'archived'];
     private const LINKED_FILTERS = ['all', 'prospects', 'users'];
 
@@ -33,6 +36,7 @@ class WhatsAppConsolePage extends Component
 
     public bool $unreadOnly = false;
     public string $replyMessage = '';
+    public $replyAttachment = null;
 
     #[Layout('layouts.app')]
     public function render()
@@ -180,12 +184,19 @@ class WhatsAppConsolePage extends Component
 
     public function sendReply(WhatsAppCloudApiService $service): void
     {
+        $sendingAttachment = $this->replyAttachment !== null;
+
         Validator::make([
             'replyMessage' => $this->replyMessage,
+            'replyAttachment' => $this->replyAttachment,
         ], [
-            'replyMessage' => ['required', 'string', 'max:4096'],
+            'replyMessage' => $sendingAttachment
+                ? ['nullable', 'string', 'max:1024']
+                : ['required', 'string', 'max:4096'],
+            'replyAttachment' => ['nullable', 'file', 'max:102400'],
         ], [
             'replyMessage.required' => 'Escribe un mensaje antes de enviar.',
+            'replyAttachment.max' => 'El archivo no debe superar 100MB.',
         ])->validate();
 
         if (! $this->selectedConversationId) {
@@ -242,20 +253,32 @@ class WhatsAppConsolePage extends Component
             return;
         }
 
-        $body = trim($this->replyMessage);
-        $result = $service->sendTextMessage(
-            setting: $setting,
-            to: $phone,
-            body: $body,
-        );
+        if ($sendingAttachment) {
+            $result = $service->sendMediaMessage(
+                setting: $setting,
+                to: $phone,
+                file: $this->replyAttachment,
+                caption: trim($this->replyMessage) !== '' ? trim($this->replyMessage) : null,
+            );
+        } else {
+            $body = trim($this->replyMessage);
+            $result = $service->sendTextMessage(
+                setting: $setting,
+                to: $phone,
+                body: $body,
+            );
+        }
 
         if ($result['ok']) {
             $this->replyMessage = '';
+            $this->replyAttachment = null;
 
             $this->dispatch(
                 'notify',
                 type: 'success',
-                content: 'Mensaje enviado correctamente.',
+                content: $sendingAttachment
+                    ? 'Archivo enviado correctamente por WhatsApp.'
+                    : 'Mensaje enviado correctamente.',
                 duration: 3000
             );
 
@@ -279,6 +302,7 @@ class WhatsAppConsolePage extends Component
     private function resetConversationState(): void
     {
         $this->replyMessage = '';
+        $this->replyAttachment = null;
     }
 
     private function markConversationAsRead(WhatsAppConversation $conversation): void

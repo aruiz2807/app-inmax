@@ -11,6 +11,7 @@ use App\Models\WhatsAppMessageAttachment;
 use App\Models\WhatsAppSetting;
 use App\Models\WhatsAppTag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -417,5 +418,89 @@ class WhatsAppConsolePageTest extends TestCase
             'whatsapp_conversation_id' => $firstConversation->id,
             'whatsapp_tag_id' => $tag->id,
         ]);
+    }
+
+    public function test_admin_can_send_document_reply_from_console(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        WhatsAppSetting::query()->create([
+            'api_version' => 'v22.0',
+            'phone_number_id' => '113206948334320',
+            'access_token' => 'meta_test_token_12345',
+            'default_language' => 'es_MX',
+        ]);
+
+        $contact = WhatsAppContact::query()->create([
+            'name' => 'Cliente Documento',
+            'phone' => '3317778899',
+            'normalized_phone' => '523317778899',
+            'wa_id' => '5213317778899',
+            'unread_count' => 0,
+            'last_message_at' => now(),
+        ]);
+
+        $conversation = WhatsAppConversation::query()->create([
+            'whatsapp_contact_id' => $contact->id,
+            'status' => 'open',
+            'last_message_at' => now(),
+        ]);
+
+        Http::fake([
+            'https://graph.facebook.com/*/media' => Http::response([
+                'id' => 'meta-media-001',
+            ], 200),
+            'https://graph.facebook.com/*/messages' => Http::response([
+                'messaging_product' => 'whatsapp',
+                'messages' => [['id' => 'wamid.OUTBOUND.MEDIA.001']],
+            ], 200),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(WhatsAppConsolePage::class)
+            ->call('selectConversation', $conversation->id)
+            ->set('replyAttachment', UploadedFile::fake()->create('contrato.pdf', 256, 'application/pdf'))
+            ->set('replyMessage', 'Contrato actualizado')
+            ->call('sendReply')
+            ->assertHasNoErrors()
+            ->assertSet('replyMessage', '')
+            ->assertSet('replyAttachment', null);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v22.0/113206948334320/media');
+        });
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/v22.0/113206948334320/messages')
+                && $request['to'] === '5213317778899'
+                && $request['type'] === 'document'
+                && ($request['document']['id'] ?? null) === 'meta-media-001'
+                && ($request['document']['caption'] ?? null) === 'Contrato actualizado'
+                && ($request['document']['filename'] ?? null) === 'contrato.pdf';
+        });
+
+        $this->assertDatabaseHas('whatsapp_messages', [
+            'whatsapp_conversation_id' => $conversation->id,
+            'meta_message_id' => 'wamid.OUTBOUND.MEDIA.001',
+            'direction' => WhatsAppMessage::DIRECTION_OUTBOUND,
+            'type' => 'document',
+            'status' => 'sent',
+            'to_phone' => '523317778899',
+        ]);
+
+        $attachment = WhatsAppMessageAttachment::query()->firstOrFail();
+
+        $this->assertSame('document', $attachment->type);
+        $this->assertSame('meta-media-001', $attachment->provider_media_id);
+        $this->assertSame('local', $attachment->storage_disk);
+        $this->assertNotNull($attachment->storage_path);
+        Storage::disk('local')->assertExists($attachment->storage_path);
     }
 }
