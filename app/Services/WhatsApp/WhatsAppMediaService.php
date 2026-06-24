@@ -4,6 +4,7 @@ namespace App\Services\WhatsApp;
 
 use App\Models\WhatsAppMessageAttachment;
 use App\Models\WhatsAppSetting;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -17,6 +18,26 @@ class WhatsAppMediaService
         'document',
         'audio',
         'video',
+    ];
+
+    private const OUTBOUND_IMAGE_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ];
+
+    private const OUTBOUND_AUDIO_MIME_TYPES = [
+        'audio/aac',
+        'audio/amr',
+        'audio/mpeg',
+        'audio/mp4',
+        'audio/ogg',
+    ];
+
+    private const OUTBOUND_VIDEO_MIME_TYPES = [
+        'video/mp4',
+        'video/3gpp',
+        'video/quicktime',
     ];
 
     /**
@@ -139,6 +160,132 @@ class WhatsAppMediaService
     }
 
     /**
+     * Persist the uploaded file locally and normalize its outbound metadata.
+     *
+     * @return array<string, mixed>
+     */
+    public function prepareOutboundAttachment(UploadedFile $file, ?string $caption = null): array
+    {
+        $mimeType = $file->getMimeType() ?: $file->getClientMimeType() ?: 'application/octet-stream';
+        $type = $this->resolveOutboundType($mimeType);
+        $fileName = $this->sanitizeFileName($file->getClientOriginalName(), $type, $mimeType);
+        $storagePath = $file->storeAs(
+            'whatsapp/outbound/'.now()->format('Y/m/d'),
+            Str::uuid().'_'.$fileName,
+            'local'
+        );
+
+        if (! $storagePath) {
+            throw new RuntimeException('No fue posible almacenar localmente el archivo a enviar.');
+        }
+
+        return [
+            'provider_media_id' => null,
+            'type' => $type,
+            'mime_type' => $mimeType,
+            'file_name' => $fileName,
+            'caption' => filled($caption) ? trim((string) $caption) : null,
+            'sha256' => hash_file('sha256', $file->getRealPath()) ?: null,
+            'file_size_bytes' => $file->getSize(),
+            'storage_disk' => 'local',
+            'storage_path' => $storagePath,
+            'download_status' => WhatsAppMessageAttachment::STATUS_DOWNLOADED,
+            'downloaded_at' => now(),
+            'last_download_attempt_at' => now(),
+            'metadata' => [
+                'origin' => 'outbound',
+                'client_original_name' => $file->getClientOriginalName(),
+                'client_extension' => $file->getClientOriginalExtension(),
+            ],
+        ];
+    }
+
+    /**
+     * Upload a locally persisted media file to Meta and obtain its media id.
+     *
+     * @return array{ok: bool, status: int, data: array<string, mixed>}
+     */
+    public function uploadOutboundMedia(
+        WhatsAppSetting $setting,
+        string $storagePath,
+        string $mimeType,
+        string $fileName,
+    ): array {
+        $disk = Storage::disk('local');
+
+        if (! $disk->exists($storagePath)) {
+            throw new RuntimeException('El archivo local a subir no existe en storage.');
+        }
+
+        $response = Http::withToken($setting->access_token)
+            ->attach('file', $disk->get($storagePath), $fileName, [
+                'Content-Type' => $mimeType,
+            ])
+            ->post($this->mediaUploadEndpoint($setting), [
+                'messaging_product' => 'whatsapp',
+            ]);
+
+        $responseData = $response->json();
+
+        return [
+            'ok' => $response->successful(),
+            'status' => $response->status(),
+            'data' => is_array($responseData) ? $responseData : [],
+        ];
+    }
+
+    /**
+     * Build the message payload for a media message using a Meta media id.
+     *
+     * @return array<string, mixed>
+     */
+    public function buildOutboundMessagePayload(
+        string $to,
+        array $attachmentData,
+        string $providerMediaId,
+    ): array {
+        $type = (string) $attachmentData['type'];
+        $caption = $attachmentData['caption'] ?? null;
+        $fileName = $attachmentData['file_name'] ?? null;
+
+        $mediaObject = array_filter([
+            'id' => $providerMediaId,
+            'caption' => in_array($type, ['image', 'video', 'document'], true) ? $caption : null,
+            'filename' => $type === 'document' ? $fileName : null,
+        ], fn (mixed $value): bool => filled($value));
+
+        return [
+            'messaging_product' => 'whatsapp',
+            'to' => preg_replace('/\D+/', '', $to) ?? '',
+            'type' => $type,
+            $type => $mediaObject,
+        ];
+    }
+
+    /**
+     * Build a human-readable preview for outbound media messages.
+     *
+     * @param  array<string, mixed>  $attachmentData
+     */
+    public function buildOutboundPreview(array $attachmentData): string
+    {
+        $label = match ((string) ($attachmentData['type'] ?? 'document')) {
+            'image' => '[Imagen]',
+            'audio' => '[Audio]',
+            'video' => '[Video]',
+            default => '[Documento]',
+        };
+
+        $previewParts = array_filter([
+            $label,
+            $attachmentData['caption'] ?? null,
+            $attachmentData['file_name'] ?? null,
+        ]);
+
+        return implode(' ', $previewParts);
+    }
+
+    /**
      * Determine the Graph endpoint for media metadata retrieval.
      */
     private function mediaMetadataEndpoint(WhatsAppSetting $setting, string $providerMediaId): string
@@ -147,6 +294,18 @@ class WhatsAppMediaService
             'https://graph.facebook.com/%s/%s',
             $setting->api_version,
             $providerMediaId
+        );
+    }
+
+    /**
+     * Resolve the Graph endpoint for Meta media uploads.
+     */
+    private function mediaUploadEndpoint(WhatsAppSetting $setting): string
+    {
+        return sprintf(
+            'https://graph.facebook.com/%s/%s/media',
+            $setting->api_version,
+            $setting->phone_number_id
         );
     }
 
@@ -180,5 +339,47 @@ class WhatsAppMediaService
         };
 
         return $baseName.'.'.$extension;
+    }
+
+    /**
+     * Resolve the outbound WhatsApp message type from a mime type.
+     */
+    private function resolveOutboundType(string $mimeType): string
+    {
+        if (in_array($mimeType, self::OUTBOUND_IMAGE_MIME_TYPES, true)) {
+            return 'image';
+        }
+
+        if (in_array($mimeType, self::OUTBOUND_AUDIO_MIME_TYPES, true)) {
+            return 'audio';
+        }
+
+        if (in_array($mimeType, self::OUTBOUND_VIDEO_MIME_TYPES, true)) {
+            return 'video';
+        }
+
+        return 'document';
+    }
+
+    /**
+     * Sanitize client file names while preserving a valid extension.
+     */
+    private function sanitizeFileName(string $originalName, string $type, string $mimeType): string
+    {
+        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+        $name = pathinfo($originalName, PATHINFO_FILENAME);
+
+        $sanitizedName = Str::slug($name);
+
+        if ($sanitizedName === '') {
+            $sanitizedName = $type.'-'.Str::random(6);
+        }
+
+        if ($extension === '') {
+            $extensions = MimeTypes::getDefault()->getExtensions($mimeType);
+            $extension = $extensions[0] ?? 'bin';
+        }
+
+        return $sanitizedName.'.'.Str::lower($extension);
     }
 }

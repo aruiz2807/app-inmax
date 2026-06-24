@@ -66,6 +66,36 @@ class WhatsAppMessageRecorder
     }
 
     /**
+     * Persist an outbound media message sent from the console.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $responseData
+     * @param  array<string, mixed>  $attachmentData
+     */
+    public function recordOutboundMedia(
+        string $to,
+        string $type,
+        string $bodyText,
+        array $payload,
+        array $responseData,
+        bool $ok,
+        array $attachmentData,
+    ): WhatsAppMessage {
+        $message = $this->recordOutboundMessage(
+            to: $to,
+            type: $type,
+            bodyText: $bodyText,
+            payload: $payload,
+            responseData: $responseData,
+            ok: $ok,
+        );
+
+        $message->attachments()->create($attachmentData);
+
+        return $message->refresh();
+    }
+
+    /**
      * Persist an inbound user message received from the webhook.
      *
      * @param  array<string, mixed>  $messagePayload
