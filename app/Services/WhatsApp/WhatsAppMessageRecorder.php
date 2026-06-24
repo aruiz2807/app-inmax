@@ -4,12 +4,14 @@ namespace App\Services\WhatsApp;
 
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
+use App\Models\WhatsAppMessageAttachment;
 use Carbon\Carbon;
 
 class WhatsAppMessageRecorder
 {
     public function __construct(
         private readonly WhatsAppContactService $contactService,
+        private readonly WhatsAppMediaService $mediaService,
     ) {}
 
     /**
@@ -99,6 +101,12 @@ class WhatsAppMessageRecorder
                 'meta_occurred_at' => $occurredAt,
                 'payload' => $messagePayload,
             ]);
+        }
+
+        $attachment = $this->syncInboundAttachment($message, $messagePayload);
+
+        if ($attachment) {
+            $message->setRelation('primaryAttachment', $attachment);
         }
 
         $this->touchConversation($conversation, $occurredAt ?? now(), inbound: true);
@@ -197,6 +205,26 @@ class WhatsAppMessageRecorder
             'last_outbound_at' => $outbound ? $timestamp : $contact->last_outbound_at,
             'unread_count' => $inbound ? $contact->unread_count + 1 : $contact->unread_count,
         ])->save();
+    }
+
+    /**
+     * Create or update the attachment entity for supported inbound media messages.
+     *
+     * @param  array<string, mixed>  $messagePayload
+     */
+    private function syncInboundAttachment(WhatsAppMessage $message, array $messagePayload): ?WhatsAppMessageAttachment
+    {
+        $attachmentData = $this->mediaService->extractInboundAttachmentData($messagePayload);
+
+        if (! $attachmentData) {
+            return null;
+        }
+
+        $lookup = filled($attachmentData['provider_media_id'] ?? null)
+            ? ['provider_media_id' => $attachmentData['provider_media_id']]
+            : ['type' => $attachmentData['type']];
+
+        return $message->attachments()->updateOrCreate($lookup, $attachmentData);
     }
 
     /**
