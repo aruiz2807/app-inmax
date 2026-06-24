@@ -5,22 +5,22 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use App\Services\Auth\HomeRouteResolver;
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureUserHasAllowedProfile
+class EnsureUserHasPermission
 {
     /**
-     * Ensure the authenticated user profile is in the allowed list.
+     * Ensure the authenticated user has at least one of the required permissions.
      *
-     * @param  array<int, string>  $profiles
+     * @param  array<int, string>  $permissions
      */
-    public function handle(Request $request, Closure $next, string ...$profiles): Response
+    public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         $user = $request->user();
 
-        if (! $user || empty($profiles) || ! in_array($user->profile, $profiles, true)) {
+        if (! $user || $permissions === [] || ! $user->hasAnyPermission($permissions)) {
             if ($user && ($redirect = $this->redirectToAllowedHome($request, $user))) {
                 return $redirect;
             }
@@ -32,7 +32,7 @@ class EnsureUserHasAllowedProfile
     }
 
     /**
-     * Redirect authenticated users only when they tried to access another profile's home/dashboard.
+     * Redirect authenticated users only when they tried to access a restricted home route.
      */
     protected function redirectToAllowedHome(Request $request, User $user): ?RedirectResponse
     {
@@ -52,7 +52,7 @@ class EnsureUserHasAllowedProfile
     }
 
     /**
-     * Routes that act as profile home/dashboard destinations.
+     * Routes that act as permission-aware home destinations.
      *
      * @return array<int, string>
      */
@@ -60,7 +60,6 @@ class EnsureUserHasAllowedProfile
     {
         return [
             'dashboard',
-            'user.home',
             'doctor.home',
             'clerk.dispensation',
             'receptionist.requests',
