@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AdminAuthenticatedSessionController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ReceptionistTicketController;
+use App\Http\Controllers\WhatsAppMediaAttachmentController;
 use App\Http\Controllers\WhatsAppWebhookController;
 
 // Livewire - Appointments
@@ -192,6 +193,14 @@ Route::middleware([
             ->middleware('admin')
             ->middleware('permission:view.admin.whatsapp_console')
             ->name('whatsapp.console');
+        Route::get('/whatsapp/attachments/{attachment}/preview', [WhatsAppMediaAttachmentController::class, 'preview'])
+            ->middleware('admin')
+            ->middleware('permission:view.admin.whatsapp_console')
+            ->name('whatsapp.attachments.preview');
+        Route::get('/whatsapp/attachments/{attachment}/download', [WhatsAppMediaAttachmentController::class, 'download'])
+            ->middleware('admin')
+            ->middleware('permission:view.admin.whatsapp_console')
+            ->name('whatsapp.attachments.download');
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)
             ->middleware('admin')

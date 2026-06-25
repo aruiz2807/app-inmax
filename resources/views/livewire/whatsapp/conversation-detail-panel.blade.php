@@ -107,6 +107,7 @@
                     $bubbleClasses = $isOutbound
                         ? 'bg-teal-600 text-white border-teal-500'
                         : 'bg-white text-slate-900 border-slate-200';
+                    $attachment = $message->primaryAttachment;
                 @endphp
 
                 <div class="flex {{ $alignment }}" wire:key="conversation-message-{{ $message->id }}">
@@ -121,9 +122,18 @@
                             </span>
                         </div>
 
-                        <div class="pt-2 text-sm leading-6">
-                            {{ $message->body_text ?: '[Sin vista previa]' }}
-                        </div>
+                        @if ($attachment)
+                            @include('livewire.whatsapp.partials.message-attachment', [
+                                'attachment' => $attachment,
+                                'isOutbound' => $isOutbound,
+                            ])
+                        @endif
+
+                        @if ($message->body_text)
+                            <div class="pt-2 text-sm leading-6">
+                                {{ $message->body_text }}
+                            </div>
+                        @endif
 
                         <div class="flex flex-wrap items-center gap-2 pt-3">
                             <span class="rounded-full {{ $isOutbound ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600' }} px-2.5 py-1 text-[11px] font-medium">
@@ -161,19 +171,50 @@
     <form wire:submit="sendReply" class="border-t border-slate-200 bg-white px-5 py-4">
         <div class="grid gap-3">
             <div>
-                <x-ui.label>Responder por WhatsApp</x-ui.label>
+                <x-ui.label>{{ $replyAttachment ? 'Caption / mensaje del archivo' : 'Responder por WhatsApp' }}</x-ui.label>
                 <textarea
                     wire:model.live="replyMessage"
                     rows="4"
-                    placeholder="Escribe aquí la respuesta para el cliente..."
+                    placeholder="{{ $replyAttachment ? 'Escribe un caption opcional para imagen, video o documento...' : 'Escribe aquí la respuesta para el cliente...' }}"
                     class="w-full rounded-box border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15"
                 ></textarea>
                 <x-ui.error name="replyMessage" />
             </div>
 
+            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="min-w-0">
+                        <x-ui.label>Adjuntar archivo</x-ui.label>
+                        <input
+                            type="file"
+                            wire:model="replyAttachment"
+                            accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                            class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
+                        />
+                        <x-ui.error name="replyAttachment" />
+                        <p class="mt-2 text-xs text-slate-500">
+                            Soporta imagen, audio, video y documentos. Si adjuntas archivo, el texto superior se usa como caption cuando Meta lo permite.
+                        </p>
+                    </div>
+
+                    @if ($replyAttachment)
+                        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+                            <p class="font-medium text-slate-900">{{ $replyAttachment->getClientOriginalName() }}</p>
+                            <p class="mt-1 text-xs text-slate-500">
+                                {{ number_format(($replyAttachment->getSize() ?? 0) / 1024, 1) }} KB
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                <div wire:loading wire:target="replyAttachment" class="mt-3 text-xs text-teal-600">
+                    Cargando archivo...
+                </div>
+            </div>
+
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <p class="text-xs text-slate-500">
-                    Meta solo permite texto libre dentro de la ventana activa de conversación.
+                    {{ $replyAttachment ? 'Audio no usa caption en WhatsApp. Documentos PDF, imagen y video quedaran disponibles tambien para descarga en la consola.' : 'Meta solo permite texto libre dentro de la ventana activa de conversación.' }}
                 </p>
 
                 <x-ui.button
@@ -182,7 +223,7 @@
                     variant="primary"
                     color="teal"
                 >
-                    Enviar mensaje
+                    {{ $replyAttachment ? 'Enviar archivo' : 'Enviar mensaje' }}
                 </x-ui.button>
             </div>
         </div>
