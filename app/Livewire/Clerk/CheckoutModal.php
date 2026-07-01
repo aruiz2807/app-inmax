@@ -203,16 +203,19 @@ class CheckoutModal extends Component
                 ]);
 
                 //update medications_movements table
-                MedicationMovement::create([
-                    'medication_id' => $prescription->medication_id,
-                    'type' => MedicationMovementType::OUT,
-                    'adjustment' => 0,
-                    'quantity' => $qty,
-                    'reference' => "Receta surtida - Cita #{$appointment->id}",
-                    'prescription_id' => $prescription->id,
-                    //'medication_purchase_id' => null,
-                    'user_id' => $this->user?->id,
-                ]);
+                if (!is_null($prescription->medication_id) && $qty > 0) {
+                    MedicationMovement::create([
+                        'medication_id' => $prescription->medication_id,
+                        'type' => MedicationMovementType::OUT,
+                        'adjustment' => 0,
+                        'quantity' => $qty,
+                        'reference' => "Receta surtida - Cita #{$appointment->id}",
+                        'prescription_id' => $prescription->id,
+                        //'medication_purchase_id' => null,
+                        'user_id' => $this->user?->id,
+                    ]);
+                }
+                
 
                 $dispensedCount++;
             }
