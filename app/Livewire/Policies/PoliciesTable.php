@@ -251,6 +251,12 @@ final class PoliciesTable extends PowerGridComponent
                 ->id()
                 ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('addMember', ['policyId' => $row->id]),
+
+            Button::add('contract')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="document-text" variant="outline" class="w-5 h-5"/><span>Contrato</span></div>'))
+                ->id()
+                ->class('text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('printPolicy', ['policyId' => $row->id]),
         ];
     }
 
