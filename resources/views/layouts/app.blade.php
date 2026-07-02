@@ -370,6 +370,28 @@
                                     x-on:click="closeSidebar()"
                                 />
                             @endpermission
+                            
+
+                            // AJUSTE TEMPORAL
+                            @permission('view.clerk.medications')
+                                <x-ui.navlist.item
+                                    icon="wallet"
+                                    :label="__('app.medications')"
+                                    href="{{ route('clerk.medications') }}"
+                                    :active="request()->routeIs('clerk.medications')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
+
+                            @permission('view.clerk.dispensation')
+                                <x-ui.navlist.item
+                                    icon="beaker"
+                                    :label="__('app.dispensation')"
+                                    href="{{ route('clerk.dispensation') }}"
+                                    :active="request()->routeIs('clerk.dispensation')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
                         @break
 
                         @case('Doctor')
