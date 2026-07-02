@@ -372,7 +372,7 @@
                             @endpermission
                             
 
-                            // AJUSTE TEMPORAL
+                            <!-- AJUSTE TEMPORAL -->
                             @permission('view.clerk.medications')
                                 <x-ui.navlist.item
                                     icon="wallet"
