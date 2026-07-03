@@ -264,7 +264,7 @@
           @if($footerPhone)
             {{ $footerPhone }}<br>
           @endif
-          contacto@inmax-sure.mx
+          {{ $contactEmail }}
         </td>
       </tr>
     </table>

@@ -49,6 +49,7 @@ class AppointmentPrescription extends Model
         'frequency',
         'duration',
         'delivered_quantity',
+        'required_quantity',
         'status',
     ];
 

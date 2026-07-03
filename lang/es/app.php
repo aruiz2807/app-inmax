@@ -2,6 +2,7 @@
 
 return [
     'home' => 'Home',
+    'api_tokens' => 'API Tokens',
     'appointments' => 'Citas',
     'preregistration' => 'Preregistros',
     'policies' => 'Membresías',

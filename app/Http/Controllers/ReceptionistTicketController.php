@@ -34,6 +34,7 @@ class ReceptionistTicketController extends Controller
             'payment' => number_format((float) $appointment->user_payment, 2),
             'commision' => number_format((float) $appointment->commission, 2),
             'total' => number_format((float) $appointment->total, 2),
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
         ])->setPaper([0, 0, 226, 567], 'portrait');
 
         return response()->streamDownload(

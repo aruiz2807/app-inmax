@@ -469,7 +469,7 @@
                                         iconVariant="mini"
                                         href="{{ route('api-tokens.index') }}"
                                     >
-                                        {{ __('API Tokens') }}
+                                        {{ __('app.api_tokens') }}
                                     </x-ui.dropdown.item>
                                     @endif
 

@@ -229,6 +229,7 @@ class DRHistoryPage extends Component
 
         $pdf = Pdf::loadView('pdf.order', [
             'appointment' => $appointment,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
         ])->setPaper('letter', 'portrait');
 
         return response()->streamDownload(
@@ -243,6 +244,7 @@ class DRHistoryPage extends Component
 
         $pdf = Pdf::loadView('pdf.prescription', [
             'note' => $note,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
         ])->setPaper('letter', 'portrait');
 
         return response()->streamDownload(
