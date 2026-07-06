@@ -21,6 +21,7 @@ class CheckoutModal extends Component
     public ?User $user = null;
     public $prescriptions = [];
     public array $deliveryQuantities = [];
+    public array $requiredQuantities = [];
     
     public bool $useCoupon = false;
     public bool $hasCouponAvailable = false;
@@ -29,6 +30,8 @@ class CheckoutModal extends Component
     public bool $useMembersDiscount = false;
     public bool $isMembershipActive = false;
     public float $membersDiscountPercentage = 0;
+
+    public bool $isPartialDispensation = false;
 
     public function render()
     {
@@ -62,7 +65,7 @@ class CheckoutModal extends Component
         foreach ($this->prescriptions as $prescription) 
         {
             if (!is_null($prescription->medication_id) && $prescription->status === 'Prescribed') {
-                $quantity = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
+                $quantity = (int) ($this->requiredQuantities[$prescription->id] ?? 0);
                 $subtotalPublic += $quantity * $prescription->medication->price_public;
                 $subtotalMembers += $quantity * $prescription->medication->price_members;
             }
@@ -87,6 +90,10 @@ class CheckoutModal extends Component
 
     public function getCanDispenseProperty()
     {
+        if ($this->isAppointmentDispensed) {
+            return false;
+        }
+
         $hasQuantity = collect($this->deliveryQuantities)->map(fn($qty) => (int) $qty)->sum() > 0;
         $hasBenefitSelected = $this->useCoupon || $this->useMembersDiscount;
 
@@ -94,7 +101,32 @@ class CheckoutModal extends Component
             return $hasQuantity;
         }
 
+        if($this->isPartialDispensation) {
+            return true;
+        }
+
         return $hasQuantity && $hasBenefitSelected;
+    }
+
+    public function getIsAppointmentDispensedProperty(): bool
+    {
+        if (empty($this->prescriptions)) {
+            return false;
+        }
+
+        return collect($this->prescriptions)->every(function ($prescription) {
+            return (string) $prescription->status === 'Dispensed';
+        });
+    }
+
+    public function getShowCheckoutBenefitsProperty(): bool
+    {
+        return ! $this->isPartialDispensation && ! $this->isAppointmentDispensed;
+    }
+
+    public function getShowDispenseActionProperty(): bool
+    {
+        return ! $this->isAppointmentDispensed;
     }
 
     #[On('openPrescription')]
@@ -106,18 +138,29 @@ class CheckoutModal extends Component
         $this->appointment = $appointment;
         $this->user = $appointment?->user;
         $this->prescriptions = $appointment?->prescriptions ?? [];
+        $this->isPartialDispensation = $appointment?->status_prescription === 'Partial';
 
         $this->deliveryQuantities = [];
+        $this->requiredQuantities = [];
         foreach ($this->prescriptions as $prescription) 
         {
+            $deliveredSoFar = (int) ($prescription->delivered_quantity ?? 0);
+            $requiredTotal = (int) ($prescription->required_quantity ?? 0);
+            $pending = max(0, $requiredTotal - $deliveredSoFar);
+
             if($prescription->status === 'Dispensed')
             {
                 $this->deliveryQuantities[$prescription->id] = $prescription->delivered_quantity;
+            }
+            elseif (!is_null($prescription->required_quantity))
+            {
+                $this->deliveryQuantities[$prescription->id] = $pending;
             }
             else
             {
                 $this->deliveryQuantities[$prescription->id] = 1;
             }
+            $this->requiredQuantities[$prescription->id] = $prescription->required_quantity ?? 1;
         }
 
         $this->checkDiscountsAvailability();
@@ -187,47 +230,76 @@ class CheckoutModal extends Component
         $shouldPrintTicket = false;
 
         $appointment = Appointment::with('prescriptions')->find($this->appointmentId);
-        
-        $totalPrescriptions = count($this->prescriptions);
-        $dispensedCount = 0;
+        $currentPrescriptions = $appointment->prescriptions->keyBy('id');
+
+        $hasDispensedChanges = false;
 
         foreach ($this->prescriptions as $prescription) 
         {
+            $currentPrescription = $currentPrescriptions->get($prescription->id);
+
+            if (!$currentPrescription) {
+                continue;
+            }
+
+            if ((string) $currentPrescription->status === 'Dispensed') {
+                continue;
+            }
+
             $qty = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
-            
-            if ($qty > 0) 
+            $reqQty = (int) ($this->requiredQuantities[$prescription->id] ?? ($currentPrescription->required_quantity ?? 0));
+            $deliveredSoFar = (int) ($currentPrescription->delivered_quantity ?? 0);
+
+            if($reqQty > 0) 
             {
-                $prescription->update([
-                    'status' => 'Dispensed',
-                    'delivered_quantity' => $qty,
+                $currentPrescription->update([
+                    'required_quantity' => $reqQty,
+                ]);
+            }
+
+            $pending = max(0, $reqQty - $deliveredSoFar);
+            $qty = max(0, min($qty, $pending));
+            
+            if ($qty > 0) {
+                $newDelivered = $deliveredSoFar + $qty;
+                $isFullyDispensed = $reqQty > 0 && $newDelivered >= $reqQty;
+
+                $currentPrescription->update([
+                    'status' => $isFullyDispensed ? 'Dispensed' : 'Prescribed',
+                    'delivered_quantity' => $newDelivered,
+                    'required_quantity' => $reqQty,
                 ]);
 
                 //update medications_movements table
-                MedicationMovement::create([
-                    'medication_id' => $prescription->medication_id,
-                    'type' => MedicationMovementType::OUT,
-                    'adjustment' => 0,
-                    'quantity' => $qty,
-                    'reference' => "Receta surtida - Cita #{$appointment->id}",
-                    'prescription_id' => $prescription->id,
-                    //'medication_purchase_id' => null,
-                    'user_id' => $this->user?->id,
-                ]);
+                if (!is_null($currentPrescription->medication_id)) {
+                    MedicationMovement::create([
+                        'medication_id' => $currentPrescription->medication_id,
+                        'type' => MedicationMovementType::OUT,
+                        'adjustment' => 0,
+                        'quantity' => $qty,
+                        'reference' => "Receta surtida - Cita #{$appointment->id}",
+                        'prescription_id' => $currentPrescription->id,
+                        //'medication_purchase_id' => null,
+                        'user_id' => $this->user?->id,
+                    ]);
+                }
+                
 
-                $dispensedCount++;
+                $hasDispensedChanges = true;
             }
         }
 
-        if ($dispensedCount > 0) 
+        if ($hasDispensedChanges) 
         {
-            if ($dispensedCount === $totalPrescriptions) 
-            {
-                $appointment->update(['status_prescription' => 'Filled']);
-            } 
-            else 
-            {
-                $appointment->update(['status_prescription' => 'Partial']);
-            }
+            $appointment->load('prescriptions');
+
+            $allDispensed = $appointment->prescriptions->every(function ($prescription) {
+                return (string) $prescription->status === 'Dispensed';
+            });
+
+            $appointment->update([
+                'status_prescription' => $allDispensed ? 'Filled' : 'Partial',
+            ]);
 
             if ($this->useCoupon && $this->hasCouponAvailable) 
             {
@@ -252,12 +324,11 @@ class CheckoutModal extends Component
 
             $this->dispatch('notify', type: 'success', content: 'Medicamentos surtidos correctamente.');
             $this->dispatch('pg:eventRefresh-dispensationTable');
-            $shouldPrintTicket = true;
         }
 
         $this->dispatch('close-checkout-modal');
 
-        if ($shouldPrintTicket) 
+        if (!$this->isPartialDispensation) 
         {
             $this->dispatch('print-checkout-ticket');
         }
@@ -281,12 +352,12 @@ class CheckoutModal extends Component
 
         $rows = collect($appointment->prescriptions)
             ->map(function ($prescription) {
-                if ((string) $prescription->status !== 'Dispensed') 
+                /*if ((string) $prescription->status !== 'Dispensed') 
                 {
                     return null;
-                }
+                }*/
 
-                $quantity = (int) ($prescription->delivered_quantity ?? 0);
+                $quantity = (int) ($prescription->required_quantity ?? 0);
 
                 if ($quantity <= 0) 
                 {
@@ -357,6 +428,7 @@ class CheckoutModal extends Component
             'discountType' => $discountType,
             'total' => number_format($total, 2),
             'benefitLabel' => $this->useMembersDiscount ? 'Membresia' : ($this->useCoupon ? 'Cupon' : 'Sin beneficio'),
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
         ])->setPaper([0, 0, 226, 567], 'portrait');
 
         return response()->streamDownload(

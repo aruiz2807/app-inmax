@@ -48,6 +48,7 @@ class NotesConfirmationPage extends Component
     {
         $pdf = Pdf::loadView('pdf.prescription', [
             'note' => $this->note,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
         ])->setPaper('letter', 'portrait');
 
         return response()->streamDownload(
@@ -65,6 +66,7 @@ class NotesConfirmationPage extends Component
             'payment' => $this->getPaymentProperty(),
             'commision' => $this->getCommissionProperty(),
             'total' => $this->getTotalProperty(),
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
         ])->setPaper([0, 0, 226, 567], 'portrait');
 
         return response()->streamDownload(

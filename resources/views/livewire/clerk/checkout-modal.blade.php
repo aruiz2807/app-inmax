@@ -29,8 +29,8 @@
                 @foreach($prescriptions as $prescription)
                     @php 
                         $isDispensed = $prescription->status === 'Dispensed'; 
-                        $isPartial = $appointment->status_prescription === 'Partial'; 
                         $isManual = is_null($prescription->medication_id);
+                        $hasRequiredQuantity = !is_null($prescription->required_quantity);
                     @endphp
 
                     <div 
@@ -41,12 +41,21 @@
                         <div class="flex-1">
                             <x-ui.text class="font-bold text-base">
                                 {{ $isManual ? $prescription->description : $prescription->medication->name . ' (' . $prescription->medication->trade_name . ')' }}
+                                @if($prescription->medication?->existences > 0)
+                                    <x-ui.badge color="green" pill size="sm">
+                                        {{ (int) $prescription->medication?->existences }}
+                                    </x-ui.badge>
+                                @else
+                                    <x-ui.badge color="red" pill size="sm">
+                                        0
+                                    </x-ui.badge>
+                                @endif
                             </x-ui.text>
 
                             <x-ui.text class="text-sm text-gray-600">
                                 {{ $prescription->quantity }} • {{ $prescription->dose }} • cada {{ $prescription->frequency }} • durante {{ $prescription->duration }}
                             </x-ui.text>
-
+                            
                             @if($isDispensed)
                                 <x-ui.text class="text-xs text-gray-500 mt-1">
                                     Surtida
@@ -60,27 +69,41 @@
 
                         @if(!$isManual)
                         <div class="flex items-center gap-4">
-                            <div class="w-24">
-                                @if($isDispensed)
+                            <div class="flex items-center gap-2 w-60">
+                                <div class="w-20">
+                                    <span class="block text-xs text-gray-500 mb-1">{{ $this->isPartialDispensation ? 'Pendiente' : 'Surtido' }}</span>
                                     <x-ui.input 
                                         type="number" 
                                         min="0"
+                                        :max="$hasRequiredQuantity ? max(0, ((int) $prescription->required_quantity) - ((int) ($prescription->delivered_quantity ?? 0))) : null"
                                         wire:model.live="deliveryQuantities.{{ $prescription->id }}"
-                                        disabled
+                                        :disabled="$isDispensed"
                                     />
-                                @else
-                                    <x-ui.input 
-                                        type="number" 
-                                        min="0"
-                                        wire:model.live="deliveryQuantities.{{ $prescription->id }}"
-                                    />
-                                @endif
-                            </div>
+                                </div>
+                                
+                                @if(!$hasRequiredQuantity)
+                                    <span>/</span>
+                                    <div class="w-20">
+                                        <span class="block text-xs text-gray-500 mb-1">Total</span>
+                                        <x-ui.input 
+                                            type="number" 
+                                            min="0"
+                                            value="1"
+                                            wire:model.live="requiredQuantities.{{ $prescription->id }}"  
+                                        />
+                                    </div>
 
-                            <div class="text-right min-w-20">
-                                <x-ui.text class="font-bold text-lg text-teal-600">
-                                    ${{ number_format(((int) ($deliveryQuantities[$prescription->id] ?? 0)) * $prescription->medication->price_public, 2) }}
-                                </x-ui.text>
+                                    <div class="text-right min-w-20">
+                                        <x-ui.text class="font-bold text-lg text-teal-600">
+                                            ${{ number_format(((int) ($requiredQuantities[$prescription->id] ?? 0)) * $prescription->medication->price_public, 2) }}
+                                        </x-ui.text>
+                                    </div>
+                                @else
+                                    <div class="w-20 self-start">
+                                        <span class="block text-xs text-gray-500 mb-1">Surtido/Total</span>
+                                        <span>{{ $prescription->delivered_quantity }}/{{ $prescription->required_quantity }}</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         @endif
@@ -89,7 +112,7 @@
             </div>
 
             <div class="flex flex-col gap-2 mt-4">
-                @if($hasCouponAvailable)
+                @if($hasCouponAvailable && $this->showCheckoutBenefits)
                 <div class="flex items-center justify-between p-4 bg-teal-50 rounded-xl border border-teal-100 mb-2">
                     <div class="flex items-center gap-3">
                         <x-ui.icon name="ticket" class="w-6 h-6 text-teal-600" />
@@ -98,16 +121,11 @@
                             <p class="text-sm text-teal-700">Aplicar cupón de descuento de ${{ number_format($couponValue, 2) }}</p>
                         </div>
                     </div>
-                    {{--@if($isDispensed && !$isPartial)--}}
-                    @if($isDispensed)
-                        <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" disabled/>
-                    @else
-                        <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
-                    @endif  
+                    <x-ui.switch wire:key="coupon-switch-{{ $useCoupon ? '1' : '0' }}" wire:model.live="useCoupon" :checked="$useCoupon" color="teal" />
                 </div>
                 @endif
 
-                @if($isMembershipActive)
+                @if($isMembershipActive && $this->showCheckoutBenefits)
                 <div class="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-100 mb-2">
                     <div class="flex items-center gap-3">
                         <x-ui.icon name="shield-check" class="w-6 h-6 text-blue-600" />
@@ -116,12 +134,8 @@
                             <p class="text-sm text-blue-700">Beneficio por membresía activa</p>
                         </div>
                     </div>
-                    {{--@if($isDispensed && !$isPartial)--}}
-                    @if($isDispensed)
-                        <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" disabled/>
-                    @else               
-                        <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" />
-                    @endif
+
+                    <x-ui.switch wire:key="discount-switch-{{ $useMembersDiscount ? '1' : '0' }}" wire:model.live="useMembersDiscount" :checked="$useMembersDiscount" color="blue" />
                     </div>
                 @endif
 
@@ -131,7 +145,7 @@
                         $subtotalMembers = 0;
                         foreach ($prescriptions as $prescription) {
                             if (!is_null($prescription->medication_id) && $prescription->status === 'Prescribed') {
-                                $qty = (int) ($deliveryQuantities[$prescription->id] ?? 0);
+                                $qty = (int) ($requiredQuantities[$prescription->id] ?? 0);
                                 $subtotalPublic += $qty * $prescription->medication->price_public;
                                 $subtotalMembers += $qty * $prescription->medication->price_members;
                             }
@@ -146,12 +160,15 @@
                     @endphp
 
                     @if($discount > 0)
-                    <p class="text-sm text-gray-500 line-through">Subtotal: ${{ number_format($subtotalPublic, 2) }}</p>
-                    <p class="text-sm {{ $useCoupon ? 'text-teal-600' : 'text-blue-600' }}">
-                        Descuento: -${{ number_format($discount, 2) }}
-                    </p>
+                        <p class="text-sm text-gray-500 line-through">Subtotal: ${{ number_format($subtotalPublic, 2) }}</p>
+                        <p class="text-sm {{ $useCoupon ? 'text-teal-600' : 'text-blue-600' }}">
+                            Descuento: -${{ number_format($discount, 2) }}
+                        </p>
                     @endif
-                    <p class="text-xl font-bold">Total a pagar: <span class="text-teal-600">${{ number_format($this->total, 2) }}</span></p>
+
+                    @if ($this->showCheckoutBenefits)
+                        <p class="text-xl font-bold">Total a pagar: <span class="text-teal-600">${{ number_format($this->total, 2) }}</span></p>
+                    @endif
                 </div>
                 
                 <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200">
@@ -159,9 +176,11 @@
                         Cancelar
                     </x-ui.button>
 
-                    <x-ui.button wire:click="dispense" icon="check" variant="primary" color="teal" :disabled="!$this->canDispense">
-                        Surtir
-                    </x-ui.button>
+                    @if($this->showDispenseAction)
+                        <x-ui.button wire:click="dispense" icon="check" variant="primary" color="teal" :disabled="!$this->canDispense">
+                            Surtir
+                        </x-ui.button>
+                    @endif
                 </div>
             </div>
         </div>

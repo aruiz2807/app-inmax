@@ -23,7 +23,7 @@ class SocialMediaParamsSeeder extends Seeder
                 'type' => 'RS',
                 'key' => 'Instagram',
                 'description' => 'Instagram',
-                'value' => 'https://www.instagram.com/inmaxsure?igsh=MW9kaHl0Mndibm4zMg==',
+                'value' => 'https://www.instagram.com/inmaxplataforma/',
             ],
             [
                 'type' => 'RS',
@@ -47,7 +47,7 @@ class SocialMediaParamsSeeder extends Seeder
                 'type' => 'RS',
                 'key' => 'Tiktok',
                 'description' => 'Tiktok',
-                'value' => 'https://www.tiktok.com/@inmax.sure?_r=1&_t=ZS-97IBTt2pd0H',
+                'value' => 'https://www.tiktok.com/@inmaxplataforma',
             ],
             [
                 'type' => 'RS',
