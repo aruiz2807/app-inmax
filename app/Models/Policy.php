@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -35,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read \App\Models\PolicyPreregistration|null $preregistration
  * @property-read \App\Models\User|null $sales_user
  * @property-read \App\Models\User $user
+ * @property-read \App\Models\PolicyLegalInformation|null $policyLegalInformation
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Policy query()
@@ -162,5 +164,13 @@ class Policy extends Model
     public function childPolicies()
     {
         return $this->hasMany(Policy::class, 'parent_policy_id');
+    }
+
+    /**
+     * Get the legal information associated with the policy.
+     */
+    public function policyLegalInformation(): HasOne
+    {
+        return $this->hasOne(PolicyLegalInformation::class);
     }
 }

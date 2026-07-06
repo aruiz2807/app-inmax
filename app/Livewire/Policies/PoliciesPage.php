@@ -3,6 +3,7 @@
 namespace App\Livewire\Policies;
 
 use App\Models\Policy;
+use App\Models\PolicyLegalInformation;
 use App\Models\PolicyService;
 use App\Services\Auth\PinSetupTokenService;
 use Carbon\Carbon;
@@ -263,8 +264,10 @@ class PoliciesPage extends Component
     #[On('printPolicy')]
     public function print(int $policyId)
     {
+        $legalInfo = PolicyLegalInformation::where('policy_id', $policyId)->first();
+
         $pdf = Pdf::loadView('pdf.contract', [
-            'name' => "Nombre",
+            'info' => $legalInfo,
         ])->setPaper('legal', 'portrait');
 
         return response()->streamDownload(

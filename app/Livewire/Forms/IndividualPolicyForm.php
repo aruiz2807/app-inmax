@@ -47,7 +47,31 @@ class IndividualPolicyForm extends Form
 
     public $photo = '/img/user.png';
 
+    #[Validate('string|max:255')]
+    public $legal_name = '';
+
+    #[Validate('string|max:255')]
+    public $legal_address = '';
+
+    public $legal_relationship_id = null;
+
+    #[Validate('string|max:13')]
+    public $cfdi_rfc = '';
+
+    #[Validate('string|max:255')]
+    public $cfdi_name = '';
+
+    #[Validate('string|max:5')]
+    public $cfdi_postal_code = '';
+
+    #[Validate('nullable')]
+    public $cfdi_regime_id = null;
+
+    #[Validate('nullable')]
+    public $cfdi_use_id = null;
+
     public bool $foreigner = false;
+    public bool $same_as_user = true;
 
     public bool $addingMember = false;
 
@@ -76,6 +100,15 @@ class IndividualPolicyForm extends Form
             'insurance' => $this->insurance,
             'adding_member' => $this->addingMember,
             'policy_preregistration_id' => $policyPreregistrationId,
+            //legal info
+            'legal_name' => $this->legal_name,
+            'legal_address' => $this->legal_address,
+            'legal_relationship_id' => $this->legal_relationship_id,
+            'cfdi_rfc' => $this->cfdi_rfc,
+            'cfdi_name' => $this->cfdi_name,
+            'cfdi_postal_code' => $this->cfdi_postal_code,
+            'cfdi_regime_id' => $this->cfdi_regime_id,
+            'cfdi_use_id' => $this->cfdi_use_id,
         ]);
     }
 
@@ -210,6 +243,35 @@ class IndividualPolicyForm extends Form
         Storage::disk('public')->put($path, $optimizedContent);
 
         return $path;
+    }
+
+    /**
+     * Calculate age from birth date.
+     */
+    public function age()
+    {
+        if (!$this->birth) {
+            return null;
+        }
+
+        try {
+            return \Carbon\Carbon::parse($this->birth)->age;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Dynamic validation rules.
+     */
+    protected function rules()
+    {
+        $age = $this->age();
+        $isRequired = ($age !== null && $age < 18) || ! $this->same_as_user;
+
+        return [
+            'legal_relationship_id' => $isRequired ? 'required' : 'nullable',
+        ];
     }
 
 }

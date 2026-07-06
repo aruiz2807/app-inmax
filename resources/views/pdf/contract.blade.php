@@ -233,7 +233,7 @@
         <p>
             CONTRATO DE PRESTACIÓN DE SERVICIOS PARA USUARIO DE LA PLATAFORMA DIGITAL APP INMAX, que celebran por una parte
             <strong>ÁNGEL ISRAEL NUÑO BONALES</strong>, a quien en lo sucesivo se le denominará <strong>“INMAX”</strong>,
-            y por la otra <strong>{{ $name }}</strong>, a quien en lo sucesivo se le denominará <strong>“USUARIO”</strong>,
+            y por la otra <strong>{{ Str::upper($info->legal_name) }}</strong>, a quien en lo sucesivo se le denominará <strong>“USUARIO”</strong>,
             ambos en su conjunto se denominarán como las “PARTES” al tenor de las siguientes DECLARACIONES y CLÁUSULAS:
         </p>
     </div>
@@ -261,7 +261,7 @@
                     <p><strong>d)</strong> Entiende y acepta expresamente que los servicios de la <strong>APP INMAX NO SON DE ATENCIÓN MÉDICA NI ES UN SEGURO DE GASTOS MÉDICOS</strong>.</p>
                     <p><strong>e)</strong> Ha leído y acepta por completo los Términos y Condiciones de Uso, el Aviso Legal, las Políticas de Pagos y Cancelaciones y el Aviso de Privacidad Integral publicado en la <strong>APP INMAX</strong>.</p>
                     <p><strong>f)</strong> Manifiesta que los datos personales y médicos proporcionados son veraces, completos y actualizados, y brindados de forma voluntaria, liberando a <strong>INMAX</strong> de cualquier responsabilidad derivada de información falsa u omitida.</p>
-                    <p><strong>g)</strong> Tiene su domicilio para notificaciones derivadas del presente instrumento en: <strong>{{ $name }}</strong> y cuenta con Registro Federal de Contribuyentes número: <strong>{{ $name }}</strong>.</p>
+                    <p><strong>g)</strong> Tiene su domicilio para notificaciones derivadas del presente instrumento en: <strong>{{ $info->legal_address }}</strong> y cuenta con Registro Federal de Contribuyentes número: <strong>{{ Str::upper($info->cfdi_rfc) }}</strong>.</p>
                 </td>
             </tr>
         </table>
@@ -469,7 +469,11 @@
     {{-- FIRMAS --}}
     <div class="section">
         <p class="firma-intro">
-        Firmado de conformidad el Contrato y su Anexo I por las <strong>PARTES,</strong> el día <strong>{{ $name }}</strong> del mes <strong>{{ $name }}</strong> del año <strong>{{ $name }}</strong>, en la Ciudad de Guadalajara, Jalisco, México.
+        Firmado de conformidad el Contrato y su Anexo I por las <strong>PARTES,</strong> 
+        el día <strong>{{ $info->created_at->translatedFormat('d') }}</strong> 
+        del mes <strong>{{ $info->created_at->translatedFormat('F') }}</strong> 
+        del año <strong>{{ $info->created_at->translatedFormat('Y') }}</strong>, 
+        en la Ciudad de Guadalajara, Jalisco, México.
         </p>
 
         <table class="two-columns">
@@ -486,7 +490,7 @@
                     <div class="firma-box">
                         <p><strong>“USUARIO”</strong></p>
                         <div class="linea-firma"></div>
-                        <p>Firma<br><span class="destacado">{{ $name }}</span></p>
+                        <p>Firma<br><span class="destacado">{{ Str::upper($info->legal_name) }}</span></p>
                     </div>
                 </td>
             </tr>

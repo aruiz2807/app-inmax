@@ -18,11 +18,18 @@ return new class extends Migration
             );
             $table->string('legal_name');
             $table->string('legal_address');
-            $table->string('tax_rfc', 13);
-            $table->string('tax_name');
-            $table->string('tax_address');
-            $table->string('tax_regime');
-            $table->string('tax_use');
+            $table->foreignId('legal_relationship_id')->constrained(
+                table: 'relationships'
+            );
+            $table->string('cfdi_rfc', 13);
+            $table->string('cfdi_name')->nullable();
+            $table->string('cfdi_postal_code')->nullable();
+            $table->foreignId('cfdi_regime_id')->nullable()->constrained(
+                table: 'cfdi_regimes'
+            );
+            $table->foreignId('cfdi_use_id')->nullable()->constrained(
+                table: 'cfdi_uses'
+            );
             $table->timestamps();
         });
     }

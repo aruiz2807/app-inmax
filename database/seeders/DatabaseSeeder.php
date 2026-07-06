@@ -49,6 +49,9 @@ class DatabaseSeeder extends Seeder
             ParameterCouponValueSeeder::class,
             ParameterMembersDiscountSeeder::class,
             ParameterDoctorDesktopVersionSeeder::class,
+            RelationshipsSeeder::class,
+            CfdiRegimesSeeder::class,
+            CfdiUsesSeeder::class,
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Livewire\Policies;
 use App\Livewire\Forms\IndividualPolicyForm;
 use App\Models\Plan;
 use App\Models\Policy;
+use App\Models\Relationship;
 use App\Models\User;
 use App\Services\Auth\PinSetupTokenService;
 use App\Services\Policies\GroupPolicyCapacityService;
@@ -27,6 +28,7 @@ class IndividualPolicyPage extends Component
     public $plans = [];
     public $policies = [];
     public $sales_agents = [];
+    public $relationships = [];
     public $member = false;
 
     #[Layout('layouts.app')]
@@ -74,9 +76,48 @@ class IndividualPolicyPage extends Component
 
         $this->form->sales_user = Auth::user()?->profile === 'Sales' ? Auth::user()->id : null;
 
+        $this->relationships = Relationship::all();
         $this->sales_agents = User::where('profile', 'Sales')
             ->select('id', 'name')
             ->get();
+    }
+
+    public function updated($name, $value)
+    {
+        if ($name === 'form.name') {
+            if ($this->form->same_as_user) {
+                $this->form->legal_name = $value;
+            }
+        }
+
+        if ($name === 'form.same_as_user') {
+            $age = $this->age;
+            if ($value && $age !== null && $age < 18) {
+                $this->form->same_as_user = false;
+                $value = false;
+            }
+
+            if ($value) {
+                $this->form->legal_name = $this->form->name;
+            }
+
+            $isRequired = ($age !== null && $age < 18) || !$value;
+            if (!$isRequired) {
+                $this->form->legal_relationship_id = null;
+            }
+        }
+
+        if ($name === 'form.birth') {
+            $age = $this->age;
+            if ($age !== null && $age < 18) {
+                $this->form->same_as_user = false;
+            }
+
+            $isRequired = ($age !== null && $age < 18) || !$this->form->same_as_user;
+            if (!$isRequired) {
+                $this->form->legal_relationship_id = null;
+            }
+        }
     }
 
     public function save(

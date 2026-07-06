@@ -6,6 +6,7 @@ use App\Models\PlanBenefit;
 use App\Models\PlanCoverage;
 use App\Models\Policy;
 use App\Models\PolicyService;
+use App\Models\PolicyLegalInformation;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,18 @@ class IndividualPolicyRegistrationService
                 ),
                 'type' => $payload['adding_member'] ? 'Member' : 'Individual',
                 'insurance' => $payload['insurance'],
+            ]);
+
+            $legalInfo = PolicyLegalInformation::query()->create([
+                'policy_id' => $policy->id,
+                'legal_name' => $payload['legal_name'],
+                'legal_address' => $payload['legal_address'],
+                'legal_relationship_id' => $payload['legal_relationship_id'],
+                'cfdi_rfc' => $payload['cfdi_rfc'],
+                'cfdi_name' => $payload['cfdi_name'],
+                'cfdi_postal_code' => $payload['cfdi_postal_code'],
+                'cfdi_regime_id' => $payload['cfdi_regime_id'],
+                'cfdi_use_id' => $payload['cfdi_use_id'],
             ]);
 
             if (! $payload['adding_member']) {
