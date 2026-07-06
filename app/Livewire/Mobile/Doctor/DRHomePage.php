@@ -4,6 +4,7 @@ namespace App\Livewire\Mobile\Doctor;
 
 use App\Models\Appointment;
 use App\Models\Parameter;
+use App\Models\Doctor;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -58,10 +59,13 @@ class DRHomePage extends Component
     public function loadTodayAppointments()
     {
         $this->user = Auth::user();
+        $doctor = Doctor::findOrFail(Auth::user()->doctor->id);
+        $officeIds = $doctor->offices()->pluck('offices.id')->toArray();
+        
         $this->todayAppointments = Appointment::where([
-                ['status', \App\Enums\AppointmentStatus::BOOKED],
-                ['doctor_id', Auth::user()->doctor->id],
+                ['status', \App\Enums\AppointmentStatus::BOOKED]
             ])
+            ->whereIn('office_id', $officeIds)
             ->whereDate('date', today())
             ->orderBy('time')
             ->get();
