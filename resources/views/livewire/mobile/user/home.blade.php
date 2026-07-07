@@ -50,26 +50,75 @@
 
     <!-- Notification Bell -->
     <div class="absolute bottom-0 right-3">
-        <button class="relative flex items-center justify-center size-9 border-2 border-white rounded-full shadow-md bg-white/20 hover:bg-white/40 transition focus:outline-none focus:border-neutral-300">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-[#1A3A5A]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
-                />
-            </svg>
+        <x-dropdown align="right" width="60" contentClasses="p-0 overflow-hidden" dropdownClasses="w-80 max-w-[calc(100vw-1.5rem)]">
+            <x-slot name="trigger">
+                <button class="relative flex items-center justify-center size-9 border-2 border-white rounded-full shadow-md bg-white/20 hover:bg-white/40 transition focus:outline-none focus:border-neutral-300">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-[#1A3A5A]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+                        />
+                    </svg>
 
-            {{-- Badge de notificaciones (mostrar solo si hay notificaciones) --}}
-            @if($unratedAppointmentsCount > 2)
-                <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold text-white bg-red-500 rounded-full">
-                    {{ $unratedAppointmentsCount > 99 ? '99+' : $unratedAppointmentsCount }}
-                </span>
-            @endif
-        </button>
+                    @if($unratedAppointmentsCount > 0)
+                        <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-semibold text-white bg-red-500 rounded-full">
+                            {{ $unratedAppointmentsCount > 99 ? '99+' : $unratedAppointmentsCount }}
+                        </span>
+                    @endif
+                </button>
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="bg-white">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
+                        <div>
+                            <p class="text-sm font-semibold text-neutral-900">Notificaciones adicionales</p>
+                            <p class="text-xs text-neutral-500">
+                                {{ $unratedAppointmentsCount > 0 ? 'Tienes ' . $unratedAppointmentsCount . ' más pendientes' : 'No tienes notificaciones adicionales' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto">
+                        @forelse($overflowUnratedAppointments as $appointment)
+                            <div class="flex items-start gap-3 px-4 py-3 border-b border-neutral-100 last:border-b-0">
+                                <a href="{{ route('user.rating', $appointment->id) }}" class="flex-1 block hover:opacity-90 transition">
+                                    <p class="text-sm font-semibold text-[#1A3A5A]">
+                                        @if($appointment->doctor->type === \App\Enums\DoctorType::Doctor)
+                                            ¡Califica tu consulta!
+                                        @else
+                                            ¡Califica el servicio!
+                                        @endif
+                                    </p>
+                                    <p class="mt-1 text-xs text-neutral-600 leading-5">
+                                        Tu cita del <strong>{{ $appointment->formatted_date }}</strong> con
+                                        @if($appointment->doctor->type === \App\Enums\DoctorType::Doctor)
+                                            el <strong>Dr. {{ $appointment->doctor->user->name }}</strong>
+                                        @else
+                                            <strong>{{ $appointment->doctor->user->name }}</strong>
+                                        @endif
+                                        aún no ha sido calificada.
+                                    </p>
+                                </a>
+
+                                <button type="button" wire:click="dismissRatingAlert({{ $appointment->id }})" class="mt-0.5 p-1 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-full transition">
+                                    <x-ui.icon name="x-mark" variant="mini" class="size-5" />
+                                </button>
+                            </div>
+                        @empty
+                            <div class="px-4 py-6 text-center text-sm text-neutral-500">
+                                No tienes notificaciones adicionales.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </x-slot>
+        </x-dropdown>
     </div>
 </div>
 
