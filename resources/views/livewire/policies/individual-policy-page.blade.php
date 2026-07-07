@@ -37,7 +37,7 @@
                 <x-ui.error name="form.parent_policy" />
             </x-ui.field>
 
-            @if($form->sales_user)
+            @if(auth()->user()->profile === 'Sales')
             <x-ui.field>
                 <x-ui.label>Promotor</x-ui.label>
                 <x-ui.input :value="auth()->user()->name" readonly copyable="false" />

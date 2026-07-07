@@ -18,7 +18,7 @@ return new class extends Migration
             );
             $table->string('legal_name');
             $table->string('legal_address');
-            $table->foreignId('legal_relationship_id')->constrained(
+            $table->foreignId('legal_relationship_id')->nullable()->constrained(
                 table: 'relationships'
             );
             $table->string('cfdi_rfc', 13);

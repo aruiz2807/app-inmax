@@ -53,6 +53,7 @@
         description="Ingrese la siguiente informacion para registrar la membresía"
         x-on:close-policy-modal.window="$data.close()"
         x-on:open-policy-modal.window="$data.open()"
+        x-on:modal-closed.window="if ($event.detail.id === 'policy-modal') { $wire.resetForm() }"
     >
         @if(!$policyType)
             <div class="grid grid-cols-2 gap-4">

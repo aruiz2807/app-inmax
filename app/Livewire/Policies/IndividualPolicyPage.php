@@ -74,7 +74,11 @@ class IndividualPolicyPage extends Component
             $this->member = $newMember;
         }
 
-        $this->form->sales_user = Auth::user()?->profile === 'Sales' ? Auth::user()->id : null;
+        if (Auth::user()?->profile === 'Sales') {
+            $this->form->sales_user = Auth::user()->id;
+        } elseif (!$this->policyId) {
+            $this->form->sales_user = null;
+        }
 
         $this->relationships = Relationship::all();
         $this->sales_agents = User::where('profile', 'Sales')
