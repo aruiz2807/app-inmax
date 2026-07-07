@@ -33,7 +33,7 @@ class IndividualPolicyForm extends Form
     #[Validate('required')]
     public $plan = null;
 
-    #[Validate('required|file|mimes:jpg,jpeg,png')]
+    #[Validate('nullable|file|mimes:jpg,jpeg,png')]
     public $attachment = null;
 
     #[Validate('nullable')]
@@ -84,7 +84,7 @@ class IndividualPolicyForm extends Form
     ): Policy {
         $this->validate();
 
-        $path = $this->optimizeAndStoreAttachment();
+        $path = $this->attachment ? $this->optimizeAndStoreAttachment() : null;
 
         return $registrationService->create([
             'name' => $this->name,

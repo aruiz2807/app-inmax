@@ -1,7 +1,7 @@
 @php($phoneReadonly = $phoneReadonly ?? false)
 
 <x-ui.fieldset label="Informacion del cliente">
-    <x-ui.field required>
+    <x-ui.field>
         <x-ui.avatar size="xl" icon="user" color="teal" :src="$form->attachment ? $form->attachment->temporaryUrl() : $form->photo" circle class="mb-1 ml-4"/>
         <input type="file" wire:model="form.attachment" placeholder="Seleccione un archivo para adjuntar" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
         <x-ui.error name="form.attachment" />
