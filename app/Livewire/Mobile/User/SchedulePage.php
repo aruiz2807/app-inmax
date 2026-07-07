@@ -83,6 +83,13 @@ class SchedulePage extends Component
     {
         $dates = [];
 
+        // CASO EXCEPCIONAL
+        $inmaxOffices = [1,2];
+        $discardedDays = [];
+        if (in_array($this->selectedOffice, $inmaxOffices)) {
+            $discardedDays = ['2026-07-09', '2026-07-10', '2026-07-11'];
+        }
+        
         if($this->user->policy->start_date->isBefore(today()))
         {
             $date = Carbon::now();
@@ -95,7 +102,7 @@ class SchedulePage extends Component
         while (count($dates) < 15) {
             $date->addDay();
 
-            if (!$date->isSunday()) {
+            if (!$date->isSunday() && !in_array($date->format('Y-m-d'), $discardedDays)) {
                 $dates[] = [
                     'id'    => $date->format('Y-m-d'),
                     'day'   => $date->isoFormat('ddd'),

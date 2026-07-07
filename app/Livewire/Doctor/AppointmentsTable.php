@@ -30,6 +30,7 @@ final class AppointmentsTable extends PowerGridComponent
     {
         parent::mount();
 
+        $this->tab = 'upcoming';
         $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
         $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
     }
@@ -57,7 +58,8 @@ final class AppointmentsTable extends PowerGridComponent
     {
         $officeIds = Auth::user()->doctor
             ?->offices()
-            ->pluck('offices.id') ?? collect();
+            ->pluck('offices.id')
+            ->toArray() ?? [];
 
         $currentDoctorId = Auth::user()->doctor?->id;
 
@@ -77,13 +79,11 @@ final class AppointmentsTable extends PowerGridComponent
                 'services:id,appointment_id,covered',
             ])
             ->where(function (Builder $query) use ($currentDoctorId, $officeIds) {
-                $query
-                    ->where('appointments.doctor_id', $currentDoctorId)
-                    ->orWhere(function (Builder $officeQuery) use ($officeIds) {
-                        $officeQuery
-                            ->whereNull('appointments.doctor_id')
-                            ->whereIn('appointments.office_id', $officeIds);
-                    });
+                $query->where('appointments.doctor_id', $currentDoctorId);
+
+                if (! empty($officeIds)) {
+                    $query->orWhereIn('appointments.office_id', $officeIds);
+                }
             })
             ->when($this->tab === 'upcoming', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::BOOKED->value))
             ->when($this->tab === 'past', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::COMPLETED->value))
@@ -91,15 +91,13 @@ final class AppointmentsTable extends PowerGridComponent
                 AppointmentStatus::CANCELLED->value,
                 AppointmentStatus::NO_SHOW->value,
             ]))
-            ->when($this->tab === 'past', fn (Builder $query) => $query->where('appointments.doctor_id', $currentDoctorId))
-            ->when($this->tab === 'cancelled', fn (Builder $query) => $query->where('appointments.doctor_id', $currentDoctorId))
             ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('appointments.date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn (Builder $query) => $query->whereDate('appointments.date', '<=', $this->dateTo));
     }
 
     public function setTab(string $tab): void
     {
-        if (! in_array($tab, ['all', 'upcoming', 'past', 'cancelled'], true)) {
+        if (! in_array($tab, [ 'upcoming', 'past', 'cancelled', 'all'], true)) {
             return;
         }
 

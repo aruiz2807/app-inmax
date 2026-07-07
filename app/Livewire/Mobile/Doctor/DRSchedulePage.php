@@ -114,6 +114,7 @@ class DRSchedulePage extends Component
 
         $this->doctor = Doctor::find($value);
         $this->offices = $this->doctor?->offices ?? collect();
+        $this->selectedOffice = null;
     }
 
     public function updatedServiceSearch()
@@ -273,8 +274,15 @@ class DRSchedulePage extends Component
         $dates = [];
         $date = Carbon::now();
 
+        // CASO EXCEPCIONAL
+        $inmaxOffices = [1,2];
+        $discardedDays = [];
+        if (in_array($this->selectedOffice, $inmaxOffices)) {
+            $discardedDays = ['2026-07-09', '2026-07-10', '2026-07-11'];
+        }
+
         while (count($dates) < 15) {
-            if (!$date->isSunday()) {
+            if (!$date->isSunday() && !in_array($date->format('Y-m-d'), $discardedDays)) {
                 $dates[] = [
                     'id'    => $date->format('Y-m-d'),
                     'day'   => $date->isoFormat('ddd'),
