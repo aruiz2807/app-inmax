@@ -75,15 +75,6 @@
 
             <x-slot name="content">
                 <div class="bg-white">
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
-                        <div>
-                            <p class="text-sm font-semibold text-neutral-900">Notificaciones adicionales</p>
-                            <p class="text-xs text-neutral-500">
-                                {{ $unratedAppointmentsCount > 0 ? 'Tienes ' . $unratedAppointmentsCount . ' más pendientes' : 'No tienes notificaciones adicionales' }}
-                            </p>
-                        </div>
-                    </div>
-
                     <div class="max-h-96 overflow-y-auto">
                         @forelse($overflowUnratedAppointments as $appointment)
                             <div class="flex items-start gap-3 px-4 py-3 border-b border-neutral-100 last:border-b-0">

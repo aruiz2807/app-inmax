@@ -60,13 +60,18 @@ class DRHomePage extends Component
     {
         $this->user = Auth::user();
         $doctor = Doctor::findOrFail(Auth::user()->doctor->id);
+        $doctorId = $doctor->id;
         $officeIds = $doctor->offices()->pluck('offices.id')->toArray();
         
-        $this->todayAppointments = Appointment::where([
-                ['status', \App\Enums\AppointmentStatus::BOOKED]
-            ])
-            ->whereIn('office_id', $officeIds)
+        $this->todayAppointments = Appointment::where('status', \App\Enums\AppointmentStatus::BOOKED)
             ->whereDate('date', today())
+            ->where(function ($query) use ($doctorId, $officeIds) {
+                $query->where('doctor_id', $doctorId);
+
+                if (!empty($officeIds)) {
+                    $query->orWhereIn('office_id', $officeIds);
+                }
+            })
             ->orderBy('time')
             ->get();
     }
