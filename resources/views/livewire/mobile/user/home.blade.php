@@ -170,6 +170,15 @@
                 <span class="text-lg font-bold text-gray-800">Programar consulta</span>
             </a>
 
+            <a href="{{ route('user.ambulance') }}" class="flex items-center p-4 bg-[#FDECEE] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                <div class="p-3 bg-[#EA4F58] rounded-xl text-white mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3h8v5h5v8h-5v5H8v-5H3V8h5V3z" />
+                    </svg>
+                </div>
+                <span class="text-lg font-bold text-gray-800">Solicitar ambulancia</span>
+            </a>
+
             <a href="{{ route('user.history') }}" class="flex items-center p-4 bg-[#E3F2FD] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                 <div class="p-3 bg-[#2D4356] rounded-xl text-white mr-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">

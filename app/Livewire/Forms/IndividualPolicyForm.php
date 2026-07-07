@@ -47,7 +47,31 @@ class IndividualPolicyForm extends Form
 
     public $photo = '/img/user.png';
 
+    #[Validate('string|max:255')]
+    public $legal_name = '';
+
+    #[Validate('string|max:255')]
+    public $legal_address = '';
+
+    public $legal_relationship_id = null;
+
+    #[Validate('string|max:13')]
+    public $cfdi_rfc = '';
+
+    #[Validate('string|max:255')]
+    public $cfdi_name = '';
+
+    #[Validate('string|max:5')]
+    public $cfdi_postal_code = '';
+
+    #[Validate('nullable')]
+    public $cfdi_regime_id = null;
+
+    #[Validate('nullable')]
+    public $cfdi_use_id = null;
+
     public bool $foreigner = false;
+    public bool $same_as_user = true;
 
     public bool $addingMember = false;
 
@@ -76,6 +100,15 @@ class IndividualPolicyForm extends Form
             'insurance' => $this->insurance,
             'adding_member' => $this->addingMember,
             'policy_preregistration_id' => $policyPreregistrationId,
+            //legal info
+            'legal_name' => $this->legal_name,
+            'legal_address' => $this->legal_address,
+            'legal_relationship_id' => $this->legal_relationship_id,
+            'cfdi_rfc' => $this->cfdi_rfc,
+            'cfdi_name' => $this->cfdi_name,
+            'cfdi_postal_code' => $this->cfdi_postal_code,
+            'cfdi_regime_id' => $this->cfdi_regime_id,
+            'cfdi_use_id' => $this->cfdi_use_id,
         ]);
     }
 
@@ -87,7 +120,7 @@ class IndividualPolicyForm extends Form
         $this->name = $policy->user->name;
         $this->email = $policy->user->email;
         $this->phone = $policy->user->phone;
-        $this->birth = $policy->user->birth_date->format('Y-m-d');
+        $this->birth = $policy->user->birth_date?->format('Y-m-d');
         $this->curp = $policy->user->curp;
         $this->passport = $policy->user->passport;
         $this->plan = (string) $policy->plan_id;
@@ -99,6 +132,28 @@ class IndividualPolicyForm extends Form
         if($this->passport)
         {
             $this->foreigner = true;
+        }
+
+        if ($policy->policyLegalInformation) {
+            $this->legal_name = $policy->policyLegalInformation->legal_name;
+            $this->legal_address = $policy->policyLegalInformation->legal_address;
+            $this->legal_relationship_id = $policy->policyLegalInformation->legal_relationship_id;
+            $this->cfdi_rfc = $policy->policyLegalInformation->cfdi_rfc;
+            $this->cfdi_name = $policy->policyLegalInformation->cfdi_name;
+            $this->cfdi_postal_code = $policy->policyLegalInformation->cfdi_postal_code;
+            $this->cfdi_regime_id = $policy->policyLegalInformation->cfdi_regime_id;
+            $this->cfdi_use_id = $policy->policyLegalInformation->cfdi_use_id;
+            $this->same_as_user = ($this->legal_name === $this->name);
+        } else {
+            $this->legal_name = $this->name;
+            $this->legal_address = '';
+            $this->legal_relationship_id = null;
+            $this->cfdi_rfc = '';
+            $this->cfdi_name = '';
+            $this->cfdi_postal_code = '';
+            $this->cfdi_regime_id = null;
+            $this->cfdi_use_id = null;
+            $this->same_as_user = true;
         }
     }
 
@@ -117,24 +172,75 @@ class IndividualPolicyForm extends Form
     */
     public function update($policyId)
     {
-        // $this->validate();
-
         $policy = Policy::find($policyId);
         $user = User::find($policy->user_id);
+
+        \Illuminate\Support\Facades\Validator::make([
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'birth' => $this->birth,
+            'curp' => $this->curp,
+            'passport' => $this->passport,
+            'legal_name' => $this->legal_name,
+            'legal_address' => $this->legal_address,
+            'legal_relationship_id' => $this->legal_relationship_id,
+            'cfdi_rfc' => $this->cfdi_rfc,
+        ], [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['required', 'string', 'size:10', \Illuminate\Validation\Rule::unique('users', 'phone')->ignore($user->id)],
+            'birth' => ['required', 'date', 'before_or_equal:today', 'after:1900-01-01'],
+            'curp' => ['nullable', 'string', 'size:18'],
+            'passport' => ['nullable', 'string', 'max:255'],
+            'legal_name' => ['required', 'string', 'max:255'],
+            'legal_address' => ['required', 'string', 'max:255'],
+            'legal_relationship_id' => ['nullable'],
+            'cfdi_rfc' => ['required', 'string', 'max:13'],
+        ])->validate();
+
+        if ($this->attachment) {
+            \Illuminate\Support\Facades\Validator::make([
+                'attachment' => $this->attachment,
+            ], [
+                'attachment' => ['file', 'mimes:jpg,jpeg,png'],
+            ])->validate();
+        }
+
         $path = $this->attachment
             ? $this->optimizeAndStoreAttachment()
             : $user->profile_photo_path;
 
         $user->update([
             'name' => $this->name,
-            //'email' => $this->email,
-            //'phone' => $this->phone,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'birth_date' => $this->birth,
+            'curp' => $this->curp,
+            'passport' => $this->passport,
             'profile_photo_path' => $path,
         ]);
 
         $policy->update([
-            'insurance' => $this->insurance
+            'insurance' => $this->insurance,
+            'plan_id' => (int) $this->plan,
+            'sales_user_id' => $this->sales_user ? (int) $this->sales_user : null,
+            'parent_policy_id' => $this->parent_policy ? (int) $this->parent_policy : null,
         ]);
+
+        $policy->policyLegalInformation()->updateOrCreate(
+            ['policy_id' => $policy->id],
+            [
+                'legal_name' => $this->legal_name,
+                'legal_address' => $this->legal_address,
+                'legal_relationship_id' => $this->legal_relationship_id,
+                'cfdi_rfc' => $this->cfdi_rfc,
+                'cfdi_name' => $this->cfdi_name,
+                'cfdi_postal_code' => $this->cfdi_postal_code,
+                'cfdi_regime_id' => $this->cfdi_regime_id,
+                'cfdi_use_id' => $this->cfdi_use_id,
+            ]
+        );
     }
 
     private function optimizeAndStoreAttachment()
@@ -210,6 +316,35 @@ class IndividualPolicyForm extends Form
         Storage::disk('public')->put($path, $optimizedContent);
 
         return $path;
+    }
+
+    /**
+     * Calculate age from birth date.
+     */
+    public function age()
+    {
+        if (!$this->birth) {
+            return null;
+        }
+
+        try {
+            return \Carbon\Carbon::parse($this->birth)->age;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Dynamic validation rules.
+     */
+    protected function rules()
+    {
+        $age = $this->age();
+        $isRequired = ($age !== null && $age < 18) || ! $this->same_as_user;
+
+        return [
+            'legal_relationship_id' => $isRequired ? 'required' : 'nullable',
+        ];
     }
 
 }

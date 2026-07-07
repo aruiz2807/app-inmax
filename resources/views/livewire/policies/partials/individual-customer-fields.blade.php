@@ -9,7 +9,7 @@
 
     <x-ui.field required>
         <x-ui.label>Nombre completo</x-ui.label>
-        <x-ui.input wire:model="form.name" name="name" placeholder="Nombre Apellido" />
+        <x-ui.input wire:model.blur="form.name" name="name" placeholder="Nombre Apellido" />
         <x-ui.error name="form.name" />
     </x-ui.field>
 

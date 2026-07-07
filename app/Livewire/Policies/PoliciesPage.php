@@ -3,6 +3,7 @@
 namespace App\Livewire\Policies;
 
 use App\Models\Policy;
+use App\Models\PolicyLegalInformation;
 use App\Models\PolicyService;
 use App\Services\Auth\PinSetupTokenService;
 use Carbon\Carbon;
@@ -11,6 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PoliciesPage extends Component
 {
@@ -257,6 +259,21 @@ class PoliciesPage extends Component
 
         $this->dispatch('close-cancel-modal');
         $this->dispatch('pg:eventRefresh-policiesTable');
+    }
+
+    #[On('printPolicy')]
+    public function print(int $policyId)
+    {
+        $legalInfo = PolicyLegalInformation::where('policy_id', $policyId)->first();
+
+        $pdf = Pdf::loadView('pdf.contract', [
+            'info' => $legalInfo,
+        ])->setPaper('legal', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "contract-{$policyId}.pdf"
+        );
     }
 
     public function selectType(string $type): void

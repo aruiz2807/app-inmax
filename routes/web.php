@@ -87,6 +87,7 @@ use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Livewire\Mobile\Doctor\RejectConfirmationPage;
 
 // Livewire - Mobile - User
+use App\Livewire\Mobile\User\AmbulancePage;
 use App\Livewire\Mobile\User\HistoryPage;
 use App\Livewire\Mobile\User\HomePage;
 use App\Livewire\Mobile\User\NotesPage;
@@ -226,6 +227,8 @@ Route::middleware([
         Route::get('/schedule', SchedulePage::class)->name('user.schedule');
         Route::get('/schedule-confirmation', ScheduleConfirmationPage::class)->name('user.schedule-confirmation');
         Route::get('/schedule-cancellation', ScheduleCancellationPage::class)->name('user.schedule-cancellation');
+
+        Route::get('/ambulance', AmbulancePage::class)->name('user.ambulance');
 
         Route::get('/status', PolicyStatusPage::class)->name('user.status');
 
