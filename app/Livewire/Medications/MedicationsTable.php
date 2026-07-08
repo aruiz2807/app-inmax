@@ -129,6 +129,11 @@ final class MedicationsTable extends PowerGridComponent
     public function actions(Medication $row): array
     {
         return [
+            Button::add('movements')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Movimientos</span></div>'))
+                ->id()
+                ->class('text-slate-600 hover:bg-slate-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('showMedicationMovements', ['medicationId' => $row->id]),
             Button::add('edit')
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                 ->id()

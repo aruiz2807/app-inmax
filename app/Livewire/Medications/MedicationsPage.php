@@ -15,6 +15,8 @@ class MedicationsPage extends Component
     public MedicationAdjustmentForm $adjustmentForm;
     public ?int $medicationId = null;
     public ?Medication $medication = null;
+    public ?string $selectedMedicationName = null;
+    public array $selectedMedicationMovements = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -131,5 +133,41 @@ class MedicationsPage extends Component
         $this->adjustmentForm->reset();
         $this->medicationId = null;
         $this->medication = null;
+    }
+
+    #[On('showMedicationMovements')]
+    public function openMovements($medicationId)
+    {
+        $medication = Medication::query()
+            ->with([
+                'movements' => fn ($query) => $query->with('user')->latest(),
+            ])
+            ->find($medicationId);
+
+        if (! $medication) {
+            return;
+        }
+
+        $this->selectedMedicationName = $medication->name;
+        $this->selectedMedicationMovements = $medication->movements
+            ->map(fn ($movement) => [
+                'id' => $movement->id,
+                'created_at' => $movement->created_at?->format('d/m/Y H:i') ?? '-',
+                'type' => $movement->type,
+                'type_label' => $movement->type === 'IN' ? 'Entrada' : 'Salida',
+                'quantity' => (int) $movement->quantity,
+                'reference' => $movement->reference ?: '-',
+                'adjustment_comment' => $movement->adjustment_comment ?: '-',
+                'user_name' => $movement->user?->name ?? 'Sistema',
+            ])
+            ->toArray();
+
+        $this->dispatch('open-medication-movements-modal');
+    }
+
+    public function resetMovementDetails()
+    {
+        $this->selectedMedicationName = null;
+        $this->selectedMedicationMovements = [];
     }
 }

@@ -25,6 +25,78 @@
     </div>
 
     <x-ui.modal
+        id="medication-movements-modal"
+        animation="fade"
+        width="5xl"
+        heading="Detalle de movimientos"
+        description="Entradas y salidas registradas para el medicamento seleccionado"
+        x-on:close-medication-movements-modal.window="$data.close()"
+        x-on:open-medication-movements-modal.window="$data.open()"
+    >
+        <div class="space-y-4">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <p class="text-sm text-gray-500">Medicamento</p>
+                <p class="font-semibold text-lg text-gray-900">
+                    {{ $selectedMedicationName ?? 'Sin selección' }}
+                </p>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="text-left px-3 py-2 font-semibold">Fecha</th>
+                            <th class="text-left px-3 py-2 font-semibold">Tipo</th>
+                            <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
+                            <th class="text-left px-3 py-2 font-semibold">Referencia</th>
+                            <th class="text-left px-3 py-2 font-semibold">Comentario</th>
+                            <th class="text-left px-3 py-2 font-semibold">Usuario</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @forelse($selectedMedicationMovements as $movement)
+                            <tr class="border-t border-gray-200">
+                                <td class="px-3 py-2">{{ $movement['created_at'] }}</td>
+                                <td class="px-3 py-2">
+                                    <span @class([
+                                        'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+                                        'bg-emerald-100 text-emerald-700' => $movement['type'] === 'IN',
+                                        'bg-rose-100 text-rose-700' => $movement['type'] === 'OUT',
+                                    ])>
+                                        {{ $movement['type_label'] }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2">{{ number_format($movement['quantity']) }}</td>
+                                <td class="px-3 py-2">{{ $movement['reference'] }}</td>
+                                <td class="px-3 py-2">{{ $movement['adjustment_comment'] }}</td>
+                                <td class="px-3 py-2">{{ $movement['user_name'] }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td class="px-3 py-4 text-center text-gray-500" colspan="6">
+                                    No hay movimientos registrados para este medicamento.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="w-full flex justify-end pt-2">
+                <x-ui.button
+                    variant="outline"
+                    icon="x-mark"
+                    x-on:click="$data.close();"
+                    wire:click="resetMovementDetails"
+                >
+                    Cerrar
+                </x-ui.button>
+            </div>
+        </div>
+    </x-ui.modal>
+
+    <x-ui.modal
         id="medication-modal"
         animation="fade"
         width="4xl"

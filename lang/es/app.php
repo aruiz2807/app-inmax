@@ -24,6 +24,7 @@ return [
     'medications' => 'Medicamentos',
     'clerk' => 'Mostrador',
     'dispensation' => 'Surtir',
+    'suppliers' => 'Proveedores',
     'inventory' => 'Inventario',
     'reports' => 'Reportes',
     'commissions' => 'Comisiones',

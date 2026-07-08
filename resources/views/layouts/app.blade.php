@@ -309,6 +309,16 @@
                         @break
 
                         @case('Clerk')
+                            @permission('view.clerk.suppliers')
+                                <x-ui.navlist.item
+                                    icon="users"
+                                    :label="__('app.suppliers')"
+                                    href="{{ route('clerk.suppliers') }}"
+                                    :active="request()->routeIs('clerk.suppliers')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
+
                             @permission('view.clerk.medications')
                                 <x-ui.navlist.item
                                     icon="wallet"
