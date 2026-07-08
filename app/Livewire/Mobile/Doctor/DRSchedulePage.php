@@ -150,13 +150,28 @@ class DRSchedulePage extends Component
         $this->validate([
             'selectedServices' => 'required_without:unregisteredServices|array',
             'unregisteredServices' => 'required_without:selectedServices|array',
+            'selectedDoctor' => 'required|exists:doctors,id',
+            'selectedOffice' => 'required|exists:offices,id',
         ], [
             'selectedServices.required_without' => 'Debe seleccionar al menos un servicio.',
             'unregisteredServices.required_without' => 'Debe seleccionar al menos un servicio.',
+            'selectedDoctor.required' => 'Debe seleccionar un doctor.',
+            'selectedOffice.required' => 'Debe seleccionar una oficina.',
         ]);
 
         if (empty($this->selectedServices) && empty($this->unregisteredServices)) {
             $this->addError('selectedServices', 'Debe seleccionar al menos un servicio.');
+            return;
+        }
+
+        if(!$this->selectedDoctor) {
+            $this->addError('selectedDoctor', 'Debe seleccionar un doctor.');
+            return;
+        }
+
+        $doctorHasOffices = Doctor::find($this->selectedDoctor)?->offices()->exists();
+        if(!$this->selectedOffice && $doctorHasOffices) {
+            $this->addError('selectedOffice', 'Debe seleccionar un consultorio.');
             return;
         }
 
@@ -336,12 +351,16 @@ class DRSchedulePage extends Component
                 ->toArray();
 
             if ($isSaturday) {
-                $slots = array_filter($slots, function($slot) {
+                $slots = array_filter($slots, function($slot) use ($startHour) {
                     $hour = Carbon::createFromFormat('h:i A', $slot)->hour;
-                    return $hour >= 9 && $hour <= 13; // 1 PM on Saturdays
+                    return $hour >= $startHour && $hour <= 13; // 1 PM on Saturdays
                 });
             } else {
                 $slots = Office::find($this->selectedOffice)->officeHours
+                ->filter(function ($item) use ($startHour) {
+                    $hour = Carbon::createFromFormat('h:i A', $item->slot)->hour;
+                    return $hour >= $startHour;
+                })
                 ->sortBy(fn ($item) => Carbon::createFromFormat('h:i A', $item->slot))
                 ->pluck('slot')
                 ->toArray();

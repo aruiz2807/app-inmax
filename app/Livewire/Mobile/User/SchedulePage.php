@@ -122,6 +122,13 @@ class SchedulePage extends Component
         }
         $isSaturday = Carbon::parse($this->selectedDate)->isSaturday();
 
+        if (Carbon::parse($this->selectedDate)->isToday()) {
+            $startHour = now()->addHours(2)->hour;
+        }
+        else {
+            $startHour = 7;
+        }
+
         $usedSlots = Appointment::whereDate('date', $this->selectedDate)
             ->where('office_id', $this->selectedOffice)
             ->where('status', \App\Enums\AppointmentStatus::BOOKED)
@@ -135,31 +142,33 @@ class SchedulePage extends Component
             ->toArray();
 
         if ($isSaturday) {
-            $slots = array_filter($slots, function ($slot) {
+            $slots = array_filter($slots, function ($slot) use ($startHour) {
                 $hour = Carbon::createFromFormat('h:i A', $slot)->hour;
-                return $hour >= 9 && $hour <= 13; // Only show slots from 9 AM to 1 PM on Saturdays
+                return $hour >= $startHour && $hour <= 13; // Only show slots from startHour to 1 PM on Saturdays
             });
         }
 
         return collect($slots)
-            ->map(function ($slot) use ($usedSlots) {
-
+            ->filter(function ($slot) use ($usedSlots) {
                 $normalized = Carbon::createFromFormat('h:i A', $slot)->format('H:i');
 
-                if (in_array($normalized, $usedSlots)) {
-                    return null;
-                }
+                return !in_array($normalized, $usedSlots);
+            })
+            ->map(function ($slot) {
+                $normalized = Carbon::createFromFormat('h:i A', $slot)->format('H:i');
 
                 return [
                     'id' => $normalized,
                     'time' => $slot,
                 ];
-
             })
-            ->filter()
+            ->filter(function ($item) use ($startHour) {
+                $hour = Carbon::createFromFormat('H:i', $item['id'])->hour;
+                return $hour >= $startHour;
+            })
             ->values()
             ->toArray();
-    }
+        }
 
     public function schedule()
     {
