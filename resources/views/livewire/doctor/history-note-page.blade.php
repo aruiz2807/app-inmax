@@ -93,10 +93,18 @@
                         <div class="grid grid-cols-1 gap-2 lg:grid-cols-1">
                             @foreach($appointment->prescriptions as $prescription)
                                 <div class="rounded-lg border border-gray-100 bg-gray-50 p-2 shadow-sm">
-                                    <x-ui.text class="text-sm font-bold">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name }})</x-ui.text>
-                                    <x-ui.text class="text-xs text-gray-600">
-                                        {{ $prescription->quantity }} {{ $prescription->medication->packaging }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
-                                    </x-ui.text>
+                                    @if ($prescription->medication)
+                                        <x-ui.text class="text-sm font-bold">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name ?? '' }})</x-ui.text>
+                                        <x-ui.text class="text-xs text-gray-600">
+                                            {{ $prescription->quantity }} {{ $prescription->medication->packaging }} • {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                                        </x-ui.text>
+                                    @else
+                                        <x-ui.text class="text-sm font-bold">{{ $prescription->description }}</x-ui.text>
+                                        <x-ui.text class="text-xs text-gray-600">
+                                            {{ $prescription->quantity }} {{ $prescription->dose }} • {{ $prescription->frequency }} • {{ $prescription->duration }}
+                                        </x-ui.text>
+                                    @endif
+                                    
                                 </div>
                             @endforeach
                         </div>

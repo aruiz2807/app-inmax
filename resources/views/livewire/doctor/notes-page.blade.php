@@ -129,7 +129,18 @@
                                             @click="open = false"
                                             class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-100 dark:border-neutral-700 last:border-0"
                                         >
-                                            <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
+                                            <div class="flex items-center gap-2">
+                                                <x-ui.text class="font-bold text-sm">{{ $medication->active_substance }}</x-ui.text>
+                                                @if($medication->existences > 0)
+                                                    <x-ui.badge color="green" pill size="sm">
+                                                        {{ (int) $medication->existences }}
+                                                    </x-ui.badge>
+                                                @else
+                                                    <x-ui.badge color="red" pill size="sm">
+                                                        0
+                                                    </x-ui.badge>
+                                                @endif
+                                            </div>
                                             <x-ui.text class="text-xs opacity-75">{{ $medication->packaging }} ({{ $medication->trade_name }})</x-ui.text>
                                         </div>
                                     @empty
@@ -338,15 +349,17 @@
     <x-ui.modal
         id="notes-modal"
         animation="fade"
-        width="md"
+        :width="count($missingAttachmentServiceNames) > 0 && ($user->doctor->type === \App\Enums\DoctorType::Provider)
+            ? 'lg'
+            : 'md'"
         heading="Finalizar consulta"
-        :description="count($missingAttachmentServiceNames) > 0
-            ? 'Se detecto que no se subieron resultados para algunos servicios. ¿Posteriormente se subiran estos resultados?'
-            : 'Desea finalizar la consulta? Si acepta se descontara la consulta del cliente y se generara la receta digital'"
+        :description="count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Provider)
+            ? 'Detectamos estudios pendientes de archivo. Si ya vienen incluidos en el documento que subiste, puedes finalizar el proceso.'
+            : '¿Deseas finalizar la consulta? Al confirmar se cerrara la cita y se generara la receta digital.'"
         x-on:open-notes-modal.window="$data.open()"
         x-on:close-notes-modal.window="$data.close()"
     >
-        @if(count($missingAttachmentServiceNames) > 0)
+        @if(count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Provider))
             <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <x-ui.text class="text-sm font-semibold text-amber-900">Servicios sin adjunto:</x-ui.text>
                 <ul class="mt-2 list-disc pl-5 text-sm text-amber-800 space-y-1">
@@ -357,24 +370,31 @@
             </div>
         @endif
 
-        <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
-            <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
-                Cancelar
-            </x-ui.button>
-
-            @if(count($missingAttachmentServiceNames) > 0)
+        @if(count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Provider))
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
                 <x-ui.button class="w-full md:w-auto" color="amber" icon="clock" wire:click="confirmNotes(true)">
-                    Si, despues
+                    Subir el resto despues
                 </x-ui.button>
 
                 <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
-                    No, finalizar
+                    Ya incluidos, finalizar
                 </x-ui.button>
-            @else
-                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes">
+            </div>
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+            </div>
+        @else
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
                     Confirmar
                 </x-ui.button>
-            @endif
-        </div>
+            </div>
+        @endif
     </x-ui.modal>
 </div>
