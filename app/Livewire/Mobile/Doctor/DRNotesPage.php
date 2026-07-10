@@ -65,7 +65,7 @@ class DRNotesPage extends Component
     {
         $this->isMobileDevice = $this->detectMobileDevice();
         $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
-        //$desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+        !$desktopVersionEnabled ? $this->isMobileDevice = true : '';
 
         $this->user = Auth::user();
         $this->appointment = Appointment::with(['user.policy', 'doctor'])->findOrFail($appointment);

@@ -3,6 +3,8 @@
         Programar consulta
     </x-slot>
 
+    <x-validation-errors class="mb-4" />
+
     {{-- Info del paciente --}}
     <x-ui.card size="full">
         <div class="flex items-center gap-4">
@@ -39,6 +41,7 @@
                             </x-ui.select.option>
                         @endforeach
                     </x-ui.select>
+                    <x-ui.error name="selectedDoctor" />
                 </x-ui.field>
             </x-ui.card>
 
@@ -61,6 +64,7 @@
                             </x-ui.select.option>
                         @endforeach
                     </x-ui.select>
+                    <x-ui.error name="selectedOffice" />
                 </x-ui.field>
             </x-ui.card>
             @endif
@@ -96,6 +100,8 @@
                             </x-ui.select.option>
                         @endforeach
                     </x-ui.select>
+                    <x-ui.error name="selectedServices" />
+                    <x-ui.error name="unregisteredServices" />
                 </x-ui.field>
 
                 @if($this->servicesData)
@@ -232,6 +238,7 @@
             <x-ui.field>
                 <x-ui.label>Descripción del servicio</x-ui.label>
                 <x-ui.input wire:model="newUnregisteredService" placeholder="Ej. Radiografía de tórax" />
+                <x-ui.error name="newUnregisteredService" />
             </x-ui.field>
 
             <div class="flex justify-end gap-3 mt-6">

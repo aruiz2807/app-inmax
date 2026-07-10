@@ -37,7 +37,7 @@ class DRRecordPage extends Component
     {
         $this->isMobileDevice = $this->detectMobileDevice();
         $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
-        //$desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+        !$desktopVersionEnabled ? $this->isMobileDevice = true : '';
 
         $this->loadRecord($user);
     }

@@ -3,6 +3,8 @@
         <img src="/img/top.png" alt="Header" class="w-full object-cover">
     </div>
 
+    <x-validation-errors class="mb-4" />
+
     <div class="grid grid-cols-[2rem_auto] justify-stretch items-center pt-4 pb-4">
         <x-ui.icon name="arrow-left" class="w-5 h-5 cursor-pointer" x-on:click="window.history.back()" />
         <x-ui.text class="text-2xl">Programar consulta</x-ui.text>
@@ -31,6 +33,7 @@
                         </x-ui.select.option>
                     @endforeach
                 </x-ui.select>
+                <x-ui.error name="selectedDoctor" />
             </x-ui.field>
 
             @if($selectedDoctor && $offices->count())
@@ -47,6 +50,7 @@
                             </x-ui.select.option>
                         @endforeach
                 </x-ui.select>
+                    <x-ui.error name="selectedOffice" />
             </x-ui.field>
             @endif
 
@@ -76,6 +80,8 @@
                             </x-ui.select.option>
                         @endforeach
                 </x-ui.select>
+                    <x-ui.error name="selectedServices" />
+                    <x-ui.error name="unregisteredServices" />
             </x-ui.field>
             @endif
 
@@ -202,6 +208,7 @@
             <x-ui.field>
                 <x-ui.label>Descripción del servicio</x-ui.label>
                 <x-ui.input wire:model="newUnregisteredService" placeholder="Ej. Radiografía de tórax" />
+                <x-ui.error name="newUnregisteredService" />
             </x-ui.field>
 
             <div class="flex justify-end gap-3 mt-6">

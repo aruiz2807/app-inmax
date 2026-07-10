@@ -58,7 +58,7 @@ class DRSchedulePage extends Component
     {
         $this->isMobileDevice = $this->detectMobileDevice();
         $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
-        //$desktopVersionEnabled ? $this->isMobileDevice = false : $this->isMobileDevice = true;
+        !$desktopVersionEnabled ? $this->isMobileDevice = true : '';
 
         $this->appointment = Appointment::findOrFail($appointment);
         $doctorsQuery = Doctor::where('status', 'Active');
@@ -151,12 +151,10 @@ class DRSchedulePage extends Component
             'selectedServices' => 'required_without:unregisteredServices|array',
             'unregisteredServices' => 'required_without:selectedServices|array',
             'selectedDoctor' => 'required|exists:doctors,id',
-            'selectedOffice' => 'required|exists:offices,id',
         ], [
             'selectedServices.required_without' => 'Debe seleccionar al menos un servicio.',
             'unregisteredServices.required_without' => 'Debe seleccionar al menos un servicio.',
             'selectedDoctor.required' => 'Debe seleccionar un doctor.',
-            'selectedOffice.required' => 'Debe seleccionar una oficina.',
         ]);
 
         if (empty($this->selectedServices) && empty($this->unregisteredServices)) {
