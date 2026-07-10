@@ -149,6 +149,13 @@ return [
             'default_profiles' => ['Clerk'],
             'route_names' => ['clerk.suppliers'],
         ],
+        'view.clerk.purchases' => [
+            'name' => 'Ver compras de mostrador',
+            'group' => 'Mostrador',
+            'description' => 'Permite acceder al catalogo de compras para mostrador.',
+            'default_profiles' => ['Clerk'],
+            'route_names' => ['clerk.purchases'],
+        ],
         'view.clerk.dispensation' => [
             'name' => 'Ver surtido',
             'group' => 'Mostrador',
@@ -230,6 +237,7 @@ return [
             ['route' => 'clerk.dispensation', 'permission' => 'view.clerk.dispensation'],
             ['route' => 'clerk.medications', 'permission' => 'view.clerk.medications'],
             ['route' => 'clerk.suppliers', 'permission' => 'view.clerk.suppliers'],
+            ['route' => 'clerk.purchases', 'permission' => 'view.clerk.purchases'],
         ],
         'Receptionist' => [
             ['route' => 'receptionist.requests', 'permission' => 'view.receptionist.requests'],

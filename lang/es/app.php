@@ -25,6 +25,7 @@ return [
     'clerk' => 'Mostrador',
     'dispensation' => 'Surtir',
     'suppliers' => 'Proveedores',
+    'purchases' => 'Compras',
     'inventory' => 'Inventario',
     'reports' => 'Reportes',
     'commissions' => 'Comisiones',

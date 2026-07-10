@@ -34,6 +34,7 @@ use App\Livewire\Clerk\DashboardPage as ClerkDashboardPage;
 use App\Livewire\Clerk\DispensationPage;
 use App\Livewire\Clerk\InventoryPage;
 use App\Livewire\Clerk\SuppliersPage;
+use App\Livewire\Clerk\PurchasesPage;
 
 // Livewire - Receptionist
 use App\Livewire\Receptionist\AppointmentsPage as ReceptionistAppointmentsPage;
@@ -286,6 +287,9 @@ Route::middleware([
         Route::get('/suppliers', SuppliersPage::class)
             ->middleware('permission:view.clerk.suppliers')
             ->name('clerk.suppliers');
+        Route::get('/purchases', PurchasesPage::class)
+            ->middleware('permission:view.clerk.purchases')
+            ->name('clerk.purchases');
     });
 
     Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {

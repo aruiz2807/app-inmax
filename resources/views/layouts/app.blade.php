@@ -319,6 +319,16 @@
                                 />
                             @endpermission
 
+                            @permission('view.clerk.purchases')
+                                <x-ui.navlist.item
+                                    icon="shopping-cart"
+                                    :label="__('app.purchases')"
+                                    href="{{ route('clerk.purchases') }}"
+                                    :active="request()->routeIs('clerk.purchases')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
+
                             @permission('view.clerk.medications')
                                 <x-ui.navlist.item
                                     icon="wallet"
