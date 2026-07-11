@@ -159,17 +159,32 @@ class DRSchedulePage extends Component
 
         if (empty($this->selectedServices) && empty($this->unregisteredServices)) {
             $this->addError('selectedServices', 'Debe seleccionar al menos un servicio.');
+            $this->dispatch('notify',
+                type: 'error',
+                content: 'Debe seleccionar al menos un servicio.',
+                duration: 4000
+            );
             return;
         }
 
         if(!$this->selectedDoctor) {
             $this->addError('selectedDoctor', 'Debe seleccionar un doctor.');
+            $this->dispatch('notify',
+                type: 'error',
+                content: 'Debe seleccionar un doctor.',
+                duration: 4000
+            );
             return;
         }
 
         $doctorHasOffices = Doctor::find($this->selectedDoctor)?->offices()->exists();
         if(!$this->selectedOffice && $doctorHasOffices) {
             $this->addError('selectedOffice', 'Debe seleccionar un consultorio.');
+            $this->dispatch('notify',
+                type: 'error',
+                content: 'Debe seleccionar un consultorio.',
+                duration: 4000
+            );
             return;
         }
 

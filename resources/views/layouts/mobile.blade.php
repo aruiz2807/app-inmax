@@ -25,6 +25,8 @@
             {{ $slot }}
         </div>
 
+        <x-ui.toast position="bottom-right" maxToasts="5" />
+
         @livewireScriptConfig
     </body>
 </html>
