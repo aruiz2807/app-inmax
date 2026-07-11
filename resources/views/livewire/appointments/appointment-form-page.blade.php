@@ -1,5 +1,7 @@
 <div x-data="{ customServiceModal: false }" @close-custom-service-modal.window="customServiceModal = false">
 
+    <x-validation-errors class="mb-4" />
+
     @if($selectedUser)
     <div class="flex flex-col items-center">
         <x-ui.avatar size="xl" icon="user" color="teal" :src="$user->photo_url" circle />
@@ -24,6 +26,7 @@
                     </x-ui.select.option>
                 @endforeach
         </x-ui.select>
+            <x-ui.error name="selectedUser" />
     </x-ui.field>
 
     @if(!$appointment || ($appointment && $this->selectedDoctor))
@@ -41,6 +44,7 @@
                 </x-ui.select.option>
             @endforeach
         </x-ui.select>
+        <x-ui.error name="selectedDoctor" />
     </x-ui.field>
     @endif
 
@@ -59,6 +63,7 @@
                     </x-ui.select.option>
                 @endforeach
         </x-ui.select>
+            <x-ui.error name="selectedOffice" />
     </x-ui.field>
     @endif
 
@@ -85,6 +90,7 @@
                     </x-ui.select.option>
                 @endforeach
         </x-ui.select>
+        <x-ui.error name="selectedServices" />
     </x-ui.field>
     @endif
 
@@ -213,6 +219,7 @@
             <x-ui.field>
                 <x-ui.label>Descripción del servicio</x-ui.label>
                 <x-ui.input wire:model="newUnregisteredService" placeholder="Ej. Radiografía de tórax" />
+                <x-ui.error name="newUnregisteredService" />
             </x-ui.field>
 
             <div class="flex justify-end gap-3 mt-6">
