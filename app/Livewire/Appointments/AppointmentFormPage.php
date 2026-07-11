@@ -119,12 +119,10 @@ class AppointmentFormPage extends Component
             'selectedServices' => 'required_without:unregisteredServices|array',
             'unregisteredServices' => 'required_without:selectedServices|array',
             'selectedDoctor' => 'required|exists:doctors,id',
-            'selectedOffice' => 'required|exists:offices,id',
         ], [
             'selectedServices.required_without' => 'Debe seleccionar al menos un servicio.',
             'unregisteredServices.required_without' => 'Debe seleccionar al menos un servicio.',
             'selectedDoctor.required' => 'Debe seleccionar un doctor.',
-            'selectedOffice.required' => 'Debe seleccionar una oficina.',
         ]);
 
         if (empty($this->selectedServices) && empty($this->unregisteredServices)) {
