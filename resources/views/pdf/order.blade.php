@@ -154,7 +154,7 @@
     <div class="meta-card">
         <table class="layout">
             <tr>
-                <td style="width: 50%; border-right: 1px solid #E5E9F2; padding-right: 15px;">
+                <td style="width: 40%; border-right: 1px solid #E5E9F2; padding-right: 15px;">
                     <div class="meta-label">Solicitante</div>
                     <div class="meta-name">{{ $appointment->requester->name }}</div>
                     <div class="meta-sub">{{ $appointment->requester->doctor?->specialty->name }}</div>
@@ -163,10 +163,15 @@
                     <div class="meta-sub">{{ $appointment->requester->doctor?->address }}</div>
                     <div class="meta-sub">Tel. {{ $appointment->requester->doctor?->user->phone }}</div>
                 </td>
-                <td style="width: 50%; padding-left: 15px;">
+                <td style="width: 40%; border-right: 1px solid #E5E9F2; padding-left: 15px;">
                     <div class="meta-label">Paciente</div>
                     <div class="meta-name">{{ $appointment->user->name }}</div>
                     <div class="meta-sub">Edad: {{ $appointment->user->age }} años</div>
+                </td>
+                <td style="width: 20%; padding-left: 15px;">
+                    <div class="meta-label">Cita</div>
+                    <div class="meta-name">{{ $appointment->date->translatedFormat('d/m/y') }}</div>
+                    <div class="meta-sub">Hora: {{ $appointment->time->translatedFormat('H:i') }}</div>
                 </td>
             </tr>
         </table>

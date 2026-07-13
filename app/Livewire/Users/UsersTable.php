@@ -56,6 +56,7 @@ final class UsersTable extends PowerGridComponent
             ->add('id')
             ->add('name')
             ->add('email')
+            ->add('phone')
             ->add('clean_phone')
             ->add('profile')
             ->add('permissions_count')
@@ -84,7 +85,7 @@ final class UsersTable extends PowerGridComponent
             Column::make('Correo', 'email')
                 ->searchable(),
 
-            Column::make('Teléfono', 'clean_phone')
+            Column::make('Teléfono', 'clean_phone', 'phone')
                 ->searchable(),
 
             Column::make('Perfil', 'profile')
