@@ -95,7 +95,7 @@ class GroupPolicyForm extends Form
 
         $this->name = $policy->user->name;
         $this->email = $policy->user->email;
-        $this->phone = $policy->user->phone;
+        $this->phone = $policy->user->clean_phone;
         $this->birth = $policy->user->birth_date->format('Y-m-d');
         $this->curp = $policy->user->curp;
         $this->passport = $policy->user->passport;

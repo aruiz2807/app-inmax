@@ -190,7 +190,7 @@ class PoliciesPage extends Component
 
             $this->lastPinSetupUrl = $result['url'];
             $this->lastPinSetupName = $policy->user->name;
-            $this->lastPinSetupPhone = $policy->user->phone;
+            $this->lastPinSetupPhone = $policy->user->clean_phone;
 
             $content = match (true) {
                 ($result['whatsapp']['ok'] ?? false) => 'Membresía activada y enlace de PIN enviado por WhatsApp.',

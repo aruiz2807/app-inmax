@@ -39,19 +39,64 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
+        // Old single-user login flow (commented for safety/reference)
+        // Fortify::authenticateUsing(function (Request $request) {
+        //     $request->validate([
+        //         'phone' => ['required', 'digits:10'],
+        //         'password' => ['required', 'digits:4'],
+        //     ]);
+        //
+        //     $user = User::where('phone', (string) $request->string('phone'))->first();
+        //
+        //     if (! $user || ! filled($user->pin)) {
+        //         return null;
+        //     }
+        //
+        //     return Hash::check((string) $request->string('password'), $user->pin) ? $user : null;
+        // });
+
+        // New profile selector flow based on primary account's PIN access
         Fortify::authenticateUsing(function (Request $request) {
             $request->validate([
                 'phone' => ['required', 'digits:10'],
                 'password' => ['required', 'digits:4'],
             ]);
 
-            $user = User::where('phone', (string) $request->string('phone'))->first();
+            $basePhone = (string) $request->string('phone');
 
-            if (! $user || ! filled($user->pin)) {
+            // 1. Find the Primary Account (either exact match or with suffix -01)
+            $parentUser = User::where('phone', $basePhone)
+                ->orWhere('phone', $basePhone . '-01')
+                ->first();
+
+            if (! $parentUser || ! filled($parentUser->pin)) {
                 return null;
             }
 
-            return Hash::check((string) $request->string('password'), $user->pin) ? $user : null;
+            // 2. Validate the login attempt against the Primary Account's PIN
+            if (! Hash::check((string) $request->string('password'), $parentUser->pin)) {
+                return null;
+            }
+
+            // 3. Since PIN is valid, retrieve all matching profiles (with any suffix, e.g. -01, -02, etc.)
+            $profiles = User::where('phone', 'like', $basePhone . '%')->get();
+
+            // 4. If only one profile exists, log them in directly
+            if ($profiles->count() === 1) {
+                return $profiles->first();
+            }
+
+            // 5. Multiple profiles found: Store validated profile IDs in session & redirect to select screen
+            session([
+                'login.pending_profiles' => $profiles->pluck('id')->toArray(),
+                'login.remember' => $request->boolean('remember'),
+            ]);
+
+            // Save the session data explicitly before terminating execution with exit;
+            $request->session()->save();
+
+            redirect()->route('login.profiles')->send();
+            exit;
         });
 
         RateLimiter::for('login', function (Request $request) {

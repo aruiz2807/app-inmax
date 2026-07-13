@@ -51,10 +51,11 @@ class WhatsAppDestinationResolver
     }
 
     /**
-     * Keep only digits from phone/code values.
+     * Keep only digits from phone/code values, ignoring suffixes.
      */
     private function digits(string $value): string
     {
-        return preg_replace('/\D+/', '', $value) ?? '';
+        $base = explode('-', $value)[0];
+        return preg_replace('/\D+/', '', $base) ?? '';
     }
 }

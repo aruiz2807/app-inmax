@@ -53,7 +53,7 @@ class UsersForm extends Form
     {
         $this->name = $user->name;
         $this->email = $user->email;
-        $this->phone = $user->phone;
+        $this->phone = $user->clean_phone;
         $this->profile = $user->profile;
         $this->doctorIds = $user->staffDoctors()->pluck('doctors.id')->toArray();
     }

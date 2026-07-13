@@ -75,7 +75,7 @@ final class PoliciesTable extends PowerGridComponent
             ->add('id')
             ->add('user_id')
             ->add('name', fn ($model) => e($model->user?->name ?? ''))
-            ->add('phone', fn ($model) => e($model->user?->phone ?? ''))
+            ->add('phone', fn ($model) => e($model->user?->clean_phone ?? ''))
             ->add('photo', fn ($model) => $model->user?->profile_photo_path ? Storage::disk('public')->url($model->user->profile_photo_path) : '')
             ->add('type')
             ->add('sales_user_id')

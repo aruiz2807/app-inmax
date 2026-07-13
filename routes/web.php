@@ -9,6 +9,7 @@ use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ReceptionistTicketController;
 use App\Http\Controllers\WhatsAppMediaAttachmentController;
 use App\Http\Controllers\WhatsAppWebhookController;
+use App\Http\Controllers\ProfileSelectionController;
 
 // Livewire - Appointments
 use App\Livewire\Appointments\AppointmentsPage;
@@ -121,6 +122,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/admin/login', [AdminAuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:admin-login')
         ->name('admin.login.store');
+
+    // Multi-profile selector routes
+    Route::get('/login/profiles', [ProfileSelectionController::class, 'index'])->name('login.profiles');
+    Route::get('/login/profiles/{id}', [ProfileSelectionController::class, 'select'])->name('login.profiles.select');
 });
 
 Route::get('/contact', ContactPage::class)->name('user.contact');

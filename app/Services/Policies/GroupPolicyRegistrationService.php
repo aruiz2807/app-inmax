@@ -45,16 +45,33 @@ class GroupPolicyRegistrationService
                 'rfc' => $payload['rfc'],
             ]);
 
+            $basePhone = $payload['phone'];
+            $existingCount = User::where('phone', $basePhone)
+                ->orWhere('phone', 'like', $basePhone . '-%')
+                ->count();
+
+            if ($existingCount > 0) {
+                $nextSuffix = str_pad((string) ($existingCount + 1), 2, '0', STR_PAD_LEFT);
+                $finalPhone = $basePhone . '-' . $nextSuffix;
+                $parentUser = User::where('phone', $basePhone)->orWhere('phone', $basePhone . '-01')->first();
+                $pin = $parentUser?->pin;
+            } else {
+                $finalPhone = $basePhone . '-01';
+                $pin = null;
+            }
+
             $user = User::query()->create([
                 'name' => $payload['name'],
                 'profile' => 'User',
                 'email' => $payload['email'],
-                'phone' => $payload['phone'],
+                'phone' => $finalPhone,
                 'birth_date' => $payload['birth'],
                 'curp' => $payload['curp'],
                 'passport' => $payload['passport'],
                 'company_id' => $company->id,
-                'password' => Hash::make($payload['phone']),
+                'password' => Hash::make($basePhone),
+                'pin' => $pin,
+                'pin_set_at' => $pin ? now() : null,
             ]);
 
             $policy = Policy::query()->create([

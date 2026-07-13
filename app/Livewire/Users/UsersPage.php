@@ -66,7 +66,7 @@ class UsersPage extends Component
 
         $this->lastPinSetupUrl = $result['url'];
         $this->lastPinSetupName = $user->name;
-        $this->lastPinSetupPhone = $user->phone;
+        $this->lastPinSetupPhone = $user->clean_phone;
 
         $content = match (true) {
             ($result['whatsapp']['ok'] ?? false) => 'Enlace de PIN enviado por WhatsApp correctamente.',

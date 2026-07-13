@@ -24,7 +24,10 @@ class ForgotPinPage extends Component
     {
         $this->validate();
 
-        $user = User::query()->where('phone', $this->phone)->first();
+        $user = User::query()
+            ->where('phone', $this->phone)
+            ->orWhere('phone', $this->phone . '-01')
+            ->first();
 
         if (! $user) {
             throw ValidationException::withMessages([
