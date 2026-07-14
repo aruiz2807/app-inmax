@@ -153,10 +153,6 @@ Route::middleware([
             ->middleware('permission:view.admin.doctors')
             ->name('doctors');
 
-        Route::get('/medications', MedicationsPage::class)
-            ->middleware('permission:view.settings.medications')
-            ->name('medications');
-
         Route::get('/offices', OfficesPage::class)
             ->middleware('permission:view.settings.offices')
             ->name('offices');
@@ -172,6 +168,16 @@ Route::middleware([
         Route::get('/policies', PoliciesPage::class)
             ->middleware('permission:view.admin.policies')
             ->name('policies');
+
+        Route::get('medications', MedicationsPage::class)
+            ->middleware('permission:view.clerk.medications')
+            ->name('clerk.medications');
+        Route::get('suppliers', SuppliersPage::class)
+            ->middleware('permission:view.clerk.suppliers')
+            ->name('clerk.suppliers');
+        Route::get('purchases', PurchasesPage::class)
+            ->middleware('permission:view.clerk.purchases')
+            ->name('clerk.purchases');
 
         Route::get('/reports/commissions', CommissionsPage::class)
             ->middleware('permission:view.reports.commissions')
@@ -281,15 +287,6 @@ Route::middleware([
             ->middleware('permission:view.clerk.dispensation')
             ->name('clerk.dispensation');
         Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
-        Route::get('/medications', MedicationsPage::class)
-            ->middleware('permission:view.clerk.medications')
-            ->name('clerk.medications');
-        Route::get('/suppliers', SuppliersPage::class)
-            ->middleware('permission:view.clerk.suppliers')
-            ->name('clerk.suppliers');
-        Route::get('/purchases', PurchasesPage::class)
-            ->middleware('permission:view.clerk.purchases')
-            ->name('clerk.purchases');
     });
 
     Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
