@@ -311,5 +311,9 @@ Route::middleware([
         Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)
             ->middleware('permission:view.receptionist.appointments')
             ->name('receptionist.payment.ticket');
+
+        // PARCHE GACHO
+        Route::get('/dispensation', DispensationPage::class)
+            ->name('recepcionist.dispensation');
     });
 });

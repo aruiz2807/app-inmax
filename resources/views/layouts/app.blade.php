@@ -407,8 +407,8 @@
                                 <x-ui.navlist.item
                                     icon="beaker"
                                     :label="__('app.dispensation')"
-                                    href="{{ route('clerk.dispensation') }}"
-                                    :active="request()->routeIs('clerk.dispensation')"
+                                    href="{{ route('recepcionist.dispensation') }}"
+                                    :active="request()->routeIs('recepcionist.dispensation')"
                                     x-on:click="closeSidebar()"
                                 />
                             @endpermission
