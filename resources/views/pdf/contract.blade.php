@@ -277,23 +277,17 @@
                 <td class="column">
                     <div class="clause-title">PRIMERA. OBJETO</div>
                     <p><strong>INMAX</strong> se obliga a poner a disposición del <strong>USUARIO</strong> el acceso a la plataforma <strong>APP INMAX,</strong> para que pueda hacer uso de sus funcionalidades de <strong>coordinación, administración, comunicación con los Prestadores de Servicios de la Salud y facilitación de acceso</strong> a servicios de atención médica privada independiente, exclusivamente conforme al Plan contratado y a los beneficios descritos en el presente Contrato, y de acuerdo con los Términos y Condiciones de Uso publicados en la plataforma <strong>APP INMAX</strong>, a través de Prestadores de Servicios de la Salud independientes que integran la red de <strong>INMAX</strong>.</p>
+                    <p>Señalando para el presente Contrato como Número de Miembro: <strong>{{$policy->number}}</strong></p>
+                    <p>En caso de que la presente contratación sea destinada para un tercero, un menor de edad o personas que, por disposición legal, requieran representación para la celebración de actos jurídicos o para la gestión de los servicios derivados de la plataforma <strong>APP INMAX</strong>, se realizarárealizara una incorporación como Beneficiario señalando los datos específicos en el <strong>ANEXO II. INCORPORACION DE BENEFICIARIOS Y AUTORIZACIÓN.</strong></p>
+                    <p>La incorporación de Beneficiarios no crea una relación contractual independiente con <strong>INMAX</strong>, permaneciendo el firmante como Titular y único responsable frente a la presente relación contractual.</p>
+                </td>
 
+                <td class="column">
                     <div class="clause-title">SEGUNDA. NATURALEZA JURÍDICA DEL SERVICIO</div>
                     <p>Las <strong>PARTES</strong> reconocen que:</p>
                     <p><strong>a)</strong> La plataforma <strong>APP INMAX</strong> únicamente realiza servicios para la coordinación, administración y facilitación de acceso tecnológico, no es un servicio de seguro médico o relacionado con la salud, ni es para brindar directamente servicios de salud y de atención médica a través de la plataforma <strong>APP INMAX</strong>.</p>
                     <p><strong>b)</strong> La plataforma <strong>APP INMAX</strong> no cuenta con obligación de dar un resultado médico, no genera diagnósticos, interpretaciones de estudios médicos o de salud, no vende medicamentos, consultas médicas, ni receta alguna, sino que únicamente tiene la obligación de proveer medios digitales para el cumplimiento de su objeto.</p>
-                </td>
-
-                <td class="column">
                     <p><strong>c)</strong> La relación médico-paciente se establece únicamente entre el <strong>USUARIO</strong> y los Prestadores de Servicios de la Salud, por lo que <strong>INMAX</strong> se deslinda de cualquier responsabilidad legal y médica que exista en consecuencia de los servicios de salud y de atención médica entre el <strong>USUARIO</strong> y los Prestadores de Servicios de la Salud.</p>
-
-                    <div class="clause-title">TERCERA. VIGENCIA</div>
-                    <p>El presente Contrato contará con una vigencia de 12 (doce) meses, las condiciones de operación se informarán a través de la <strong>APP INMAX</strong>, y sus Términos y Condiciones de Uso publicados.</p>
-                    <p>El plazo de la vigencia comenzará a contar una vez se haya firmado el presente Contrato y <strong>al quinto día natural posterior de la confirmación del pago total del Plan contratado</strong>, sin posibilidad de suspensión, congelamiento, traspaso o prórroga automática.</p>
-                    <p>En caso de no contar con un nuevo Contrato vigente <strong>INMAX</strong> podrá dar de baja el acceso, usuario y credenciales, restringiendo el acceso completo al <strong>USUARIO</strong> a la plataforma <strong>APP INMAX</strong>.</p>
-
-                    <div class="clause-title">CUARTA. PAGOS Y CANCELACIONES</div>
-                    <p>El USUARIO acepta que los accesos a ciertos Beneficios y Cupones requieren de un pago de un Plan contratado para el aprovechamiento de los servicios de la plataforma APP INMAX, además el USUARIO acepta que una vez que sus Beneficios y/o Cupones se agoten o el servicio de atención médica que solicite no forma parte de estos, tendrán un costo adicional y se deberá de pagar al solicitarlo. Todos los costos, Beneficios, Cupones y plazos se informarán a través de la APP INMAX, así como los medios autorizados para que el USUARIO realice el pago de los mismos.</p>
                 </td>
             </tr>
         </table>
@@ -303,6 +297,13 @@
         <table class="two-columns">
             <tr>
                 <td class="column">
+                    <div class="clause-title">TERCERA. VIGENCIA</div>
+                    <p>El presente Contrato contará con una vigencia de 12 (doce) meses, las condiciones de operación se informarán a través de la <strong>APP INMAX</strong>, y sus Términos y Condiciones de Uso publicados.</p>
+                    <p>El plazo de la vigencia comenzará a contar una vez se haya firmado el presente Contrato y <strong>al quinto día natural posterior de la confirmación del pago total del Plan contratado</strong>, sin posibilidad de suspensión, congelamiento, traspaso o prórroga automática.</p>
+                    <p>En caso de no contar con un nuevo Contrato vigente <strong>INMAX</strong> podrá dar de baja el acceso, usuario y credenciales, restringiendo el acceso completo al <strong>USUARIO</strong> a la plataforma <strong>APP INMAX</strong>.</p>
+
+                    <div class="clause-title">CUARTA. PAGOS Y CANCELACIONES</div>
+                    <p>El USUARIO acepta que los accesos a ciertos Beneficios y Cupones requieren de un pago de un Plan contratado para el aprovechamiento de los servicios de la plataforma APP INMAX, además el USUARIO acepta que una vez que sus Beneficios y/o Cupones se agoten o el servicio de atención médica que solicite no forma parte de estos, tendrán un costo adicional y se deberá de pagar al solicitarlo. Todos los costos, Beneficios, Cupones y plazos se informarán a través de la APP INMAX, así como los medios autorizados para que el USUARIO realice el pago de los mismos.</p>                    
                     <p>El costo and el Plan contratado para el objeto del presente Contrato, será aquel el USUARIO señale en la plataforma y realice el pago, por lo que el mismo será vinculante y formará parte del presente Contrato.</p>
                     <p>Los pagos y cancelaciones estarán sujetas a la Política de Pagos y Cancelaciones publicada en la plataforma APP INMAX.</p>
 
@@ -327,14 +328,14 @@
                     <strong>e)</strong> Tratamientos oncológicos, trasplantes, diálisis.<br>
                     <strong>f)</strong> Medicamentos y estudios fuera de catálogo.<br>
                     <strong>g)</strong> Complicaciones derivadas de enfermedades preexistentes no declaradas.</p>
+                </td>
 
+                <td class="column">
                     <div class="clause-title">SÉPTIMA. CITAS, HORARIOS Y DISPONIBILIDAD DE LOS SERVICIOS DE SALUD Y ATENCIÓN MÉDICA</div>
                     <p>Las citas para agendar los servicios de salud y de atención médica se otorgarán previa solicitud con <strong>mínimo 12 (doce) horas de anticipación</strong>, sujetas a disponibilidad real de la agenda del Prestador de Servicios de la Salud. <strong>INMAX</strong> no garantiza horario específico ni Prestador de Servicios de la Salud determinado, estos deberán de ser elegidos por el <strong>USUARIO</strong> dentro de la <strong>APP INMAX</strong> de acuerdo con la disponibilidad y horarios de los Prestadores de Servicios de la Salud.</p>
                     <p>Una vez generada la cita, no podrá ser cancelada ni modificada por el <strong>USUARIO</strong> con al menos 12 (doce) horas de anticipación al horario en que fue agendada. En caso de no cancelar la cita dentro de las 12 (doce) horas previas al horario en que fue agendado o no presentarse en el horario y lugar acordado en la cita, <strong>INMAX</strong> y el Prestador de Servicios de la Salud podrán considerar la misma como realizada, pudiendo reducir la cita y el servicio de atención médica de los Beneficios y/o Cupones incluidos en el Plan contratado o generar el cobro completo del servicio de atención médica, obligándose el <strong>USUARIO</strong> a realizar el pago.</p>
                     <p>El <strong>USUARIO</strong> tendrá la responsabilidad de acudir a la cita en las condiciones que se especifican en la plataforma y/o de acuerdo a las recomendaciones e indicaciones que el Prestador de Servicios de la Salud señale para el servicio de atención médica y cita agendada, en caso de no acudir en las condiciones e indicaciones necesarias para poder proceder con la cita o en caso que esto genere como consecuencia, no ser posible realizar el estudio, la atención médica o tratamiento clínico, <strong>INMAX</strong> y el Prestador de Servicios de la Salud no serán responsables, pudiendo señalar la cita como realizada descontando la misma de los Beneficios y/o Cupones incluidos en su Plan contratado o será responsable de cubrir el costo del servicio de atención médica y cita agendada, obligándose el <strong>USUARIO</strong> a realizar el pago.</p>
-                </td>
-
-                <td class="column">
+                    
                     <div class="clause-title">OCTAVA. OBLIGACIONES DEL USUARIO</div>
                     <p>El USUARIO se obliga a:</p>
                     <ol>
@@ -351,8 +352,17 @@
                     <p>El <strong>USUARIO</strong> reconoce y acepta que:</p>
                     <p><strong>a)</strong> <strong>INMAX y su plataforma APP INMAX NO prestan directamente servicios de atención médica y/o de salud, ni servicios de seguros médicos o para la salud</strong>.<br>
                     <strong>b)</strong> Todo diagnóstico, notas médicas, tratamiento, pronóstico, receta, prescripción y procedimiento de atención médica o de salud, es <strong>responsabilidad exclusiva del Prestador de Servicios de la Salud independiente</strong>.<br>
-                    <strong>c)</strong> El acto médico conlleva riesgos inherentes, aun cuando se realice conforme a la lex artis médica.<br>
-                    <strong>d)</strong> <strong>INMAX no será responsable</strong> por complicaciones, secuelas, resultados adversos, omisiones, errores de diagnóstico o evolución clínica, ni ninguna consecuencia que deriven de los servicios de salud y de atención médica, realizados por los Prestadores de Servicios de la Salud al <strong>USUARIO</strong>.<br>
+                    <strong>c)</strong> El acto médico conlleva riesgos inherentes, aun cuando se realice conforme a la lex artis médica.</p>
+                </td>
+            </tr>
+        </table>
+    
+{{-- PAGE 3 --}}
+
+        <table class="two-columns">
+            <tr>
+                <td class="column">
+                    <p><strong>d)</strong> <strong>INMAX no será responsable</strong> por complicaciones, secuelas, resultados adversos, omisiones, errores de diagnóstico o evolución clínica, ni ninguna consecuencia que deriven de los servicios de salud y de atención médica, realizados por los Prestadores de Servicios de la Salud al <strong>USUARIO</strong>.<br>
                     <strong>e)</strong> <strong>APP INMAX</strong> no es, ni deberá interpretarse como, una institución médica, hospital, clinic, consultorio, farmacia o establecimiento de atención médica, ni presta servicios de atención médica o sanitarios de ninguna naturaleza ni como una Institución de Seguros médicos o relacionados con la salud o Fianzas.</p>
 
                     <div class="clause-title">DÉCIMA. CONFIDENCIALIDAD Y DATOS PERSONALES</div>
@@ -365,15 +375,7 @@
                     <strong>c)</strong> Es responsable total del uso la cuenta que <strong>INMAX</strong> le brinde acceso y su usuario y contraseña, así como su operation, confidencialidad y protección de los datos que se pudieran visualizar y obtener.<br>
                     <strong>d)</strong> Los registros electrónicos tienen plena validez legal por lo que el usuario generado en la <strong>APP INMAX</strong> y sus datos de contacto, costo del Plan contratado, Beneficios y Cupones, y demás aplicables y generados dentro de la <strong>APP INMAX</strong> serán vinculatorios al presente Contrato.<br>
                     <strong>e)</strong> Toda la información que registre en la plataforma <strong>APP INMAX</strong> es veraz y cualquier información falsa será responsabilidad del <strong>USUARIO.</strong></p>
-                </td>
-            </tr>
-        </table>
-    
-{{-- PAGE 3 --}}
 
-        <table class="two-columns">
-            <tr>
-                <td class="column">
                     <div class="clause-title">DÉCIMA SEGUNDA. LIMITACIÓN DE RESPONSABILIDAD</div>
                     <p>La responsabilidad máxima de <strong>INMAX</strong>, únicamente será relacionada con el objeto de la <strong>APP INMAX</strong>, la cual está relacionada a sus servicios de <strong>coordinación, administración y facilitación de acceso</strong> a servicios de atención médica privada a través de Prestadores de Servicios de la Salud independientes, en cualquier caso, <strong>no excederá el monto efectivamente pagado por el USUARIO</strong> por el Plan contratado, excluyendo daños indirectos, morales, lucro cesante o pérdida de oportunidad.</p>
 
@@ -391,7 +393,9 @@
                         <li>Comportamientos que no lleguen a ser compatibles o relacionados con la identidad de la plataforma <strong>APP INMAX</strong> y con las ideologías y valores de <strong>INMAX</strong>.</li>
                         <li>Cualquier tipo de incumplimiento al presente Contrato y a sus obligaciones.</li>
                     </ol>
+                </td>
 
+                <td class="column">
                     <div class="clause-title">DÉCIMA QUINTA. PROHIBICIONES</div>
                     <p>Una vez contratados los servicios de INMAX, el USUARIO tiene prohibido:</p>
                     <ol>
@@ -401,9 +405,7 @@
                         <li>Compartir los datos de su usuario y contraseña o dejar ingresar alguna persona diferente a él, para hacer uso de los servicios de la APP INMAX, solicitar servicios de salud y atención médica o acceder a la información.</li>
                         <li>Transferir los derechos, Beneficios, Cupones o servicios contratados en la plataforma APP INMAX.</li>
                     </ol>
-                </td>
 
-                <td class="column">
                     <div class="clause-title">DÉCIMA SEXTA. PROPIEDAD INTELECTUAL</div>
                     <p>Todos los derechos de propiedad intelectual relacionados con la Plataforma <strong>APP INMAX</strong>, incluyendo software, diseño, logotipos, sitio web, textos y funcionalidades, son propiedad de <strong>INMAX</strong>, por lo que el uso y contratación de los servicios de <strong>APP INMAX</strong> en ningún momento se deberá de interpretar como algún tipo de cesión, transmisión, venta o adquisición de los derechos de cualquier propiedad intelectual de <strong>INMAX</strong> y su plataforma <strong>APP INMAX</strong>.</p>
 
@@ -416,7 +418,9 @@
                 </td>
             </tr>
         </table>
-    </div>
+    </div> <br><br><br>
+
+{{-- PAGE 4 --}}
 
     {{-- SECTION 3: ANEXO MEDICO LEGAL --}}
     <div class="section">
@@ -430,9 +434,6 @@
                     <p>Previo a cualquier procedimiento, el <strong>USUARIO</strong> firmará el consentimiento informado correspondiente, liberando a <strong>INMAX</strong> de cualquier reclamación relacionada con el acto médico. El Prestador de Servicios de la Salud, será el responsable de recabar la firma del <strong>USUARIO</strong> y todo lo relacionado con los servicios de salud y de atención médica, liberando a <strong>INMAX</strong> de cualquier reclamo, demanda, denuncia, mala práctica o consecuencia que derive de estos servicios de salud y de atención médica siendo en todo momento el responsable el Prestador de Servicios de la Salud tratante.</p>
                     <p>El <strong>USUARIO</strong> declara que:</p>
                     <p><strong>a)</strong> Acepta que el consentimiento informado será recabado de manera independiente por los Prestadores de Servicios de la Salud tratantes por cada procedimiento, consulta, estudio o tratamiento, ya sea en formato físico o electrónico.</p>
-                </td>
-
-                <td class="column">
                     <p><strong>b)</strong> Libera expresamente a <strong>INMAX</strong> de cualquier responsabilidad derivada del acto médico y de los servicios de salud y de atención médica, siendo esta exclusiva del Prestador de Servicios de la Salud.</p>
 
                     <div class="clause-title">II. INTERCONSULTA MÉDICA</div>
@@ -441,12 +442,7 @@
                     <strong>c)</strong> La atención por el especialista queda sujeta a disponibilidad de agenda y criterios médicos del Prestador de Servicios de la Salud tratante.<br>
                     <strong>d)</strong> <strong>INMAX no interviene ni influye</strong> en las decisiones clínicas del especialista, ni en los servicios de atención médica ni nada relacionado con los servicios de salud.</p>
                 </td>
-            </tr>
-        </table>
 
-{{-- PAGE 4 --}}
-        <table class="two-columns">
-            <tr>
                 <td class="column">
                     <div class="clause-title">III. RECETAS MÉDICAS</div>
                     <p><strong>a)</strong> <strong>INMAX</strong> no emite recetas ni realiza servicios de atención médica o de salud dentro de la <strong>APP INMAX</strong>.<br>
@@ -454,9 +450,7 @@
                     <strong>c)</strong> Las recetas tendrán vigencia conforme a la normatividad sanitaria aplicable.<br>
                     <strong>d)</strong> La cobertura para el contacto con los Prestadores de Servicios de la Salud encargados de suministrar los medicamentos prescritos por los Prestadores de Servicios de la Salud encargado de proporcionar consultas médicas se limita al <strong>catálogo vigente que los Prestadores de Servicios de la Salud tengan</strong> y a los montos establecidos en la plataforma <strong>APP INMAX</strong>.<br>
                     <strong>e)</strong> El <strong>USUARIO</strong> reconoce que la prescripción médica <strong>no garantiza resultados clínicos específicos</strong>.</p>
-                </td>
 
-                <td class="column">
                     <div class="clause-title">IV. NOTAS MÉDICAS</div>
                     <p>La plataforma APP INMAX ni INMAX genera o resguarda notas médicas, las anotaciones digitales disponibles en la plataforma APP INMAX constituyen únicamente resúmenes de los servicios, síntomas, hallazgos físicos, diagnósticos, tratamientos, notas y recomendaciones como un repositorio tecnológico de almacenamiento de información.</p> 
                     <p>INMAX no genera, emite, modifica, interpreta, valida ni asume responsabilidad alguna sobre el contenido médico o clínico incorporado en la plataforma APP INMAX. Estas notas o anotaciones dentro de la APP INMAX, no deberán de sustituir las notas médicas de los Prestadores del Servicios de la Salud, ni los Prestadores de Servicios de la Salud deberá de usarlas como sustitución de las notas médicas oficiales y reguladas por la ley aplicable.</p>
@@ -466,10 +460,62 @@
         </table>
     </div>
 
+    {{-- SECTION 4: ANEXO BENEFICIARIO --}}
+    <div class="section">
+        <div class="section-title"><br>IV. ANEXO II. INCORPORACIÓN DE BENEFICIARIO Y AUTORIZACIÓN</div>
+        <div class="section-line"></div>
+
+        <table class="two-columns">
+            <tr>
+                <td class="column">
+                    <p>El presente <strong>ANEXO</strong> tiene por objeto regular la incorporación y gestión de beneficiarios, terceros, menores de edad o personas que, por disposición legal, requieran representación para acceder y utilizar las funcionalidades habilitadas dentro de la plataforma <strong>APP INMAX.</strong></p>
+
+                    <div class="clause-title">PRIMERA. INCORPORACIÓN DEL BENEFICIARIO.</div>
+                    <p><strong>{{ Str::upper($info->legal_name) }}</strong> (en adelante para este <strong>ANEXO</strong> el “<strong>USUARIO TITULAR</strong>”)  manifiesta su voluntad de incorporar como beneficiario a la persona cuyos datos de identificación se señalan en el presente <strong>ANEXO</strong>, para que pueda acceder y utilizar las funcionalidades y servicios tecnológicos disponibles dentro de la plataforma <strong>APP INMAX</strong>, en los términos permitidos por ésta.</p>
+                    <p><u>DATOS DEL BENEFICIARIO</u></p>
+                    <p>Nombre completo:</p>
+                    <p>Fecha de nacimiento:</p>
+                    <p>Edad actual:</p>
+                    <p>Relación con el <strong>USUARIO TITULAR</strong>:</p>
+                </td>
+
+                <td class="column">
+                    <div class="clause-title">SEGUNDA. REPRESENTACIÓN Y FACULTADES.</div>
+                    <p>El <strong>USUARIO TITULAR</strong> declara, bajo protesta de decir verdad, que cuenta con las facultades legales suficientes para actuar en representación del beneficiario y autorizar su incorporación a la plataforma <strong>APP INMAX</strong>, ya sea en calidad de padre, madre, tutor, representante legal o cualquier otra figura legalmente reconocida.</p>
+                    <p>Asimismo, manifiesta que la información proporcionada es veraz, completa y actualizada, obligándose a mantenerla vigente durante toda la relación contractual.</p>
+
+                    <div class="clause-title">TERCERA. AUTORIZACIÓN PARA EL TRATAMIENTO DE DATOS PERSONALES.</div>
+                    <p>El <strong>USUARIO TITULAR</strong> autoriza expresamente a <strong>INMAX</strong> y su plataforma <strong>APP INMAX</strong> el tratamiento de los datos personales y los datos personales sensibles del beneficiario que resulten necesarios para la correcta operación, funcionamiento, administración y prestación de los servicios tecnológicos ofrecidos por la plataforma <strong>APP INMAX</strong>.</p>
+                    <p>El <strong>USUARIO TITULAR</strong> manifiesta haber leído, comprendido y aceptado el Aviso de Privacidad Integral vigente publicado en la plataforma <strong>APP INMAX</strong>, otorgando su consentimiento en representación del beneficiario para el tratamiento de la información necesaria para la ejecución de las funcionalidades contratadas conforme a las finalidades establecidas en el Aviso de Privacidad Integral y demás políticas aplicables publicadas en el sitio web de la plataforma <strong>APP INMAX</strong>.</p>
+                </td>
+            </tr>
+        </table>
+
+        <table class="two-columns">
+            <tr>
+                <td class="column">
+                    <div class="clause-title">CUARTA. SUPERVISIÓN Y RESPONSABILIDAD.</div>
+                    <p>El <strong>USUARIO TITULAR</strong> será responsable del uso que se realice de la plataforma <strong>APP INMAX</strong>, así como de toda actividad, información, actualización, autorización, gestión, interacción y operación que se genere mediante todas las cuentas otorgadas por <strong>INMAX</strong> para el objeto de la presente contratación.</p>
+                    <p>Asimismo, será responsable de supervisar el uso adecuado de la plataforma <strong>APP INMAX</strong> y de proporcionar información veraz y actualizada relacionada con el beneficiario.</p>                    
+
+                    <div class="clause-title">QUINTA. ALCANCE DE LA RESPONSABILIDAD DE LA PLATAFORMA.</div>
+                    <p>La incorporación de un beneficiario no modifica la naturaleza jurídica de los servicios prestados por la plataforma <strong>APP INMAX</strong>, los cuales se limitan exclusivamente <strong>al uso para la coordinación, administración y facilitación de acceso a servicios de salud y atención médica privados independientes</strong> a través de una red de Prestadores de Servicios de la Salud independientes.</p>                    
+                    <p><strong>INMAX</strong> y la plataforma <strong>APP INMAX</strong> no adquieren la calidad de tutor, custodio, representante legal, institución de salud, prestador de servicios médicos, ni asume obligaciones de supervisión personal, médica o asistencial respecto del beneficiario.</p>
+                </td>
+
+                <td class="column">
+                    <div class="clause-title">SEXTA. ACTUALIZACIÓN Y REVOCACIÓN.</div>
+                    <p>El <strong>USUARIO TITULAR</strong> se obliga a informar oportunamente cualquier modificación relacionada con la representación legal, patria potestad, tutela, capacidad jurídica o cualquier circunstancia que afecte la permanencia del beneficiario dentro de la plataforma <strong>APP INMAX</strong>.</p>
+                    <p><strong>INMAX</strong> podrá solicitar documentación adicional cuando resulte necesario para verificar la representación legal o garantizar el cumplimiento de las obligaciones legales aplicables.</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     {{-- FIRMAS --}}
     <div class="section">
         <p class="firma-intro">
-        Firmado de conformidad el Contrato y su Anexo I por las <strong>PARTES,</strong> 
+        Firmado de conformidad el Contrato, su Anexo I y Anexo II por las <strong>PARTES,</strong> 
         el día <strong>{{ $info->created_at->translatedFormat('d') }}</strong> 
         del mes <strong>{{ $info->created_at->translatedFormat('F') }}</strong> 
         del año <strong>{{ $info->created_at->translatedFormat('Y') }}</strong>, 

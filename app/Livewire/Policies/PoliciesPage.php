@@ -265,8 +265,10 @@ class PoliciesPage extends Component
     public function print(int $policyId)
     {
         $legalInfo = PolicyLegalInformation::where('policy_id', $policyId)->first();
+        $policy = Policy::find($policyId);
 
         $pdf = Pdf::loadView('pdf.contract', [
+            'policy' => $policy,
             'info' => $legalInfo,
         ])->setPaper('legal', 'portrait');
 
