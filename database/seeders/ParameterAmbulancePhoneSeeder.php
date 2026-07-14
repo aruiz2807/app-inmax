@@ -16,7 +16,7 @@ class ParameterAmbulancePhoneSeeder extends Seeder
             ['type' => 'AMB', 'key' => 'Phone'],
             [
                 'description' => 'Numero para solicitar servicio de ambulancia',
-                'value' => '3313666626',
+                'value' => '3328385141',
             ]
         );
     }

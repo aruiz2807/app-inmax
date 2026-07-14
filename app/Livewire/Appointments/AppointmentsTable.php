@@ -34,7 +34,14 @@ final class AppointmentsTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Appointment::query()->with(['user:id,name', 'doctor.user:id,name', 'doctor.specialty:id,name,service_id', 'doctor.specialty.service:id,name']);
+        return Appointment::query()
+            ->select('appointments.*')
+            ->leftJoin('users as patients', 'patients.id', '=', 'appointments.user_id')
+            ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
+            ->leftJoin('users as doctor_users', 'doctor_users.id', '=', 'doctors.user_id')
+            ->leftJoin('offices', 'offices.id', '=', 'appointments.office_id')
+            ->leftJoin('specialties', 'specialties.id', '=', 'doctors.specialty_id')
+            ->with(['user:id,name', 'doctor.user:id,name', 'doctor.specialty:id,name,service_id', 'doctor.specialty.service:id,name', 'office:id,name']);
     }
 
     public function relationSearch(): array
@@ -57,10 +64,10 @@ final class AppointmentsTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('user_id')
-            ->add('user_name', fn ($model) => e($model->user->name))
+            ->add('user_name', fn ($model) => e($model->user?->name ?? ''))
             ->add('doctor_id')
-            ->add('doctor_office', fn ($model) => e($model->doctor ? $model->doctor->user->name : $model->office->name))
-            ->add('specialty', fn ($model) => e($model->doctor ? $model->doctor->specialty->name : ''))
+            ->add('doctor_office', fn ($model) => e($model->doctor?->user?->name ?? $model->office?->name ?? ''))
+            ->add('specialty', fn ($model) => e($model->doctor?->specialty?->name ?? ''))
             ->add('date_formatted', fn ($model) => $model->date?->format('d/m/Y'))
             ->add('time')
             ->add('time_formatted', fn ($model) => $model->time?->format('H:i A'))
@@ -73,13 +80,18 @@ final class AppointmentsTable extends PowerGridComponent
         return [
             Column::make('Id', 'id'),
 
-            Column::make('Miembro', 'user_name')
+            Column::make('Miembro', 'user_name', 'patients.name')
                 ->sortable(),
 
             Column::make('Medico/Consultorio', 'doctor_office')
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(function (Builder $query, string $direction) {
+                    $direction = in_array(strtolower($direction), ['asc', 'desc'], true) ? $direction : 'asc';
 
-            Column::make('Especialidad', 'specialty')
+                    return $query->orderByRaw("COALESCE(doctor_users.name, offices.name) {$direction}");
+                }),
+
+            Column::make('Especialidad', 'specialty', 'specialties.name')
                 ->sortable()
                 ->hidden(isHidden: true, isForceHidden: false),
 

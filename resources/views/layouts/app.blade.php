@@ -44,9 +44,15 @@
                 'view.settings.parameters',
                 'view.settings.permissions',
             ];
+            $clerkPermissions = [
+                'view.clerk.suppliers',
+                'view.clerk.purchases',
+                'view.clerk.medications',
+            ];
             $showApiTokens = Laravel\Jetstream\Jetstream::hasApiFeatures() && $profile === 'Admin';
             $showReportsGroup = $user?->hasAnyPermission($reportPermissions) ?? false;
             $showSettingsGroup = ($user?->hasAnyPermission($settingsPermissions) ?? false) || $showApiTokens;
+            $showPharmacyInventoryGroup = $user?->hasAnyPermission($clerkPermissions) ?? false;
         @endphp
 
         <x-ui.layout variant="sidebar-main" collapsable>
@@ -158,6 +164,43 @@
                                 </x-ui.navlist.group>
                             @endif
 
+                            @if ($showPharmacyInventoryGroup)
+                                <x-ui.navlist.group
+                                        :label="__('app.pharmacy_inventory')"
+                                    :collapsable="true"
+                                >
+                                    @permission('view.clerk.suppliers')
+                                        <x-ui.navlist.item
+                                            icon="users"
+                                            :label="__('app.suppliers')"
+                                            href="{{ route('clerk.suppliers') }}"
+                                            :active="request()->routeIs('clerk.suppliers')"
+                                            x-on:click="closeSidebar()"
+                                        />
+                                    @endpermission
+
+                                    @permission('view.clerk.purchases')
+                                        <x-ui.navlist.item
+                                            icon="shopping-cart"
+                                            :label="__('app.purchases')"
+                                            href="{{ route('clerk.purchases') }}"
+                                            :active="request()->routeIs('clerk.purchases')"
+                                            x-on:click="closeSidebar()"
+                                        />
+                                    @endpermission
+
+                                    @permission('view.clerk.medications')
+                                        <x-ui.navlist.item
+                                            icon="wallet"
+                                            :label="__('app.medications')"
+                                            href="{{ route('clerk.medications') }}"
+                                            :active="request()->routeIs('clerk.medications')"
+                                            x-on:click="closeSidebar()"
+                                        />
+                                    @endpermission
+                                </x-ui.navlist.group>
+                            @endif
+
                             @if ($showSettingsGroup)
                                 <x-ui.navlist.group
                                     :label="__('app.settings')"
@@ -189,16 +232,6 @@
                                             :label="__('app.services')"
                                             href="{{ route('services') }}"
                                             :active="request()->routeIs('services')"
-                                            x-on:click="closeSidebar()"
-                                        />
-                                    @endpermission
-
-                                    @permission('view.settings.medications')
-                                        <x-ui.navlist.item
-                                            icon="wallet"
-                                            :label="__('app.medications')"
-                                            href="{{ route('medications') }}"
-                                            :active="request()->routeIs('medications')"
                                             x-on:click="closeSidebar()"
                                         />
                                     @endpermission
@@ -309,36 +342,6 @@
                         @break
 
                         @case('Clerk')
-                            @permission('view.clerk.suppliers')
-                                <x-ui.navlist.item
-                                    icon="users"
-                                    :label="__('app.suppliers')"
-                                    href="{{ route('clerk.suppliers') }}"
-                                    :active="request()->routeIs('clerk.suppliers')"
-                                    x-on:click="closeSidebar()"
-                                />
-                            @endpermission
-
-                            @permission('view.clerk.purchases')
-                                <x-ui.navlist.item
-                                    icon="shopping-cart"
-                                    :label="__('app.purchases')"
-                                    href="{{ route('clerk.purchases') }}"
-                                    :active="request()->routeIs('clerk.purchases')"
-                                    x-on:click="closeSidebar()"
-                                />
-                            @endpermission
-
-                            @permission('view.clerk.medications')
-                                <x-ui.navlist.item
-                                    icon="wallet"
-                                    :label="__('app.medications')"
-                                    href="{{ route('clerk.medications') }}"
-                                    :active="request()->routeIs('clerk.medications')"
-                                    x-on:click="closeSidebar()"
-                                />
-                            @endpermission
-
                             @permission('view.clerk.dispensation')
                                 <x-ui.navlist.item
                                     icon="beaker"
@@ -407,8 +410,8 @@
                                 <x-ui.navlist.item
                                     icon="beaker"
                                     :label="__('app.dispensation')"
-                                    href="{{ route('clerk.dispensation') }}"
-                                    :active="request()->routeIs('clerk.dispensation')"
+                                    href="{{ route('recepcionist.dispensation') }}"
+                                    :active="request()->routeIs('recepcionist.dispensation')"
                                     x-on:click="closeSidebar()"
                                 />
                             @endpermission
