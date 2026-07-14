@@ -16,7 +16,7 @@ return [
 
     'coupons' => 'Cupones',
     'settings' => 'Configuraciones',
-    'pharmacy_inventory' => 'Inventario de medicamentos',
+    'inventory' => 'Inventarios',
     'services' => 'Servicios',
     'specialties' => 'Especialidades',
     'plans' => 'Beneficios',
