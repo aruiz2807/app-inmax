@@ -158,7 +158,7 @@
 
                         <x-ui.field>
                             <x-ui.label>Dosis</x-ui.label>
-                            <x-ui.input type="number" wire:model="quantity" />
+                            <x-ui.input wire:model="quantity" />
                             <x-ui.error name="quantity" />
                         </x-ui.field>
 

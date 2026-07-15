@@ -650,7 +650,7 @@ class PolicyPreregistrationService
      */
     private function assertPhoneAvailable(string $phone, ?int $ignorePreregistrationId = null): void
     {
-        if (User::query()->where('phone', $phone)->exists()) {
+        if (User::query()->where('phone', $phone)->orWhere('phone', 'like', $phone . '-%')->exists()) {
             throw new InvalidArgumentException('Ya existe un usuario registrado con ese teléfono.');
         }
 

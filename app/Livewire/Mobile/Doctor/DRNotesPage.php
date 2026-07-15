@@ -194,7 +194,7 @@ class DRNotesPage extends Component
         $this->validate([
             'medicationId' => 'nullable|exists:medications,id',
             'searchTerm' => 'required|string|max:250',
-            'quantity' => 'required|numeric|min:1',
+            'quantity' => 'required|string|max:20',
             'dose' => 'required|string|max:50',
             'frequency' => 'required|string|max:50',
             'duration' => 'required|string|max:50',

@@ -57,6 +57,7 @@ final class UsersTable extends PowerGridComponent
             ->add('name')
             ->add('email')
             ->add('phone')
+            ->add('clean_phone')
             ->add('profile')
             ->add('permissions_count')
             ->add('pin_status', fn (User $user) => $user->pin_set_at ? 'Configurado' : 'Pendiente')
@@ -84,7 +85,7 @@ final class UsersTable extends PowerGridComponent
             Column::make('Correo', 'email')
                 ->searchable(),
 
-            Column::make('Teléfono', 'phone')
+            Column::make('Teléfono', 'clean_phone', 'phone')
                 ->searchable(),
 
             Column::make('Perfil', 'profile')

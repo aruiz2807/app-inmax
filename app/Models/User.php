@@ -44,6 +44,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read \App\Models\Doctor|null $doctor
  * @property-read mixed $age
  * @property-read mixed $photo_url
+ * @property-read string $clean_phone
+ * @property-read bool $is_dependent
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserLegalAcceptance> $legalAcceptances
  * @property-read int|null $legal_acceptances_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
@@ -183,6 +185,48 @@ class User extends Authenticatable
         else if ($this->profile === 'Doctor')
         {
             return '/img/doctor.png';
+        }
+    }
+
+    /**
+     * Get the clean 10-digit base phone number without suffix.
+     */
+    public function getCleanPhoneAttribute(): string
+    {
+        return explode('-', $this->phone)[0];
+    }
+
+    /**
+     * Check if this user is a dependent.
+     */
+    public function getIsDependentAttribute(): bool
+    {
+        $parts = explode('-', $this->phone);
+        return isset($parts[1]) && $parts[1] !== '01' && $parts[1] !== '00';
+    }
+
+    /**
+     * Mutator to keep the suffix of the phone field intact when updated from a 10-digit input.
+     */
+    public function setPhoneAttribute($value): void
+    {
+        if (str_contains((string) $value, '-')) {
+            $this->attributes['phone'] = $value;
+            return;
+        }
+
+        $currentSuffix = null;
+        if (isset($this->attributes['phone'])) {
+            $parts = explode('-', $this->attributes['phone']);
+            if (isset($parts[1])) {
+                $currentSuffix = $parts[1];
+            }
+        }
+
+        if ($currentSuffix !== null) {
+            $this->attributes['phone'] = $value . '-' . $currentSuffix;
+        } else {
+            $this->attributes['phone'] = $value;
         }
     }
 
