@@ -310,7 +310,7 @@ Route::middleware([
         Route::get('/payment/{appointment}', ReceptionistPaymentPage::class)
             ->middleware('permission:view.receptionist.appointments')
             ->name('receptionist.payment');
-        Route::get('/payment/{appointment}/ticket', ReceptionistTicketController::class)
+        Route::get('/payment/{appointment}/{type}/ticket', ReceptionistTicketController::class)
             ->middleware('permission:view.receptionist.appointments')
             ->name('receptionist.payment.ticket');
 

@@ -131,15 +131,18 @@
                     <td class="price">${{ $payment }} </td>
                 </tr>
 
-                <tr>
-                    <td class="desc">Comisión Inmax: </td>
-                    <td class="price">${{ $commision }} </td>
-                </tr>
+                @if ($type == 'partner')
+                    <tr>
+                        <td class="desc">Comisión Inmax: </td>
+                        <td class="price">${{ $commision }} </td>
+                    </tr>
 
-                <tr>
-                    <td class="desc">Ganancia del socio: </td>
-                    <td class="price">${{ $total }} </td>
-                </tr>
+                    <tr>
+                        <td class="desc">Ganancia del socio: </td>
+                        <td class="price">${{ $total }} </td>
+                    </tr>
+                @endif
+    
             </table>
         </div>
 

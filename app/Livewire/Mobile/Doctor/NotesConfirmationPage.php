@@ -57,8 +57,12 @@ class NotesConfirmationPage extends Component
         );
     }
 
-    public function print_ticket()
+    public function print_ticket(?string $type = null)
     {
+        $type = in_array($type ?? $this->ticketType, ['partner', 'member'], true)
+            ? ($type ?? $this->ticketType)
+            : 'partner';
+
         $pdf = Pdf::loadView('pdf.ticket', [
             'note' => $this->note,
             'subtotal' => $this->getSubtotalProperty(),
@@ -66,7 +70,8 @@ class NotesConfirmationPage extends Component
             'payment' => $this->getPaymentProperty(),
             'commision' => $this->getCommissionProperty(),
             'total' => $this->getTotalProperty(),
-            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com',
+            'type' => $type,
         ])->setPaper([0, 0, 226, 567], 'portrait');
 
         return response()->streamDownload(

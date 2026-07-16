@@ -243,8 +243,29 @@ final class AppointmentsTable extends PowerGridComponent
                 ->dispatch('showReceptionistAppointmentDetail', ['appointmentId' => $row->id]),
 
             $canOpenTicket
-                ? Button::add('ticket')
-                    ->slot(Blade::render('<a href="'.route('receptionist.payment.ticket', ['appointment' => $row->id]).'" target="_blank" class="inline-flex items-center gap-2"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Ticket</span></a>'))
+                ? Button::add('ticket_menu')
+                    ->slot(Blade::render(<<<'BLADE'
+                        <x-ui.dropdown>
+                            <x-slot:button class="text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors inline-flex items-center gap-2">
+                                <x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/>
+                                <span>Ticket</span>
+                                <x-ui.icon name="chevron-down" variant="outline" class="w-4 h-4"/>
+                            </x-slot:button>
+
+                            <x-slot:menu>
+                                <x-ui.dropdown.item as="a" href="{{ $partnerUrl }}" target="_blank" icon="ticket" iconVariant="outline">
+                                    Ticket socio
+                                </x-ui.dropdown.item>
+
+                                <x-ui.dropdown.item as="a" href="{{ $memberUrl }}" target="_blank" icon="ticket" iconVariant="outline">
+                                    Ticket miembro
+                                </x-ui.dropdown.item>
+                            </x-slot:menu>
+                        </x-ui.dropdown>
+                    BLADE, [
+                        'partnerUrl' => route('receptionist.payment.ticket', ['appointment' => $row->id, 'type' => 'partner']),
+                        'memberUrl' => route('receptionist.payment.ticket', ['appointment' => $row->id, 'type' => 'member']),
+                    ]))
                     ->id()
                     ->class('text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
                 : Button::add('ticket_disabled')

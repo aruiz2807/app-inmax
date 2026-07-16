@@ -133,7 +133,7 @@ class PaymentPage extends Component
 
         $this->dispatch(
             'payment-completed',
-            ticketUrl: route('receptionist.payment.ticket', ['appointment' => $this->appointment->id]),
+            ticketUrl: route('receptionist.payment.ticket', ['appointment' => $this->appointment->id, 'type' => 'member']),
             redirectUrl: route('receptionist.appointments', ['tab' => 'paid'])
         );
 
