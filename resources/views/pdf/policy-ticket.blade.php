@@ -85,7 +85,7 @@
             <strong>Folio membresia:</strong> {{ $policy->id }}<br>
             <strong>No. membresia:</strong> {{ $policy->number }}<br>
             <strong>Fecha registro:</strong> {{ optional($policy->created_at)->format('d/m/Y H:i') }}<br>
-            <strong>Titular:</strong> {{ $policy->user?->name ?? 'N/A' }}<br>
+            <strong>Beneficiario:</strong> {{ $policy->user?->name ?? 'N/A' }}<br>
             <strong>Empresa:</strong> {{ $policy->user?->company?->name ?? 'N/A' }}<br>
         </div>
 
