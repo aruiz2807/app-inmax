@@ -364,6 +364,60 @@ class WhatsAppWebhookTest extends TestCase
         Storage::disk('local')->assertExists($attachment->storage_path);
     }
 
+    public function test_webhook_stores_a_clear_fallback_for_unsupported_inbound_types(): void
+    {
+        $setting = WhatsAppSetting::query()->create([
+            'api_version' => 'v22.0',
+            'default_language' => 'es_MX',
+            'app_secret' => 'meta_app_secret_12345',
+        ]);
+
+        $payload = [
+            'object' => 'whatsapp_business_account',
+            'entry' => [[
+                'id' => '123456789',
+                'changes' => [[
+                    'field' => 'messages',
+                    'value' => [
+                        'messaging_product' => 'whatsapp',
+                        'metadata' => [
+                            'display_phone_number' => '5213310000000',
+                            'phone_number_id' => '113206948334320',
+                        ],
+                        'contacts' => [[
+                            'profile' => ['name' => 'Tipo desconocido'],
+                            'wa_id' => '5213317770001',
+                        ]],
+                        'messages' => [[
+                            'from' => '5213317770001',
+                            'id' => 'wamid.INBOUND.UNKNOWN.001',
+                            'timestamp' => '1770000100',
+                            'type' => 'poll',
+                            'poll' => [
+                                'question' => 'Que prefieres?',
+                            ],
+                        ]],
+                    ],
+                ]],
+            ]],
+        ];
+
+        $response = $this->postWebhookPayload($payload, $setting->app_secret);
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+            ]);
+
+        $this->assertDatabaseHas('whatsapp_messages', [
+            'meta_message_id' => 'wamid.INBOUND.UNKNOWN.001',
+            'direction' => WhatsAppMessage::DIRECTION_INBOUND,
+            'status' => 'received',
+            'body_text' => '[Tipo no soportado: poll]',
+        ]);
+    }
+
     /**
      * Post a raw webhook payload using the same signature Meta sends.
      *

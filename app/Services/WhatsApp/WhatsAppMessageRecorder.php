@@ -332,7 +332,9 @@ class WhatsAppMessageRecorder
      */
     private function extractInboundText(array $messagePayload): ?string
     {
-        return match ((string) data_get($messagePayload, 'type', 'text')) {
+        $type = (string) data_get($messagePayload, 'type', 'text');
+
+        return match ($type) {
             'text' => data_get($messagePayload, 'text.body'),
             'button' => data_get($messagePayload, 'button.text'),
             'interactive' => data_get($messagePayload, 'interactive.button_reply.title')
@@ -342,7 +344,14 @@ class WhatsAppMessageRecorder
             'audio' => '[Audio recibido]',
             'video' => data_get($messagePayload, 'video.caption') ?: '[Video recibido]',
             'location' => '[Ubicacion recibida]',
-            default => '['.ucfirst((string) data_get($messagePayload, 'type', 'mensaje')).' recibido]',
+            'sticker' => '[Sticker recibido]',
+            'reaction' => '[Reaccion recibida]',
+            'contacts' => '[Contacto recibido]',
+            'system' => '[Mensaje del sistema]',
+            'order' => '[Pedido recibido]',
+            default => $type !== '' && $type !== 'text'
+                ? '[Tipo no soportado: '.$type.']'
+                : '[Mensaje no soportado]',
         };
     }
 
