@@ -263,12 +263,9 @@ class DRNotesPage extends Component
                 ->isNotEmpty();
         }
 
-        // Auto-set subtotal if it's an included MG consultation and current subtotal is empty
-        if ($isMGIncluded && (empty($this->subtotal) || floatval(str_replace(',', '', $this->subtotal)) == 0)) {
-            $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
-            if ($costoParam) {
-                $this->subtotal = number_format($costoParam->value, 2);
-            }
+        $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
+        if ($costoParam) {
+            $this->subtotal = number_format($costoParam->value, 2);
         }
 
         $this->checkCouponAvailability();
@@ -314,7 +311,7 @@ class DRNotesPage extends Component
         
         // Total for the doctor: Subtotal - Platform Commission - Discount/Coupon
         if ($isMGIncluded) {
-            $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
+            $this->total = number_format(200, 2);
             $this->commision = number_format(0, 2);
         } elseif ($selectedBenefit) {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);

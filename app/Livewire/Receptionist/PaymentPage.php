@@ -223,12 +223,9 @@ class PaymentPage extends Component
                 ->isNotEmpty();
         }
 
-        // Auto-set subtotal if it's an included MG consultation and current subtotal is empty
-        if ($isMGIncluded && (empty($this->subtotal) || $this->parseMoney($this->subtotal) == 0)) {
-            $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
-            if ($costoParam) {
-                $this->subtotal = $this->formatMoney($costoParam->value);
-            }
+        $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
+        if ($costoParam) {
+            $this->subtotal = $this->formatMoney($costoParam->value);
         }
 
         $this->checkCouponAvailability();
@@ -276,7 +273,7 @@ class PaymentPage extends Component
         $this->user_payment = $this->formatMoney($effectiveSubtotal);
 
         if ($isMGIncluded) {
-            $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
+            $this->total = $this->formatMoney(200);
             $this->commision = $this->formatMoney(0);
         } elseif ($selectedBenefit) {
             $providerTotal = $subtotal - $memberDiscount - $commission;
