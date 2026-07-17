@@ -347,7 +347,7 @@ class WhatsAppMessageRecorder
             'sticker' => '[Sticker recibido]',
             'reaction' => '[Reaccion recibida]',
             'contacts' => '[Contacto recibido]',
-            'system' => '[Mensaje del sistema]',
+            'system' => data_get($messagePayload, 'system.body') ?: '[Mensaje del sistema]',
             'order' => '[Pedido recibido]',
             default => $type !== '' && $type !== 'text'
                 ? '[Tipo no soportado: '.$type.']'
