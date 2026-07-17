@@ -278,6 +278,34 @@ class PoliciesPage extends Component
         );
     }
 
+    #[On('printPolicyTicket')]
+    public function printTicket(int $policyId)
+    {
+        $policy = Policy::query()
+            ->with(['user:id,name,company_id', 'user.company:id,name', 'plan:id,name,price', 'sales_user:id,name'])
+            ->findOrFail($policyId);
+
+        $paymentMethodMap = [
+            'CS' => 'Efectivo',
+            'CC' => 'Tarjeta de credito',
+            'DC' => 'Tarjeta de debito',
+            'TR' => 'Transferencia',
+            'SI' => 'Sistema interno',
+        ];
+
+        $pdf = Pdf::loadView('pdf.policy-ticket', [
+            'policy' => $policy,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com',
+            'paymentMethodLabel' => $policy->payment_method ? ($paymentMethodMap[$policy->payment_method] ?? $policy->payment_method) : 'No registrado',
+            'planPrice' => number_format((float) ($policy->plan?->price ?? 0), 2),
+        ])->setPaper([0, 0, 226, 567], 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "policy-ticket-{$policyId}.pdf"
+        );
+    }
+
     public function selectType(string $type): void
     {
         $this->policyType = $type;
