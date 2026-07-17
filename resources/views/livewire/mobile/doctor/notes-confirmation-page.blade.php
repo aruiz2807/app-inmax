@@ -123,9 +123,23 @@
 
             @if(!$hasReceptionistAssigned)
             <div class="flex justify-center mt-4">
-                <x-ui.button class="w-40 mr-1" wire:click="print_ticket" variant="outline" color="indigo" icon="document">
-                    Ticket
-                </x-ui.button>
+                <x-ui.dropdown>
+                    <x-slot:button class="inline-flex items-center gap-2 px-3 py-2 rounded border border-neutral-200 hover:bg-neutral-50 transition-colors">
+                        <x-ui.icon name="document" variant="outline" class="w-5 h-5"/>
+                        <span>Imprimir ticket</span>
+                        <x-ui.icon name="chevron-down" variant="outline" class="w-4 h-4"/>
+                    </x-slot:button>
+
+                    <x-slot:menu>
+                        <x-ui.dropdown.item x-on:click="$wire.print_ticket('partner')" icon="ticket" iconVariant="outline">
+                            Ticket socio
+                        </x-ui.dropdown.item>
+
+                        <x-ui.dropdown.item x-on:click="$wire.print_ticket('member')" icon="ticket" iconVariant="outline">
+                            Ticket miembro
+                        </x-ui.dropdown.item>
+                    </x-slot:menu>
+                </x-ui.dropdown>
             </div>
             @endif
         </x-ui.card>

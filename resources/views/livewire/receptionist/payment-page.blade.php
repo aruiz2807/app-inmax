@@ -1,8 +1,13 @@
 <div
     x-data
     x-on:payment-completed.window="
-        window.open($event.detail.ticketUrl, '_blank');
-        window.location.href = $event.detail.redirectUrl;
+        if ($event.detail.ticketUrl) {
+            window.open($event.detail.ticketUrl, '_blank');
+        }
+
+        if ($event.detail.redirectUrl) {
+            window.location.href = $event.detail.redirectUrl;
+        }
     "
 >
     <x-slot name="header">

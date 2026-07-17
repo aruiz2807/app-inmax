@@ -166,7 +166,7 @@
 
                             @if ($showPharmacyInventoryGroup)
                                 <x-ui.navlist.group
-                                        :label="__('app.inventory')"
+                                        :label="__('app.inventory_pharmacy')"
                                     :collapsable="true"
                                 >
                                     @permission('view.clerk.suppliers')
