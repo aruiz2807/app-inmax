@@ -193,6 +193,26 @@ final class PoliciesTable extends PowerGridComponent
     {
         $profile = Auth::user()->profile;
 
+
+        $ticketButton = Button::add('ticket')
+            ->slot(
+                Blade::render('<div class="flex items-center gap-2">
+                    <x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/>
+                    <span>Ticket</span>
+                </div>')
+            )
+            ->id()
+            ->class(
+                'px-2 py-1 rounded transition-colors ' .
+                ($row->status === 'Inactive'
+                    ? 'opacity-50 cursor-not-allowed text-gray-400'
+                    : 'text-indigo-600 hover:bg-indigo-50')
+            );
+
+        if ($row->status !== 'Inactive') {
+            $ticketButton->dispatch('printPolicyTicket', ['policyId' => $row->id]);
+        }
+
         if($profile === 'Receptionist'){
             return [
                 Button::add('show')
@@ -213,11 +233,7 @@ final class PoliciesTable extends PowerGridComponent
                     ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                     ->dispatch('addMember', ['policyId' => $row->id]),
 
-                Button::add('ticket')
-                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Ticket</span></div>'))
-                    ->id()
-                    ->class('text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded transition-colors')
-                    ->dispatch('printPolicyTicket', ['policyId' => $row->id]),
+                $ticketButton,
             ];
         }
 
@@ -264,11 +280,7 @@ final class PoliciesTable extends PowerGridComponent
                 ->class('text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('printPolicy', ['policyId' => $row->id]),
 
-            Button::add('ticket')
-                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Ticket</span></div>'))
-                ->id()
-                ->class('text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
-                ->dispatch('printPolicyTicket', ['policyId' => $row->id]),
+            $ticketButton,
         ];
     }
 
