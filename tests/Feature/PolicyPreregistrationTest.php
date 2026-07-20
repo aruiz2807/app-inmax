@@ -124,7 +124,7 @@ class PolicyPreregistrationTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet(
                 'preregistrationDuplicatePhoneWarning',
-                'Este teléfono ya tiene 1 usuario y 1 preregistro existentes. Si continúas, se creará otra invitación y al registrar la membresía se aplicará la numeración automática (-01, -02, etc.).'
+                'Este teléfono ya tiene 1 usuario y 1 preregistro existentes. ¿Deseas continuar?'
             )
             ->call('confirmDuplicatePreregistrationPhone')
             ->assertHasNoErrors()
@@ -298,7 +298,7 @@ class PolicyPreregistrationTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet(
                 'preregistrationDuplicatePhoneWarning',
-                'Este teléfono ya tiene 0 usuario y 1 preregistro existentes. Si continúas, se creará otra invitación y al registrar la membresía se aplicará la numeración automática (-01, -02, etc.).'
+                'Este teléfono ya tiene 1 preregistro existente. ¿Deseas continuar?'
             )
             ->call('confirmDuplicatePreregistrationPhone')
             ->assertHasNoErrors();

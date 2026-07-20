@@ -533,9 +533,11 @@ class PolicyPreregistrationsPage extends Component
             $parts[] = ($phoneConflict['preregistration_count'] === 1 ? '1 preregistro' : $phoneConflict['preregistration_count'].' preregistros');
         }
 
-        $existingText = implode(' y ', $parts);
+        $existingText = count($parts) === 1
+            ? $parts[0].' existente'
+            : implode(' y ', $parts).' existentes';
 
-        return 'Este teléfono ya tiene '.$existingText.' existentes. Si continúas, se creará otra invitación y al registrar la membresía se aplicará la numeración automática (-01, -02, etc.).';
+        return 'Este teléfono ya tiene '.$existingText.'. ¿Deseas continuar?';
     }
 
     private function loadPreregistrationOptions(): void
