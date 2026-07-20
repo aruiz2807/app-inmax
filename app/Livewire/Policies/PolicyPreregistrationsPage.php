@@ -81,6 +81,10 @@ class PolicyPreregistrationsPage extends Component
 
     public bool $shouldOpenPrefilledPreregistrationModal = false;
 
+    public bool $preregistrationAllowDuplicatePhone = false;
+
+    public ?string $preregistrationDuplicatePhoneWarning = null;
+
     public function mount(): void
     {
         $this->loadPreregistrationOptions();
@@ -98,6 +102,12 @@ class PolicyPreregistrationsPage extends Component
     public function savePreregistration(PolicyPreregistrationService $service): void
     {
         $isEditing = $this->preregistrationId !== null;
+        $phoneRules = ['required', 'digits:10'];
+
+        if ($this->preregistrationType !== PolicyPreregistration::TYPE_INDIVIDUAL_POLICY) {
+            $phoneRules[] = Rule::unique('users', 'phone');
+            $phoneRules[] = Rule::unique('policy_preregistrations', 'phone')->ignore($this->preregistrationId);
+        }
 
         $validated = $this->validate([
             'preregistrationType' => ['required', Rule::in([
@@ -105,12 +115,7 @@ class PolicyPreregistrationsPage extends Component
                 PolicyPreregistration::TYPE_GROUP_OWNER,
                 PolicyPreregistration::TYPE_GROUP_MEMBER,
             ])],
-            'preregistrationPhone' => [
-                'required',
-                'digits:10',
-                Rule::unique('users', 'phone'),
-                Rule::unique('policy_preregistrations', 'phone')->ignore($this->preregistrationId),
-            ],
+            'preregistrationPhone' => $phoneRules,
             'preregistrationPlan' => [
                 Rule::requiredIf(in_array($this->preregistrationType, [
                     PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
@@ -167,6 +172,28 @@ class PolicyPreregistrationsPage extends Component
             'preregistrationMembers.required' => 'La cantidad de miembros es obligatoria.',
         ]);
 
+        $phoneConflict = null;
+
+        if ($this->preregistrationType === PolicyPreregistration::TYPE_INDIVIDUAL_POLICY) {
+            $phoneConflict = $service->detectPhoneConflict(
+                $validated['preregistrationPhone'],
+                $this->preregistrationId
+            );
+
+            if ($phoneConflict['has_conflict'] && ! $this->preregistrationAllowDuplicatePhone) {
+                $this->preregistrationDuplicatePhoneWarning = $this->buildDuplicatePhoneWarning($phoneConflict);
+
+                $this->dispatch(
+                    'notify',
+                    type: 'warning',
+                    content: $this->preregistrationDuplicatePhoneWarning,
+                    duration: 6000
+                );
+
+                return;
+            }
+        }
+
         $salesUser = $this->resolveSalesUser((int) $validated['preregistrationSalesUser']);
         $planId = $this->resolvePreregistrationPlanId($validated);
         $parentPolicyId = filled($validated['preregistrationParentPolicy'])
@@ -183,6 +210,7 @@ class PolicyPreregistrationsPage extends Component
                     $parentPolicyId,
                     $validated['preregistrationType'],
                     $collectiveData,
+                    allowDuplicatePhone: $this->preregistrationAllowDuplicatePhone,
                 );
             } else {
                 $preregistration = $this->resolveManagedPreregistration($this->preregistrationId);
@@ -194,6 +222,7 @@ class PolicyPreregistrationsPage extends Component
                     $parentPolicyId,
                     $validated['preregistrationType'],
                     $collectiveData,
+                    allowDuplicatePhone: $this->preregistrationAllowDuplicatePhone,
                 );
             }
         } catch (InvalidArgumentException $exception) {
@@ -276,6 +305,7 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationCompanyLegalName = (string) $preregistration->company_legal_name;
         $this->preregistrationCompanyRfc = (string) $preregistration->company_rfc;
         $this->preregistrationMembers = $preregistration->members ?: 10;
+        $this->clearDuplicatePhoneWarning();
 
         $this->resetErrorBag();
         $this->dispatch('open-preregistration-modal');
@@ -362,6 +392,7 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationCompanyLegalName = '';
         $this->preregistrationCompanyRfc = '';
         $this->preregistrationMembers = 10;
+        $this->clearDuplicatePhoneWarning();
         $this->preregistrationSalesUser = Auth::user()?->profile === 'Sales'
             ? (string) Auth::id()
             : null;
@@ -437,6 +468,8 @@ class PolicyPreregistrationsPage extends Component
 
     public function updatedPreregistrationType(string $value): void
     {
+        $this->clearDuplicatePhoneWarning();
+
         if ($value === PolicyPreregistration::TYPE_GROUP_MEMBER) {
             $this->preregistrationPlan = $this->selectedGroupPolicy?->plan_id
                 ? (string) $this->selectedGroupPolicy->plan_id
@@ -452,6 +485,11 @@ class PolicyPreregistrationsPage extends Component
         }
     }
 
+    public function updatedPreregistrationPhone(): void
+    {
+        $this->clearDuplicatePhoneWarning();
+    }
+
     public function updatedPreregistrationParentPolicy(?string $value): void
     {
         if ($this->preregistrationType !== PolicyPreregistration::TYPE_GROUP_MEMBER) {
@@ -465,6 +503,39 @@ class PolicyPreregistrationsPage extends Component
         $this->preregistrationPlan = $groupPolicy?->plan_id
             ? (string) $groupPolicy->plan_id
             : null;
+    }
+
+    public function confirmDuplicatePreregistrationPhone(PolicyPreregistrationService $service): void
+    {
+        if ($this->preregistrationDuplicatePhoneWarning === null) {
+            return;
+        }
+
+        $this->preregistrationAllowDuplicatePhone = true;
+        $this->savePreregistration($service);
+    }
+
+    public function clearDuplicatePhoneWarning(): void
+    {
+        $this->preregistrationAllowDuplicatePhone = false;
+        $this->preregistrationDuplicatePhoneWarning = null;
+    }
+
+    private function buildDuplicatePhoneWarning(array $phoneConflict): string
+    {
+        $parts = [];
+
+        if (($phoneConflict['user_count'] ?? 0) > 0) {
+            $parts[] = ($phoneConflict['user_count'] === 1 ? '1 usuario' : $phoneConflict['user_count'].' usuarios');
+        }
+
+        if (($phoneConflict['preregistration_count'] ?? 0) > 0) {
+            $parts[] = ($phoneConflict['preregistration_count'] === 1 ? '1 preregistro' : $phoneConflict['preregistration_count'].' preregistros');
+        }
+
+        $existingText = implode(' y ', $parts);
+
+        return 'Este teléfono ya tiene '.$existingText.' existentes. Si continúas, se creará otra invitación y al registrar la membresía se aplicará la numeración automática (-01, -02, etc.).';
     }
 
     private function loadPreregistrationOptions(): void
