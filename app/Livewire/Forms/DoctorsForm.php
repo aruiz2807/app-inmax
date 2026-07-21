@@ -22,7 +22,7 @@ class DoctorsForm extends Form
     #[Validate('string|max:255')]
     public $business_name = '';
 
-    #[Validate('required|string|email|max:255|unique:users')]
+    #[Validate('required|string|email|max:255|unique:users,contact_email')]
     public $email = '';
 
     #[Validate('required|string|size:10|unique:users')]
@@ -106,6 +106,7 @@ class DoctorsForm extends Form
             'name' => $input['name'],
             'profile' => 'Doctor',
             'email' => Str::lower($input['email']),
+            'contact_email' => Str::lower($input['email']),
             'phone' => $input['phone'],
             // for now, the phone number will be the user's password
             'password' => Hash::make($input['phone']),
@@ -120,7 +121,7 @@ class DoctorsForm extends Form
         $this->type = $doctor->type;
         $this->name = $doctor->user->name;
         $this->business_name = $doctor->business_name;
-        $this->email = $doctor->user->email;
+        $this->email = $doctor->user->contact_email ?? $doctor->user->email;
         $this->phone = $doctor->user->phone;
         $this->specialty = (string) $doctor->specialty_id;
         $this->license = $doctor->license;

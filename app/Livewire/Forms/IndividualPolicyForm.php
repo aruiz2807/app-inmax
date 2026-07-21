@@ -15,7 +15,7 @@ class IndividualPolicyForm extends Form
     #[Validate('required|string|max:255')]
     public $name = '';
 
-    #[Validate('required|string|email|max:255|unique:users')]
+    #[Validate('required|string|email|max:255')]
     public $email = '';
 
     #[Validate('required|string|size:10|unique:users')]
@@ -118,7 +118,7 @@ class IndividualPolicyForm extends Form
     public function set(Policy $policy)
     {
         $this->name = $policy->user->name;
-        $this->email = $policy->user->email;
+        $this->email = $policy->user->contact_email ?? $policy->user->email;
         $this->phone = $policy->user->clean_phone;
         $this->birth = $policy->user->birth_date?->format('Y-m-d');
         $this->curp = $policy->user->curp;
@@ -188,7 +188,7 @@ class IndividualPolicyForm extends Form
             'cfdi_rfc' => $this->cfdi_rfc,
         ], [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'phone' => ['required', 'string', 'size:10', \Illuminate\Validation\Rule::unique('users', 'phone')->ignore($user->id)],
             'birth' => ['required', 'date', 'before_or_equal:today', 'after:1900-01-01'],
             'curp' => ['nullable', 'string', 'size:18'],
@@ -211,9 +211,22 @@ class IndividualPolicyForm extends Form
             ? $this->optimizeAndStoreAttachment()
             : $user->profile_photo_path;
 
+        $uniqueEmail = $this->email;
+        if ($user->is_dependent) {
+            $parts = explode('-', $user->phone);
+            $suffix = $parts[1] ?? '01';
+            if (str_contains($this->email, '@')) {
+                [$local, $domain] = explode('@', $this->email, 2);
+                $uniqueEmail = "{$local}+{$suffix}@{$domain}";
+            } else {
+                $uniqueEmail = $this->email . '+' . $suffix;
+            }
+        }
+
         $user->update([
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => $uniqueEmail,
+            'contact_email' => $this->email,
             'phone' => $this->phone,
             'birth_date' => $this->birth,
             'curp' => $this->curp,

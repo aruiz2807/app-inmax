@@ -16,7 +16,6 @@ class UsersForm extends Form
     #[Validate('required|string|max:255')]
     public string $name = '';
 
-    #[Validate('required|string|email|max:255|unique:users,email')]
     public string $email = '';
 
     #[Validate('required|digits:10|unique:users,phone')]
@@ -26,6 +25,21 @@ class UsersForm extends Form
     public string $profile = 'User';
 
     public array $doctorIds = [];
+
+    protected function rules()
+    {
+        return [
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                $this->profile === 'User'
+                    ? 'nullable'
+                    : 'unique:users,contact_email',
+            ],
+        ];
+    }
 
     /**
      * Store the user in DB.
@@ -37,6 +51,7 @@ class UsersForm extends Form
         $user = User::create([
             'name' => $this->name,
             'email' => Str::lower($this->email),
+            'contact_email' => Str::lower($this->email),
             'phone' => $this->phone,
             'profile' => $this->profile,
             // Password remains as compatibility fallback, but pin is now used for login.
@@ -90,7 +105,7 @@ class UsersForm extends Form
     public function set(User $user): void
     {
         $this->name = $user->name;
-        $this->email = $user->email;
+        $this->email = $user->contact_email ?? $user->email;
         $this->phone = $user->clean_phone;
         $this->profile = $user->profile;
         $this->doctorIds = $user->staffDoctors()->pluck('doctors.id')->toArray();
@@ -108,16 +123,37 @@ class UsersForm extends Form
             'profile' => $this->profile,
         ], [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                $this->profile === 'User'
+                    ? 'nullable'
+                    : Rule::unique('users', 'contact_email')->ignore($userId),
+            ],
             'phone' => ['required', 'digits:10', Rule::unique('users', 'phone')->ignore($userId)],
             'profile' => ['required', Rule::in(['Admin', 'Doctor', 'Sales', 'Clerk', 'Receptionist', 'User'])],
         ])->validate();
 
         $user = User::findOrFail($userId);
 
+        $uniqueEmail = $this->email;
+        if ($user->is_dependent) {
+            $parts = explode('-', $user->phone);
+            $suffix = $parts[1] ?? '01';
+            if (str_contains($this->email, '@')) {
+                [$local, $domain] = explode('@', $this->email, 2);
+                $uniqueEmail = "{$local}+{$suffix}@{$domain}";
+            } else {
+                $uniqueEmail = $this->email . '+' . $suffix;
+            }
+        }
+
         $user->update([
             'name' => $this->name,
-            'email' => Str::lower($this->email),
+            'email' => Str::lower($uniqueEmail),
+            'contact_email' => Str::lower($this->email),
             'phone' => $this->phone,
             'profile' => $this->profile,
         ]);

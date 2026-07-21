@@ -51,15 +51,25 @@ class IndividualPolicyRegistrationService
                 
                 $parentUser = $parentPolicy?->user ?? User::where('phone', $basePhone)->orWhere('phone', $basePhone . '-01')->first();
                 $pin = $parentUser?->pin;
+
+                $rawEmail = $payload['email'];
+                if (str_contains($rawEmail, '@')) {
+                    [$local, $domain] = explode('@', $rawEmail, 2);
+                    $uniqueEmail = "{$local}+{$nextSuffix}@{$domain}";
+                } else {
+                    $uniqueEmail = $rawEmail . '+' . $nextSuffix;
+                }
             } else {
                 $finalPhone = $basePhone . '-01';
                 $pin = null;
+                $uniqueEmail = $payload['email'];
             }
 
             $user = User::query()->create([
                 'name' => $payload['name'],
                 'profile' => 'User',
-                'email' => $payload['email'],
+                'email' => $uniqueEmail,
+                'contact_email' => $payload['email'],
                 'phone' => $finalPhone,
                 'birth_date' => $payload['birth'],
                 'curp' => $payload['curp'],
