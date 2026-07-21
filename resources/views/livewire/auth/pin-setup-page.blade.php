@@ -21,7 +21,7 @@
         @if ($user)
             <div class="mb-4 rounded-lg border border-neutral-200 dark:border-neutral-700 p-3 text-sm">
                 <p><span class="font-semibold">Nombre:</span> {{ $user?->name }}</p>
-                <p><span class="font-semibold">Correo:</span> {{ $user?->email }}</p>
+                <p><span class="font-semibold">Correo:</span> {{ $user?->contact_email }}</p>
                 <p><span class="font-semibold">Teléfono:</span> {{ $user?->phone }}</p>
             </div>
         @endif
