@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -33,7 +34,7 @@ class UsersForm extends Form
     {
         $this->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $this->name,
             'email' => Str::lower($this->email),
             'phone' => $this->phone,
@@ -44,6 +45,43 @@ class UsersForm extends Form
             'pin_set_at' => null,
             'phone_verified_at' => null,
         ]);
+
+        $this->setPermissions($user);
+
+        return $user;
+    }
+
+    private function setPermissions($user)
+    {
+        switch($user->profile)
+        {
+            case 'Clerk':
+                DB::table('permission_user')->insert([
+                    ['permission_id' => 21, 'user_id' => $user->id],
+                ]);
+                break;
+            
+            case 'Recepcionist':
+                DB::table('permission_user')->insert([
+                    ['permission_id' => 23, 'user_id' => $user->id],
+                    ['permission_id' => 24, 'user_id' => $user->id],
+                    ['permission_id' => 25, 'user_id' => $user->id],
+                ]);
+                break;
+
+            case 'Doctor':
+                DB::table('permission_user')->insert([
+                    ['permission_id' => 26, 'user_id' => $user->id],
+                    ['permission_id' => 27, 'user_id' => $user->id],
+                ]);
+                break;
+
+            case 'Vendedor':
+                DB::table('permission_user')->insert([
+                    ['permission_id' => 2, 'user_id' => $user->id],
+                ]);
+                break;
+        }
     }
 
     /**
