@@ -6,6 +6,7 @@ use App\Livewire\Forms\GroupPolicyForm;
 use App\Livewire\Forms\IndividualPolicyForm;
 use App\Models\Plan;
 use App\Models\PolicyPreregistration;
+use App\Models\Relationship;
 use App\Services\Auth\PolicyPreregistrationService;
 use App\Services\Policies\GroupPolicyRegistrationService;
 use App\Services\Policies\IndividualPolicyRegistrationService;
@@ -41,6 +42,8 @@ class PolicyPreregistrationPage extends Component
 
     public Collection $groupPlans;
 
+    public $relationships = [];
+
     #[Layout('layouts.guest')]
     public function render()
     {
@@ -59,7 +62,8 @@ class PolicyPreregistrationPage extends Component
             ->where('status', 'Active')
             ->orderBy('name')
             ->get(['id', 'name']);
-
+        
+        $this->relationships = Relationship::all();
         $this->syncFormWithPreregistration($this->preregistration);
     }
 
