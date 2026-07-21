@@ -173,4 +173,42 @@ class PolicyPreregistrationPage extends Component
             default => 'Esta invitacion es invalida. Solicita un enlace nuevo al promotor.',
         };
     }
+
+    public function updated($name, $value)
+    {
+        if ($name === 'form.name') {
+            if ($this->form->same_as_user) {
+                $this->form->legal_name = $value;
+            }
+        }
+
+        if ($name === 'form.same_as_user') {
+            $age = $this->age;
+            if ($value && $age !== null && $age < 18) {
+                $this->form->same_as_user = false;
+                $value = false;
+            }
+
+            if ($value) {
+                $this->form->legal_name = $this->form->name;
+            }
+
+            $isRequired = ($age !== null && $age < 18) || !$value;
+            if (!$isRequired) {
+                $this->form->legal_relationship_id = null;
+            }
+        }
+
+        if ($name === 'form.birth') {
+            $age = $this->age;
+            if ($age !== null && $age < 18) {
+                $this->form->same_as_user = false;
+            }
+
+            $isRequired = ($age !== null && $age < 18) || !$this->form->same_as_user;
+            if (!$isRequired) {
+                $this->form->legal_relationship_id = null;
+            }
+        }
+    }
 }
