@@ -174,8 +174,6 @@ final class AppointmentsTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Membresia', 'membership_number', 'patient_policies.number')
-                ->searchable()
-                ->sortable()
                 ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Proveedor', 'provider_name', 'doctor_users.name')
