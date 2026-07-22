@@ -428,12 +428,32 @@
                                 />
                             @endpermission
 
+                            @permission('view.receptionist.requests')
+                                <x-ui.navlist.item
+                                    icon="clipboard-document-list"
+                                    :label="'Solicitudes'"
+                                    href="{{ route('receptionist.requests') }}"
+                                    :active="request()->routeIs('receptionist.requests')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
+
                             @permission('view.doctor.history')
                                 <x-ui.navlist.item
                                     icon="calendar"
                                     :label="'Consultas'"
                                     href="{{ route('doctor.history') }}"
                                     :active="request()->routeIs('doctor.history')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
+
+                            @permission('view.receptionist.pending_results')
+                                <x-ui.navlist.item
+                                    icon="document-magnifying-glass"
+                                    :label="'Faltantes de resultados'"
+                                    href="{{ route('receptionist.pending-results') }}"
+                                    :active="request()->routeIs('receptionist.pending-results')"
                                     x-on:click="closeSidebar()"
                                 />
                             @endpermission

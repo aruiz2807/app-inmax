@@ -295,7 +295,7 @@ Route::middleware([
         Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
     });
 
-    Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
+    Route::prefix('receptionist')->middleware('profile:Receptionist,Doctor')->group(function () {
         Route::get('/policies', PoliciesPage::class)
             ->middleware('permission:view.receptionist.policies')
             ->name('recepcionist.policies');

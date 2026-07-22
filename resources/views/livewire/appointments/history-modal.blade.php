@@ -44,7 +44,7 @@
                                 <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between pb-2 border-b border-neutral-100">
                                     <div class="space-y-1">
                                         <x-ui.text class="text-base font-semibold">
-                                            Consulta #{{ $historyItem->id }}
+                                            Consulta #{{ $historyItem->id }} - {{ $historyItem->doctor?->user?->name ?? $historyItem->office?->name ?? 'Sin proveedor' }}
                                         </x-ui.text>
                                         <x-ui.text class="text-sm opacity-80">
                                             {{ $historyItem->date?->format('d/m/Y') }} {{ $historyItem->time?->format('h:i A') }}
