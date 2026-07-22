@@ -38,4 +38,5 @@
     </x-ui.modal>
 
     @include('livewire.appointments.cancel-modal')
+    @include('livewire.appointments.history-modal')
 </div>

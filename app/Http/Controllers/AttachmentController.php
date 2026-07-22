@@ -6,10 +6,30 @@ use App\Models\AppointmentNote;
 use App\Models\AppointmentService;
 use App\Models\PolicyExternalService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
 class AttachmentController extends Controller
 {
+    public function preview($service_id)
+    {
+        $service = AppointmentService::findOrFail($service_id);
+
+        $path = $service->attachment_path;
+        $name = $service->attachment_name;
+
+        if (!$path || !Storage::exists($path)) {
+            abort(404);
+        }
+
+        $mimeType = Storage::mimeType($path) ?? 'application/octet-stream';
+
+        return Response::make(Storage::get($path), 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.$name.'"',
+        ]);
+    }
+
     public function download($service_id)
     {
         $service = AppointmentService::findOrFail($service_id);
