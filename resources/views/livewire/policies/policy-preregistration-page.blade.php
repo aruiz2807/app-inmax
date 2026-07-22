@@ -150,7 +150,7 @@
 
                         @if (($this->age !== null && $this->age < 18) || !$form->same_as_user)
                         <x-ui.field required>
-                            <x-ui.label>Parentesco</x-ui.label>
+                            <x-ui.label>Parentesco del usuario con el responsable</x-ui.label>
                             <x-ui.select
                                 placeholder="Buscar parentesco..."
                                 icon="wallet"

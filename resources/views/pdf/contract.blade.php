@@ -473,10 +473,10 @@
                     <div class="clause-title">PRIMERA. INCORPORACIÓN DEL BENEFICIARIO.</div>
                     <p><strong>{{ Str::upper($info->legal_name) }}</strong> (en adelante para este <strong>ANEXO</strong> el “<strong>USUARIO TITULAR</strong>”)  manifiesta su voluntad de incorporar como beneficiario a la persona cuyos datos de identificación se señalan en el presente <strong>ANEXO</strong>, para que pueda acceder y utilizar las funcionalidades y servicios tecnológicos disponibles dentro de la plataforma <strong>APP INMAX</strong>, en los términos permitidos por ésta.</p>
                     <p><u>DATOS DEL BENEFICIARIO</u></p>
-                    <p>Nombre completo:</p>
-                    <p>Fecha de nacimiento:</p>
-                    <p>Edad actual:</p>
-                    <p>Relación con el <strong>USUARIO TITULAR</strong>:</p>
+                    <p>Nombre completo: <strong>{{ $info->same_as_user ? 'No aplica' : $policy->user->name }}</strong></p>
+                    <p>Fecha de nacimiento: <strong>{{ $info->same_as_user ? 'No aplica' : \Carbon\Carbon::parse($policy->user->birth_date)->format('d/m/Y') }}</strong></p>
+                    <p>Edad actual: <strong>{{ $info->same_as_user ? 'No aplica' : \Carbon\Carbon::parse($policy->user->birth_date)->age }}</strong></p>
+                    <p>Relación con el <strong>USUARIO TITULAR</strong>: <strong>{{ $info->same_as_user ? 'No aplica' : $info->relationship->name}}</strong></p>
                 </td>
 
                 <td class="column">

@@ -97,6 +97,7 @@ class IndividualPolicyRegistrationService
 
             $legalInfo = PolicyLegalInformation::query()->create([
                 'policy_id' => $policy->id,
+                'same_as_user' => $payload['same_as_user'],
                 'legal_name' => $payload['legal_name'],
                 'legal_address' => $payload['legal_address'],
                 'legal_relationship_id' => $payload['legal_relationship_id'],
