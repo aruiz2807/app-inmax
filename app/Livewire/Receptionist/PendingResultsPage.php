@@ -183,7 +183,12 @@ class PendingResultsPage extends Component
 
     private function getBaseQuery(): Builder
     {
-        $doctorIds = Auth::user()->staffDoctors()->pluck('doctors.id');
+        $user = Auth::user();
+        if( $user->profile === 'Receptionist' ) {
+            $doctorIds = $user->staffDoctors()->pluck('doctors.id');
+        } else {
+            $doctorIds = $user->doctor()->pluck('doctors.id');
+        }
 
         return Appointment::query()
             ->where(function (Builder $query) use ($doctorIds) {

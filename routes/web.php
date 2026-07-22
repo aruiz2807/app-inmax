@@ -142,6 +142,7 @@ Route::middleware([
         ->name('dashboard');
 
     Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
+    Route::get('/attachment/{service_id}/preview', [AttachmentController::class, 'preview'])->name('attachment.preview');
     Route::get('/external-service/{external_service_id}', [AttachmentController::class, 'downloadExternalService'])->name('external-service.download');
 
     Route::prefix('admin')->group(function () {
@@ -296,7 +297,7 @@ Route::middleware([
         Route::get('/inventory', InventoryPage::class)->name('clerk.inventory');
     });
 
-    Route::prefix('receptionist')->middleware('profile:Receptionist')->group(function () {
+    Route::prefix('receptionist')->middleware('profile:Receptionist,Doctor')->group(function () {
         Route::get('/policies', PoliciesPage::class)
             ->middleware('permission:view.receptionist.policies')
             ->name('recepcionist.policies');

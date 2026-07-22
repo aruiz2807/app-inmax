@@ -49,7 +49,12 @@ final class RequestsTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        $doctorIds = Auth::user()->staffDoctors()->pluck('doctors.id');
+        $user = Auth::user();
+        if( $user->profile === 'Receptionist' ) {
+            $doctorIds = $user->staffDoctors()->pluck('doctors.id');
+        } else {
+            $doctorIds = $user->doctor()->pluck('doctors.id');
+        }
 
         return Appointment::query()
             ->select('appointments.*')
