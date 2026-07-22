@@ -142,6 +142,7 @@ Route::middleware([
         ->name('dashboard');
 
     Route::get('/attachment/{note_id}', [AttachmentController::class, 'download'])->name('attachment.download');
+    Route::get('/attachment/{service_id}/preview', [AttachmentController::class, 'preview'])->name('attachment.preview');
     Route::get('/external-service/{external_service_id}', [AttachmentController::class, 'downloadExternalService'])->name('external-service.download');
 
     Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
