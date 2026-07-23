@@ -476,7 +476,7 @@
                     <p>Nombre completo: <strong>{{ $info->same_as_user ? 'No aplica' : $policy->user->name }}</strong></p>
                     <p>Fecha de nacimiento: <strong>{{ $info->same_as_user ? 'No aplica' : \Carbon\Carbon::parse($policy->user->birth_date)->format('d/m/Y') }}</strong></p>
                     <p>Edad actual: <strong>{{ $info->same_as_user ? 'No aplica' : \Carbon\Carbon::parse($policy->user->birth_date)->age }}</strong></p>
-                    <p>Relación con el <strong>USUARIO TITULAR</strong>: <strong>{{ $info->same_as_user ? 'No aplica' : $info->relationship->name}}</strong></p>
+                    <p>Relación con el <strong>USUARIO TITULAR</strong>: <strong>{{ $info->same_as_user ? 'No aplica' : $info->relationship?->name}}</strong></p>
                 </td>
 
                 <td class="column">
