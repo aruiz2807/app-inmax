@@ -76,14 +76,16 @@ class DoctorNotesForm extends Form
             $appointmentServices[$serviceId]->update($data);
         }
 
-        $note = AppointmentNote::create([
-            'appointment_id' => $appointmentId,
-            'symptoms' => $this->symptoms,
-            'findings' => $this->findings,
-            'diagnosis' => $this->diagnosis,
-            'treatment' => $this->treatment,
-            'notes' => $this->notes,
-        ]);
+        $note = AppointmentNote::updateOrCreate(
+            ['appointment_id' => $appointmentId],
+            [
+                'symptoms' => $this->symptoms,
+                'findings' => $this->findings,
+                'diagnosis' => $this->diagnosis,
+                'treatment' => $this->treatment,
+                'notes' => $this->notes,
+            ]
+        );
 
         return $note->id;
     }

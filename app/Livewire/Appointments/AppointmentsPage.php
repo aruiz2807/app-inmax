@@ -4,6 +4,7 @@ namespace App\Livewire\Appointments;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\AppointmentService;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -82,61 +83,30 @@ class AppointmentsPage extends Component
         $this->dispatch('open-history-appointment-modal');
     }
 
-    public function saveHistoryServiceAttachment(int $appointmentId, int $serviceId): void
+    public function saveHistoryResultsAndKeepPending(int $appointmentId): void
     {
-        $this->validate([
-            "historyServiceAttachments.$appointmentId.$serviceId" => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
-        ], [
-            "historyServiceAttachments.$appointmentId.$serviceId.required" => 'Seleccione un archivo para adjuntar.',
-            "historyServiceAttachments.$appointmentId.$serviceId.mimes" => 'El archivo debe ser PDF, JPG o PNG.',
-            "historyServiceAttachments.$appointmentId.$serviceId.max" => 'El archivo no debe superar 2MB.',
-        ]);
-
-        $appointment = Appointment::query()
-            ->with('services')
-            ->where('id', $appointmentId)
-            ->where('user_id', $this->historyPatient?->id)
-            ->first();
-
-        if (! $appointment) {
-            return;
-        }
-
-        $service = $appointment->services
-            ->where('status', AppointmentStatus::COMPLETED->value)
-            ->firstWhere('id', $serviceId);
-
-        if (! $service) {
-            return;
-        }
-
-        $file = data_get($this->historyServiceAttachments, "$appointmentId.$serviceId");
-        $path = $file->store('attachments');
-
-        $service->update([
-            'attachment_path' => $path,
-            'attachment_name' => $file->getClientOriginalName(),
-        ]);
-
-        $this->refreshHistoryAppointments();
-
-        $this->dispatch('notify',
-            type: 'success',
-            content: 'Archivo cargado correctamente.',
-            duration: 3000
-        );
+        $this->processHistoryResultUpload($appointmentId, markAsCompleted: false);
     }
 
-    public function saveHistoryResultsComment(int $appointmentId): void
+    public function saveHistoryResultsAndFinalize(int $appointmentId): void
+    {
+        $this->processHistoryResultUpload($appointmentId, markAsCompleted: true);
+    }
+
+    private function processHistoryResultUpload(int $appointmentId, bool $markAsCompleted): void
     {
         $this->validate([
+            "historyServiceAttachments.$appointmentId" => ['required', 'array'],
+            "historyServiceAttachments.$appointmentId.*" => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
             "historyResultsComments.$appointmentId" => ['nullable', 'string', 'max:2000'],
         ], [
+            "historyServiceAttachments.$appointmentId.*.mimes" => 'El archivo debe ser PDF, JPG o PNG.',
+            "historyServiceAttachments.$appointmentId.*.max" => 'El archivo no debe superar 2MB.',
             "historyResultsComments.$appointmentId.max" => 'El enlace no debe superar 2000 caracteres.',
         ]);
 
         $appointment = Appointment::query()
-            ->with('note')
+            ->with(['services', 'note'])
             ->where('id', $appointmentId)
             ->where('user_id', $this->historyPatient?->id)
             ->first();
@@ -145,19 +115,77 @@ class AppointmentsPage extends Component
             return;
         }
 
+        if ($appointment->status !== AppointmentStatus::RESULTS_PENDING) {
+            $this->dispatch('notify',
+                type: 'warning',
+                content: 'La carga de resultados solo esta disponible para citas pendientes de resultados.',
+                duration: 3500
+            );
+
+            return;
+        }
+
+        $completedServiceIds = $appointment->services
+            ->where('status', AppointmentStatus::COMPLETED->value)
+            ->pluck('id')
+            ->all();
+
+        $filesToStore = collect(data_get($this->historyServiceAttachments, $appointmentId, []))
+            ->filter(fn ($file) => filled($file));
+
         $resultsComment = trim((string) data_get($this->historyResultsComments, $appointmentId, ''));
+        $hasComment = filled($resultsComment);
+
+        if (! $markAsCompleted && $filesToStore->isEmpty() && ! $hasComment) {
+            $this->addError("historyServiceAttachments.$appointmentId", 'Debes seleccionar al menos un archivo o capturar un enlace de resultados.');
+            return;
+        }
+
+        $appointmentServices = $appointment->services->keyBy('id');
+
+        foreach ($filesToStore as $serviceId => $file) {
+            if (! in_array((int) $serviceId, $completedServiceIds, true) || ! isset($appointmentServices[$serviceId])) {
+                continue;
+            }
+
+            $path = $file->store('attachments');
+            $originalName = $file->getClientOriginalName();
+
+            $appointmentServices[$serviceId]->update([
+                'attachment_path' => $path,
+                'attachment_name' => $originalName,
+            ]);
+        }
 
         $appointment->note()->updateOrCreate(
             ['appointment_id' => $appointment->id],
-            ['results_comment' => $resultsComment !== '' ? $resultsComment : null]
+            ['results_comment' => $hasComment ? $resultsComment : null]
         );
+
+        $hasPendingAttachments = AppointmentService::query()
+            ->where('appointment_id', $appointment->id)
+            ->where('status', AppointmentStatus::COMPLETED->value)
+            ->whereNull('attachment_path')
+            ->exists();
+
+        if ($markAsCompleted) {
+            $appointment->update([
+                'status' => AppointmentStatus::COMPLETED,
+            ]);
+        } else {
+            $appointment->update([
+                'status' => $hasPendingAttachments
+                    ? AppointmentStatus::RESULTS_PENDING
+                    : AppointmentStatus::COMPLETED,
+            ]);
+        }
 
         $this->refreshHistoryAppointments();
 
         $this->dispatch('notify',
             type: 'success',
-            content: 'Enlace de resultados guardado correctamente.',
-            duration: 3000
+            content: 'Resultados guardados correctamente.',
+            duration: 3500
         );
     }
 

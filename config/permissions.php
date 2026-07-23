@@ -205,6 +205,13 @@ return [
             'default_profiles' => ['Doctor'],
             'route_names' => ['doctor.history'],
         ],
+        'edit.doctor.appointments' => [
+            'name' => 'Editar consultas',
+            'group' => 'Doctor',
+            'description' => 'Permite editar las consultas del doctor.',
+            'default_profiles' => ['Doctor'],
+            'route_names' => ['doctor.edit_appointments'],
+        ],
     ],
     'homes' => [
         'Admin' => [
@@ -248,6 +255,7 @@ return [
         'Doctor' => [
             ['route' => 'doctor.home', 'permission' => 'view.doctor.home'],
             ['route' => 'doctor.history', 'permission' => 'view.doctor.history'],
+            ['route' => 'doctor.edit_appointments', 'permission' => 'edit.doctor.appointments'],
         ],
         'User' => [
             ['route' => 'user.home', 'permission' => null],

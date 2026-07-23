@@ -5,6 +5,7 @@ namespace App\Livewire\Doctor;
 use App\Enums\AppointmentStatus;
 use App\Enums\DoctorType;
 use App\Models\Appointment;
+use App\Models\Permission;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -16,6 +17,7 @@ use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
+use Illuminate\Support\Facades\DB;
 
 final class AppointmentsTable extends PowerGridComponent
 {
@@ -197,6 +199,8 @@ final class AppointmentsTable extends PowerGridComponent
         $isCompleted = $status === AppointmentStatus::COMPLETED;
         $isUpcoming = $status === AppointmentStatus::BOOKED;
         $isDoctor = $row->doctor?->type === DoctorType::Doctor;
+        $editPermissionId = Permission::where('code', 'edit.doctor.appointments')->value('id');
+        $canEditAppointments = DB::table('permission_user')->where('user_id', Auth::id())->where('permission_id', $editPermissionId)->exists();
 
         return [
             $isUpcoming
@@ -208,6 +212,16 @@ final class AppointmentsTable extends PowerGridComponent
                     ->slot(Blade::render('<a href="'.route('history.notes', ['appointment' => $row->id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></a>'))
                     ->id()
                     ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors'),
+
+            $isCompleted && $canEditAppointments
+                ? Button::add('edit')
+                    ->slot(Blade::render('<a href="'.route('doctor.notes.edit', ['appointment' => $row->id]).'" class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></a>'))
+                    ->id()
+                    ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                : Button::add('edit_disabled')
+                    ->slot(Blade::render('<div class="flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
+                    ->id()
+                    ->class('text-neutral-500'),
 
             $isUpcoming
                 ? Button::add('noshow')

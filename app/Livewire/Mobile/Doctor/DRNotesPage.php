@@ -49,6 +49,7 @@ class DRNotesPage extends Component
     public $frequency = '';
     public $duration = '';
     public array $missingAttachmentServiceNames = [];
+    public bool $isEditing = false;
 
     public function render()
     {
@@ -66,9 +67,17 @@ class DRNotesPage extends Component
         $this->isMobileDevice = $this->detectMobileDevice();
         $desktopVersionEnabled = Parameter::where('type', 'SITE')->where('key', 'Doctor_VersionDesktop')->first()->value == 'Activa';
         !$desktopVersionEnabled ? $this->isMobileDevice = true : '';
+        $this->isEditing = request()->routeIs('doctor.notes.edit') || request()->boolean('edit');
 
         $this->user = Auth::user();
-        $this->appointment = Appointment::with(['user.policy', 'doctor'])->findOrFail($appointment);
+        $this->appointment = Appointment::with([
+            'user.policy',
+            'doctor.user',
+            'doctor.specialty',
+            'note',
+            'prescriptions.medication',
+            'services.service',
+        ])->findOrFail($appointment);
         $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
         $this->form->isDoctor = $this->user->doctor->type === DoctorType::Doctor;
         $this->hasReceptionistAssigned = $this->user->doctor
@@ -78,8 +87,26 @@ class DRNotesPage extends Component
 
         foreach ($this->services as $service)
         {
-            $this->form->services[$service->id] = false;
+            $this->form->services[$service->id] = (string) $service->status === AppointmentStatus::COMPLETED->value;
             $this->form->attachments[$service->id] = null;
+        }
+
+        if ($this->appointment->note) {
+            $this->form->symptoms = $this->appointment->note->symptoms;
+            $this->form->findings = $this->appointment->note->findings;
+            $this->form->diagnosis = $this->appointment->note->diagnosis;
+            $this->form->treatment = $this->appointment->note->treatment;
+            $this->form->notes = $this->appointment->note->notes ?? '';
+        }
+
+        $this->subtotal = $this->appointment->subtotal ? number_format((float) $this->appointment->subtotal, 2, '.', ',') : null;
+        $this->user_payment = $this->appointment->user_payment ? number_format((float) $this->appointment->user_payment, 2, '.', ',') : null;
+        $this->commision = $this->appointment->commission ? number_format((float) $this->appointment->commission, 2, '.', ',') : null;
+        $this->total = $this->appointment->total ? number_format((float) $this->appointment->total, 2, '.', ',') : null;
+        $this->couponDiscountValue = (float) ($this->appointment->coupon_discount ?? 0);
+
+        if (!$this->isEditing) {
+            $this->calculateTotals();
         }
 
         $this->loadPrescriptions();
@@ -194,7 +221,7 @@ class DRNotesPage extends Component
         $this->validate([
             'medicationId' => 'nullable|exists:medications,id',
             'searchTerm' => 'required|string|max:250',
-            'quantity' => 'required|string|max:20',
+            'quantity' => 'required|integer|max:20',
             'dose' => 'required|string|max:50',
             'frequency' => 'required|string|max:50',
             'duration' => 'required|string|max:50',
@@ -264,7 +291,7 @@ class DRNotesPage extends Component
         }
 
         $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
-        if ($costoParam) {
+        if ($costoParam && $isMGIncluded) {
             $this->subtotal = number_format($costoParam->value, 2);
         }
 
@@ -279,7 +306,9 @@ class DRNotesPage extends Component
         // By default, the patient discount is calculated based on the doctor's profile discount
         $memberDiscount = round($subtotal * $doc_discount, 2);
         
-        $this->couponDiscountValue = 0;
+        $this->couponDiscountValue = $this->isEditing
+            ? (float) ($this->appointment->coupon_discount ?? 0)
+            : 0;
         $selectedBenefit = null;
         
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
@@ -310,6 +339,7 @@ class DRNotesPage extends Component
         $commission_amount = $subtotal * $doc_commision;
         
         // Total for the doctor: Subtotal - Platform Commission - Discount/Coupon
+        
         if ($isMGIncluded) {
             $this->total = number_format(200, 2);
             $this->commision = number_format(0, 2);
@@ -337,6 +367,31 @@ class DRNotesPage extends Component
         try
         {
             $note = $this->form->store($this->appointment->id);
+
+            if ($this->isEditing) {
+                $updateData = [];
+
+                if (! $this->hasReceptionistAssigned) {
+                    $updateData['subtotal'] = str_replace(',', '', (string) $this->subtotal) ?: null;
+                    $updateData['coupon_discount'] = $this->couponDiscountValue ?: null;
+                    $updateData['user_payment'] = str_replace(',', '', (string) $this->user_payment) ?: null;
+                    $updateData['commission'] = str_replace(',', '', (string) $this->commision) ?: null;
+                    $updateData['total'] = str_replace(',', '', (string) $this->total) ?: null;
+                }
+
+                if (! empty($this->prescriptions)) {
+                    $updateData['status_prescription'] = 'Pending';
+                }
+
+                if (! empty($updateData)) {
+                    $this->appointment->update($updateData);
+                }
+
+                $this->dispatch('close-notes-modal');
+                session()->flash('appointment_note_id', $note);
+
+                return $this->redirect(NotesConfirmationPage::class);
+            }
         }
         catch (ValidationException $e)
         {
