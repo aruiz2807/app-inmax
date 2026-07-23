@@ -4,10 +4,12 @@ namespace App\Livewire\Mobile\Doctor;
 
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
 use App\Models\Appointment;
+use App\Models\Permission;
 use App\Models\Parameter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -17,6 +19,7 @@ class DRHistoryPage extends Component
     public $pastAppointments = null;
     public $appointmentId = null;
     public bool $isMobileDevice = true;
+    public bool $canEditAppointments = false;
     public ?string $dateFrom = null;
     public ?string $dateTo = null;
     public string $tab = 'pending';
@@ -43,6 +46,14 @@ class DRHistoryPage extends Component
             $this->dateFrom = Carbon::now()->startOfMonth()->toDateString();
             $this->dateTo = Carbon::now()->endOfMonth()->toDateString();
         }
+
+        $editPermissionId = Permission::where('code', 'edit.doctor.appointments')->value('id');
+        $this->canEditAppointments = $editPermissionId
+            ? DB::table('permission_user')
+                ->where('user_id', Auth::id())
+                ->where('permission_id', $editPermissionId)
+                ->exists()
+            : false;
 
         $this->loadAppointments();
     }
@@ -216,6 +227,11 @@ class DRHistoryPage extends Component
     public function notes($id)
     {
         return $this->redirectRoute('history.notes', ['appointment' => $id]);
+    }
+
+    public function edit($id)
+    {
+        return $this->redirectRoute('doctor.notes.edit', ['appointment' => $id]);
     }
 
     public function schedule($id)

@@ -175,6 +175,8 @@
                                             <x-ui.text class="ml-2 text-base">Archivos y analisis cargados</x-ui.text>
                                         </x-ui.heading>
 
+                                        <x-ui.error name="historyServiceAttachments.{{ $historyItem->id }}" />
+
                                         @if($completedServices->isEmpty())
                                             <x-ui.text class="text-sm opacity-70">Esta cita no tiene servicios completados para adjuntar resultados.</x-ui.text>
                                         @else
@@ -184,6 +186,7 @@
                                                         $extension = strtolower(pathinfo((string) $service->attachment_name, PATHINFO_EXTENSION));
                                                         $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
                                                         $isPdf = $extension === 'pdf';
+                                                        $canManagePendingResults = $historyItem->status === \App\Enums\AppointmentStatus::RESULTS_PENDING;
                                                     @endphp
 
                                                     <div class="rounded-lg border border-neutral-200 bg-white p-3">
@@ -200,28 +203,22 @@
                                                             </div>
 
                                                             <div class="md:col-span-3 space-y-2">
-                                                                <input
-                                                                    type="file"
-                                                                    wire:model="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}"
-                                                                    placeholder="Seleccione un archivo para adjuntar"
-                                                                    class="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                                                />
+                                                                @if($canManagePendingResults)
+                                                                    <input
+                                                                        type="file"
+                                                                        wire:model="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}"
+                                                                        placeholder="Seleccione un archivo para adjuntar"
+                                                                        class="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                                    />
+                                                                @endif
 
-                                                                <x-ui.button
-                                                                    type="button"
-                                                                    color="teal"
-                                                                    icon="paper-clip"
-                                                                    wire:click="saveHistoryServiceAttachment({{ $historyItem->id }}, {{ $service->id }})"
-                                                                    class="w-full md:w-auto"
-                                                                >
-                                                                    Guardar archivo
-                                                                </x-ui.button>
+                                                                @if($canManagePendingResults)
+                                                                    <x-ui.error name="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}" />
 
-                                                                <x-ui.error name="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}" />
-
-                                                                <div wire:loading wire:target="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}" class="text-sm text-neutral-600">
-                                                                    Subiendo archivo...
-                                                                </div>
+                                                                    <div wire:loading wire:target="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}" class="text-sm text-neutral-600">
+                                                                        Subiendo archivo...
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         </div>
 
@@ -248,29 +245,41 @@
                                                 @endforeach
                                             </div>
 
-                                            <div class="pt-2">
-                                                <x-ui.field>
-                                                    <x-ui.label>Enlace de resultados (opcional)</x-ui.label>
-                                                    <x-ui.input
-                                                        wire:model.defer="historyResultsComments.{{ $historyItem->id }}"
-                                                        placeholder="https://..."
-                                                    />
-                                                </x-ui.field>
-                                                <x-ui.error name="historyResultsComments.{{ $historyItem->id }}" />
-                                                <x-ui.text class="mt-1 text-xs text-neutral-500">
-                                                    Si no adjuntas archivo, puedes guardar un enlace con los resultados.
-                                                </x-ui.text>
+                                            @if($historyItem->status === \App\Enums\AppointmentStatus::RESULTS_PENDING)
+                                                <div class="pt-2">
+                                                    <x-ui.field>
+                                                        <x-ui.label>Enlace de resultados (opcional)</x-ui.label>
+                                                        <x-ui.input
+                                                            wire:model.defer="historyResultsComments.{{ $historyItem->id }}"
+                                                            placeholder="https://..."
+                                                        />
+                                                    </x-ui.field>
+                                                    <x-ui.error name="historyResultsComments.{{ $historyItem->id }}" />
+                                                    <x-ui.text class="mt-1 text-xs text-neutral-500">
+                                                        Si no adjuntas archivo, puedes guardar un enlace con los resultados.
+                                                    </x-ui.text>
 
-                                                <x-ui.button
-                                                    type="button"
-                                                    color="teal"
-                                                    icon="link"
-                                                    wire:click="saveHistoryResultsComment({{ $historyItem->id }})"
-                                                    class="mt-2"
-                                                >
-                                                    Guardar enlace
-                                                </x-ui.button>
-                                            </div>
+                                                    <div class="mt-2 flex flex-col gap-2 md:flex-row md:justify-end">
+                                                        <x-ui.button
+                                                            type="button"
+                                                            color="amber"
+                                                            icon="clock"
+                                                            wire:click="saveHistoryResultsAndKeepPending({{ $historyItem->id }})"
+                                                        >
+                                                            Subir el resto despues
+                                                        </x-ui.button>
+
+                                                        <x-ui.button
+                                                            type="button"
+                                                            color="teal"
+                                                            icon="check"
+                                                            wire:click="saveHistoryResultsAndFinalize({{ $historyItem->id }})"
+                                                        >
+                                                            Ya incluidos, finalizar
+                                                        </x-ui.button>
+                                                    </div>
+                                                </div>
+                                            @endif
                                         @endif
                                     </x-ui.card>
                                 </div>

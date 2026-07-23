@@ -1,6 +1,6 @@
 <div class="space-y-4">
     <x-slot name="header">
-        Nota medica
+        {{ $isEditing ? 'Editar nota medica' : 'Nota medica' }}
     </x-slot>
 
     <x-ui.card size="full">
@@ -15,6 +15,8 @@
                 <div class="pl-4">
                     <x-ui.text class="pt-1 text-lg">{{ $appointment->user->name }}</x-ui.text>
                     <x-ui.text class="text-sm opacity-75">{{ $appointment->user->policy->number }}</x-ui.text>
+                    <x-ui.text class="text-sm opacity-75"> {{ $appointment->user->age }} años - F. Nacimiento: {{ date('d/m/Y', strtotime($appointment->user->birth_date)) }}</x-ui.text>
+                    
                 </div>
             </div>
 
@@ -58,6 +60,7 @@
                                     onClass="bg-teal"
                                     iconOff="x-mark"
                                     iconOn="check"
+                                    :disabled="$isEditing"
                                 />
                             </div>
                         </div>
@@ -109,6 +112,14 @@
                         <x-ui.icon name="clipboard-document-list" class="self-center" />
                         <x-ui.text class="text-base ml-2">Tratamiento / Receta</x-ui.text>
                     </x-ui.heading>
+
+                    @if($isEditing)
+                        <x-ui.alerts variant="info" icon="information-circle" class="mb-3">
+                            <x-ui.alerts.description>
+                                Los medicamentos existentes no se pueden editar ni eliminar; solo puedes añadir nuevos.
+                            </x-ui.alerts.description>
+                        </x-ui.alerts>
+                    @endif
 
                     <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
                         <div class="lg:col-span-2">
@@ -199,7 +210,9 @@
                                                 {{ $prescription->quantity }} - {{ $prescription->dose }} - {{ $prescription->frequency }} - {{ $prescription->duration }}
                                             </x-ui.text>
                                         </div>
-                                        <x-ui.button wire:click="deletePrescription({{ $prescription->id }})" icon="trash" variant="danger" size="sm" class="ml-2" />
+                                        @unless($isEditing)
+                                            <x-ui.button wire:click="deletePrescription({{ $prescription->id }})" icon="trash" variant="danger" size="sm" class="ml-2" />
+                                        @endunless
                                     </div>
                                 @endforeach
                             </div>
@@ -250,7 +263,7 @@
 
         <div class="space-y-4 xl:col-span-4">
             @if(! $hasReceptionistAssigned)
-                <x-ui.card size="full" class="xl:sticky xl:top-6">
+                <x-ui.card size="full">
                     <x-ui.heading class="flex pb-2" level="h3" size="sm">
                         <x-ui.icon name="clipboard-document-list" class="self-center" />
                         <x-ui.text class="text-base ml-2">Cierre de cuenta</x-ui.text>
@@ -263,6 +276,7 @@
                             name="subtotal"
                             x-mask:dynamic="$money($input)"
                             placeholder="0.00"
+                            :disabled="$isEditing"
                         >
                             <x-slot name="prefix">$</x-slot>
                         </x-ui.input>
@@ -273,15 +287,15 @@
                             <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
 
                             <div class="space-y-2">
-                                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
-                                    <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500">
+                                <label class="flex items-center gap-3 p-3 rounded-lg border transition-colors {{ $isEditing ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-gray-50' }} {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
+                                    <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500" @disabled($isEditing)>
                                     <span class="text-sm text-gray-700">No aplicar cupon</span>
                                 </label>
 
                                 @foreach($availableCoupons as $benefit)
-                                    <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
+                                    <label class="flex items-start gap-3 p-3 rounded-lg border transition-colors {{ $isEditing ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-teal-50/30' }} {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
                                         <div class="pt-1">
-                                            <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
+                                            <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500" @disabled($isEditing)>
                                         </div>
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2">
@@ -341,7 +355,7 @@
                     <x-ui.button class="w-full" wire:click="save" variant="outline" color="blue" icon="clipboard"
                         :disabled="!collect($form->services ?? [])->contains(true)"
                     >
-                        Guardar
+                        {{ $isEditing ? 'Actualizar' : 'Guardar' }}
                     </x-ui.button>
                 </div>
             </x-ui.card>
@@ -354,10 +368,10 @@
         :width="count($missingAttachmentServiceNames) > 0 && ($user->doctor->type === \App\Enums\DoctorType::Provider)
             ? 'lg'
             : 'md'"
-        heading="Finalizar consulta"
+        :heading="$isEditing ? 'Actualizar consulta' : 'Finalizar consulta'"
         :description="count($missingAttachmentServiceNames) > 0  && ($user->doctor->type === \App\Enums\DoctorType::Provider)
             ? 'Detectamos estudios pendientes de archivo. Si ya vienen incluidos en el documento que subiste, puedes finalizar el proceso.'
-            : '¿Deseas finalizar la consulta? Al confirmar se cerrara la cita y se generara la receta digital.'"
+            : ($isEditing ? '¿Deseas guardar los cambios de la consulta?' : '¿Deseas finalizar la consulta? Al confirmar se cerrara la cita y se generara la receta digital.')"
         x-on:open-notes-modal.window="$data.open()"
         x-on:close-notes-modal.window="$data.close()"
     >
@@ -379,7 +393,7 @@
                 </x-ui.button>
 
                 <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
-                    Ya incluidos, finalizar
+                    {{ $isEditing ? 'Guardar cambios' : 'Ya incluidos, finalizar' }}
                 </x-ui.button>
             </div>
             <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
@@ -394,7 +408,7 @@
                 </x-ui.button>
 
                 <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmNotes(false)">
-                    Confirmar
+                    {{ $isEditing ? 'Guardar cambios' : 'Confirmar' }}
                 </x-ui.button>
             </div>
         @endif
