@@ -224,8 +224,8 @@ class PaymentPage extends Component
         }
 
         $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
-        if ($costoParam) {
-            $this->subtotal = $this->formatMoney($costoParam->value);
+        if ($costoParam && $isMGIncluded) {
+            $this->subtotal = number_format($costoParam->value, 2);
         }
 
         $this->checkCouponAvailability();
