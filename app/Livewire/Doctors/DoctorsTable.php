@@ -57,7 +57,7 @@ final class DoctorsTable extends PowerGridComponent
             ->add('business_name', fn ($model) => e($model->business_name))
             ->add('type')
             ->add('type_translated', fn ($model) => e($model->type->label()))
-            ->add('email', fn ($model) => e($model->user->email))
+            ->add('email', fn ($model) => e($model->user->contact_email ?? $model->user->email))
             ->add('phone', fn ($model) => e($model->user->phone))
             ->add('contact_phone', fn ($model) => e($model->contact_phone))
             ->add('specialty', fn ($model) => e($model->specialty->name))

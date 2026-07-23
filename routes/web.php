@@ -145,13 +145,14 @@ Route::middleware([
     Route::get('/attachment/{service_id}/preview', [AttachmentController::class, 'preview'])->name('attachment.preview');
     Route::get('/external-service/{external_service_id}', [AttachmentController::class, 'downloadExternalService'])->name('external-service.download');
 
-    Route::prefix('admin')->middleware('profile:Admin,Sales')->group(function () {
+    Route::prefix('admin')->group(function () {
 
         Route::get('/appointments', AppointmentsPage::class)
             ->middleware('permission:view.admin.appointments')
             ->name('appointments');
 
         Route::get('/coupons', CouponsPage::class)
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.coupons')
             ->name('coupons');
 
@@ -160,10 +161,12 @@ Route::middleware([
             ->name('doctors');
 
         Route::get('/offices', OfficesPage::class)
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.offices')
             ->name('offices');
 
         Route::get('/plans', PlansPage::class)
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.plans')
             ->name('plans');
 
@@ -193,44 +196,43 @@ Route::middleware([
             ->name('reports.sales');
 
         Route::get('/services', ServicesPage::class)
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.services')
             ->name('services');
 
         Route::get('/specialties', SpecialtiesPage::class)
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.specialties')
             ->name('specialties');
 
         Route::get('/users', UsersPage::class)
-            ->middleware('admin')
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.admin.users')
             ->name('users');
         Route::get('/whatsapp/console', WhatsAppConsolePage::class)
-            ->middleware('admin')
             ->middleware('permission:view.admin.whatsapp_console')
             ->name('whatsapp.console');
         Route::get('/whatsapp/attachments/{attachment}/preview', [WhatsAppMediaAttachmentController::class, 'preview'])
-            ->middleware('admin')
             ->middleware('permission:view.admin.whatsapp_console')
             ->name('whatsapp.attachments.preview');
         Route::get('/whatsapp/attachments/{attachment}/download', [WhatsAppMediaAttachmentController::class, 'download'])
-            ->middleware('admin')
             ->middleware('permission:view.admin.whatsapp_console')
             ->name('whatsapp.attachments.download');
 
         Route::get('/settings/whatsapp', WhatsAppSettingsPage::class)
-            ->middleware('admin')
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.whatsapp')
             ->name('settings.whatsapp');
         Route::get('/settings/legal', LegalSettingsPage::class)
-            ->middleware('admin')
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.legal')
             ->name('settings.legal');
         Route::get('/settings/parameters', ParametersPage::class)
-            ->middleware('admin')
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.parameters')
             ->name('settings.parameters');
         Route::get('/settings/permissions', PermissionsPage::class)
-            ->middleware('admin')
+            ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.permissions')
             ->name('settings.permissions');
     });

@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\Policy;
+use App\Models\User;
 use App\Services\Policies\GroupPolicyRegistrationService;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -24,7 +25,7 @@ class GroupPolicyForm extends Form
     #[Validate('required|string|max:255')]
     public $name = '';
 
-    #[Validate('required|string|email|max:255|unique:users')]
+    #[Validate('required|string|email|max:255')]
     public $email = '';
 
     #[Validate('required|string|size:10|unique:users')]
@@ -48,20 +49,18 @@ class GroupPolicyForm extends Form
     #[Validate('nullable|array')]
     public $insurance = [];
 
-    #[Validate('required|numeric|min:1|max:99')]
-    public $members = 0;
+    #[Validate('required|integer|min:2')]
+    public $members = 2;
 
     public bool $foreigner = false;
 
-
     /**
-    * Store the group policy in the DB.
+    * Store the collective policy in the DB.
     */
     public function store(
         GroupPolicyRegistrationService $registrationService,
         ?int $policyPreregistrationId = null
-    ): Policy
-    {
+    ): Policy {
         $this->validate();
 
         return $registrationService->create([
@@ -94,7 +93,7 @@ class GroupPolicyForm extends Form
         $this->rfc = $policy->user->company->rfc;
 
         $this->name = $policy->user->name;
-        $this->email = $policy->user->email;
+        $this->email = $policy->user->contact_email ?? $policy->user->email;
         $this->phone = $policy->user->clean_phone;
         $this->birth = $policy->user->birth_date->format('Y-m-d');
         $this->curp = $policy->user->curp;
@@ -128,9 +127,22 @@ class GroupPolicyForm extends Form
             'rfc' => $this->rfc,
         ]);
 
+        $uniqueEmail = $this->email;
+        if ($user->is_dependent) {
+            $parts = explode('-', $user->phone);
+            $suffix = $parts[1] ?? '01';
+            if (str_contains($this->email, '@')) {
+                [$local, $domain] = explode('@', $this->email, 2);
+                $uniqueEmail = "{$local}+{$suffix}@{$domain}";
+            } else {
+                $uniqueEmail = $this->email . '+' . $suffix;
+            }
+        }
+
         $user->update([
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => $uniqueEmail,
+            'contact_email' => $this->email,
             'phone' => $this->phone,
         ]);
 

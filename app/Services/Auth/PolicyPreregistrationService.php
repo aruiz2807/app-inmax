@@ -54,10 +54,11 @@ class PolicyPreregistrationService
         ?int $parentPolicyId = null,
         string $preregistrationType = PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
         array $collectiveData = [],
-        bool $deliverWhatsApp = true
+        bool $deliverWhatsApp = true,
+        bool $allowDuplicatePhone = false
     ): array {
         $normalizedPhone = $this->normalizePhone($phone);
-        $this->assertPhoneAvailable($normalizedPhone);
+        $this->assertPhoneAvailable($normalizedPhone, null, $allowDuplicatePhone);
         [$plan, $parentPolicy, $token] = $this->prepareInvitationCreation(
             salesUser: $salesUser,
             phone: $normalizedPhone,
@@ -96,12 +97,13 @@ class PolicyPreregistrationService
         ?int $parentPolicyId = null,
         string $preregistrationType = PolicyPreregistration::TYPE_INDIVIDUAL_POLICY,
         array $collectiveData = [],
-        bool $deliverWhatsApp = true
+        bool $deliverWhatsApp = true,
+        bool $allowDuplicatePhone = false
     ): array {
         $this->assertCanManage($preregistration, 'editar');
 
         $normalizedPhone = $this->normalizePhone($phone);
-        $this->assertPhoneAvailable($normalizedPhone, $preregistration->id);
+        $this->assertPhoneAvailable($normalizedPhone, $preregistration->id, $allowDuplicatePhone);
         [$plan, $parentPolicy, $token] = $this->prepareInvitationUpdate(
             preregistration: $preregistration,
             salesUser: $salesUser,
@@ -120,6 +122,36 @@ class PolicyPreregistrationService
             deliverWhatsApp: $deliverWhatsApp,
             logEvent: 'WHATSAPP_POLICY_PREREGISTRATION_UPDATED'
         );
+    }
+
+    /**
+     * Detect whether the provided phone already exists in users or preregistrations.
+     *
+     * @return array{has_conflict: bool, user_count: int, preregistration_count: int}
+     */
+    public function detectPhoneConflict(string $phone, ?int $ignorePreregistrationId = null): array
+    {
+        $normalizedPhone = $this->normalizePhone($phone);
+
+        $userCount = User::query()
+            ->where('phone', $normalizedPhone)
+            ->orWhere('phone', 'like', $normalizedPhone.'-%')
+            ->count();
+
+        $preregistrationQuery = PolicyPreregistration::query()
+            ->where('phone', $normalizedPhone);
+
+        if ($ignorePreregistrationId !== null) {
+            $preregistrationQuery->whereKeyNot($ignorePreregistrationId);
+        }
+
+        $preregistrationCount = $preregistrationQuery->count();
+
+        return [
+            'has_conflict' => $userCount > 0 || $preregistrationCount > 0,
+            'user_count' => $userCount,
+            'preregistration_count' => $preregistrationCount,
+        ];
     }
 
     /**
@@ -648,8 +680,12 @@ class PolicyPreregistrationService
     /**
      * Ensure there is no registered user for the phone.
      */
-    private function assertPhoneAvailable(string $phone, ?int $ignorePreregistrationId = null): void
+    private function assertPhoneAvailable(string $phone, ?int $ignorePreregistrationId = null, bool $allowDuplicatePhone = false): void
     {
+        if ($allowDuplicatePhone) {
+            return;
+        }
+
         if (User::query()->where('phone', $phone)->orWhere('phone', 'like', $phone . '-%')->exists()) {
             throw new InvalidArgumentException('Ya existe un usuario registrado con ese teléfono.');
         }

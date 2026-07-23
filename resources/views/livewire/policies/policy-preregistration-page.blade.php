@@ -127,6 +127,52 @@
                             <x-ui.input :value="$preregistration?->salesUser?->name" readonly copyable="false" />
                         </x-ui.field>
                     </x-ui.fieldset>
+
+                    <x-ui.fieldset label="Información del responsable" class="mt-2">
+
+                        <x-ui.field class="text-left">
+                            <div class="flex justify-end mt-4">
+                                <x-ui.switch wire:model.live="form.same_as_user" label="Mismo que el usuario?" />
+                            </div>
+                        </x-ui.field>
+
+                        <x-ui.field required>
+                            <x-ui.label>Nombre completo</x-ui.label>
+                            <x-ui.input wire:model="form.legal_name" name="legal_name" placeholder="Nombre Apellido" :readonly="$form->same_as_user" />
+                            <x-ui.error name="form.legal_name" />
+                        </x-ui.field>
+
+                        <x-ui.field required>
+                            <x-ui.label>Dirección</x-ui.label>
+                            <x-ui.textarea wire:model="form.legal_address" name="legal_address" />
+                            <x-ui.error name="form.legal_address" />
+                        </x-ui.field>
+
+                        @if (($this->age !== null && $this->age < 18) || !$form->same_as_user)
+                        <x-ui.field required>
+                            <x-ui.label>Parentesco</x-ui.label>
+                            <x-ui.select
+                                placeholder="Buscar parentesco..."
+                                icon="wallet"
+                                searchable
+                                wire:model="form.legal_relationship_id">
+                                    @foreach($relationships as $relationship)
+                                        <x-ui.select.option value="{{ $relationship->id }}">
+                                            {{ $relationship->name }}
+                                        </x-ui.select.option>
+                                    @endforeach
+                            </x-ui.select>
+                            <x-ui.error name="form.legal_relationship_id" />
+                        </x-ui.field>
+                        @endif
+
+                        <x-ui.field required>
+                            <x-ui.label>RFC</x-ui.label>
+                            <x-ui.input wire:model="form.cfdi_rfc" name="legal_name" placeholder="XAXX010101000" />
+                            <x-ui.error name="form.cfdi_rfc" />
+                        </x-ui.field>
+
+                    </x-ui.fieldset>
                 @endif
 
                 <div class="mt-4 flex items-center justify-end">

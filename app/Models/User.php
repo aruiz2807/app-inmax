@@ -106,6 +106,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'contact_email',
         'password',
         'pin',
         'pin_set_at',
@@ -325,5 +326,13 @@ class User extends Authenticatable
     public function staffDoctors(): BelongsToMany
     {
         return $this->belongsToMany(Doctor::class, 'doctor_staff');
+    }
+
+    /**
+     * Route notifications for the mail channel.
+     */
+    public function routeNotificationForMail($notification): string
+    {
+        return $this->contact_email ?? $this->email;
     }
 }

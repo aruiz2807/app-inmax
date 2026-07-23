@@ -6,6 +6,7 @@ use App\Livewire\Forms\GroupPolicyForm;
 use App\Livewire\Forms\IndividualPolicyForm;
 use App\Models\Plan;
 use App\Models\PolicyPreregistration;
+use App\Models\Relationship;
 use App\Services\Auth\PolicyPreregistrationService;
 use App\Services\Policies\GroupPolicyRegistrationService;
 use App\Services\Policies\IndividualPolicyRegistrationService;
@@ -41,6 +42,8 @@ class PolicyPreregistrationPage extends Component
 
     public Collection $groupPlans;
 
+    public $relationships = [];
+
     #[Layout('layouts.guest')]
     public function render()
     {
@@ -59,7 +62,8 @@ class PolicyPreregistrationPage extends Component
             ->where('status', 'Active')
             ->orderBy('name')
             ->get(['id', 'name']);
-
+        
+        $this->relationships = Relationship::all();
         $this->syncFormWithPreregistration($this->preregistration);
     }
 
@@ -168,5 +172,43 @@ class PolicyPreregistrationPage extends Component
             PolicyPreregistrationService::STATUS_ACTIVE => '',
             default => 'Esta invitacion es invalida. Solicita un enlace nuevo al promotor.',
         };
+    }
+
+    public function updated($name, $value)
+    {
+        if ($name === 'form.name') {
+            if ($this->form->same_as_user) {
+                $this->form->legal_name = $value;
+            }
+        }
+
+        if ($name === 'form.same_as_user') {
+            $age = $this->age;
+            if ($value && $age !== null && $age < 18) {
+                $this->form->same_as_user = false;
+                $value = false;
+            }
+
+            if ($value) {
+                $this->form->legal_name = $this->form->name;
+            }
+
+            $isRequired = ($age !== null && $age < 18) || !$value;
+            if (!$isRequired) {
+                $this->form->legal_relationship_id = null;
+            }
+        }
+
+        if ($name === 'form.birth') {
+            $age = $this->age;
+            if ($age !== null && $age < 18) {
+                $this->form->same_as_user = false;
+            }
+
+            $isRequired = ($age !== null && $age < 18) || !$this->form->same_as_user;
+            if (!$isRequired) {
+                $this->form->legal_relationship_id = null;
+            }
+        }
     }
 }

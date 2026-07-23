@@ -203,6 +203,33 @@
                     <x-ui.error name="preregistrationPhone" />
                 </x-ui.field>
 
+                @if ($preregistrationDuplicatePhoneWarning)
+                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                        <p class="font-semibold">Teléfono duplicado detectado</p>
+                        <p class="mt-1">{{ $preregistrationDuplicatePhoneWarning }}</p>
+
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <x-ui.button
+                                type="button"
+                                variant="outline"
+                                icon="pencil-square"
+                                wire:click="clearDuplicatePhoneWarning"
+                            >
+                                Corregir teléfono
+                            </x-ui.button>
+
+                            <x-ui.button
+                                type="button"
+                                color="amber"
+                                icon="paper-airplane"
+                                wire:click="confirmDuplicatePreregistrationPhone"
+                            >
+                                Continuar de todos modos
+                            </x-ui.button>
+                        </div>
+                    </div>
+                @endif
+
                 @if($preregistrationType === 'group_owner')
                     <div wire:key="preregistration-group-owner-fields">
                         <x-ui.field required>

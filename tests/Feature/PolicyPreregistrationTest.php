@@ -87,7 +87,7 @@ class PolicyPreregistrationTest extends TestCase
         ]);
     }
 
-    public function test_cannot_create_preregistration_with_existing_preregistration_phone(): void
+    public function test_individual_preregistration_warns_on_duplicate_phone_and_can_continue(): void
     {
         $salesUser = User::factory()->create([
             'profile' => 'Sales',
@@ -98,6 +98,13 @@ class PolicyPreregistrationTest extends TestCase
             'price' => 999.00,
             'type' => 'Individual',
             'status' => 'Active',
+        ]);
+
+        User::factory()->create([
+            'profile' => 'User',
+            'phone' => '3310000093',
+            'pin' => '1234',
+            'pin_set_at' => now(),
         ]);
 
         PolicyPreregistration::query()->create([
@@ -114,7 +121,16 @@ class PolicyPreregistrationTest extends TestCase
             ->set('preregistrationPhone', '3310000093')
             ->set('preregistrationPlan', (string) $plan->id)
             ->call('savePreregistration')
-            ->assertHasErrors(['preregistrationPhone']);
+            ->assertHasNoErrors()
+            ->assertSet(
+                'preregistrationDuplicatePhoneWarning',
+                'Este teléfono ya tiene 1 usuario y 1 preregistro existentes. ¿Deseas continuar?'
+            )
+            ->call('confirmDuplicatePreregistrationPhone')
+            ->assertHasNoErrors()
+            ->assertSet('lastPreregistrationPhone', '3310000093');
+
+        $this->assertDatabaseCount('policy_preregistrations', 2);
     }
 
     public function test_preregistration_page_can_be_rendered_with_a_valid_token(): void
@@ -279,13 +295,19 @@ class PolicyPreregistrationTest extends TestCase
             ->call('editPreregistration', $second->id)
             ->set('preregistrationPhone', '3310000094')
             ->call('savePreregistration')
-            ->assertHasErrors(['preregistrationPhone']);
+            ->assertHasNoErrors()
+            ->assertSet(
+                'preregistrationDuplicatePhoneWarning',
+                'Este teléfono ya tiene 1 preregistro existente. ¿Deseas continuar?'
+            )
+            ->call('confirmDuplicatePreregistrationPhone')
+            ->assertHasNoErrors();
 
         $first->refresh();
         $second->refresh();
 
         $this->assertSame('3310000094', $first->phone);
-        $this->assertSame('3310000095', $second->phone);
+        $this->assertSame('3310000094', $second->phone);
     }
 
     public function test_preregistration_page_creates_user_policy_and_shows_pending_activation_message(): void

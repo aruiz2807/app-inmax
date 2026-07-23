@@ -55,7 +55,7 @@ final class UsersTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('id')
             ->add('name')
-            ->add('email')
+            ->add('email', fn (User $user) => $user->contact_email ?? $user->email)
             ->add('phone')
             ->add('clean_phone')
             ->add('profile')
