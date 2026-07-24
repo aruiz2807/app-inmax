@@ -269,6 +269,10 @@ Route::middleware([
         Route::get('/schedule/{appointment}', DRSchedulePage::class)->name('doctor.schedule');
         Route::get('/schedule-confirmation', DRScheduleConfirmationPage::class)->name('doctor.schedule-confirmation');
 
+        Route::get('/notes/{appointment}/edit', DRNotesPage::class)
+            ->middleware('permission:edit.doctor.appointments')
+            ->name('doctor.notes.edit');
+
         Route::get('/history', DRHistoryPage::class)
             ->middleware('permission:view.doctor.history')
             ->name('doctor.history');

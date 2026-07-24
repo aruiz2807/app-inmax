@@ -161,6 +161,12 @@
                         </div>
 
                         <div class="flex justify-center mt-2">
+                            @if($canEditAppointments)
+                                <x-ui.button class="w-40 mr-1" wire:click="edit({{ $past->id }})" variant="outline" color="teal" icon="pencil-square">
+                                    Editar
+                                </x-ui.button>
+                            @endif
+
                             @if($past->doctor->type === \App\Enums\DoctorType::Doctor)
                             <x-ui.button class="w-40 ml-1" wire:click="print({{ $past->id }})" variant="outline" color="indigo" icon="document">
                                 Receta digital
