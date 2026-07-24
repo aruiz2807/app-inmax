@@ -245,6 +245,7 @@ class IndividualPolicyForm extends Form
         $policy->policyLegalInformation()->updateOrCreate(
             ['policy_id' => $policy->id],
             [
+                'same_as_user' => $this->same_as_user,
                 'legal_name' => $this->legal_name,
                 'legal_address' => $this->legal_address,
                 'legal_relationship_id' => $this->legal_relationship_id,
