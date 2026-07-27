@@ -7,7 +7,7 @@
         <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
             <span>Traslados</span>
 
-            <x-ui.modal.trigger id="doctor-modal" wire:click="resetForm">
+            <x-ui.modal.trigger id="transport-modal" wire:click="resetForm">
                     <x-ui.button color="teal" icon="plus-circle">
                         Nuevo traslado
                     </x-ui.button>
@@ -75,4 +75,6 @@
             </div>
         </x-ui.card>
     </div>
+
+    @includeIf('livewire.dispatcher.transport-modal')
 </div>
