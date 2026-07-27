@@ -40,6 +40,7 @@ class PolicyLegalInformation extends Model
      */
     protected $fillable = [
         'policy_id',
+        'same_as_user',
         'legal_name',
         'legal_address',
         'legal_relationship_id',

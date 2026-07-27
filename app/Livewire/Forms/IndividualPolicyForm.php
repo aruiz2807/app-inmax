@@ -101,6 +101,7 @@ class IndividualPolicyForm extends Form
             'adding_member' => $this->addingMember,
             'policy_preregistration_id' => $policyPreregistrationId,
             //legal info
+            'same_as_user' => $this->same_as_user,
             'legal_name' => $this->legal_name,
             'legal_address' => $this->legal_address,
             'legal_relationship_id' => $this->legal_relationship_id,
@@ -143,7 +144,7 @@ class IndividualPolicyForm extends Form
             $this->cfdi_postal_code = $policy->policyLegalInformation->cfdi_postal_code;
             $this->cfdi_regime_id = $policy->policyLegalInformation->cfdi_regime_id;
             $this->cfdi_use_id = $policy->policyLegalInformation->cfdi_use_id;
-            $this->same_as_user = ($this->legal_name === $this->name);
+            $this->same_as_user = $policy->policyLegalInformation->same_as_user;
         } else {
             $this->legal_name = $this->name;
             $this->legal_address = '';
