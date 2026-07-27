@@ -212,6 +212,13 @@ return [
             'default_profiles' => ['Doctor'],
             'route_names' => ['doctor.edit_appointments'],
         ],
+        'view.dispatcher.transports' => [
+            'name' => 'Ver traslados',
+            'group' => 'Operador de cabina',
+            'description' => 'Permite acceder al modulo de traslados.',
+            'default_profiles' => ['Dispatcher'],
+            'route_names' => ['dispatcher.transports'],
+        ],
     ],
     'homes' => [
         'Admin' => [
@@ -259,6 +266,9 @@ return [
         ],
         'User' => [
             ['route' => 'user.home', 'permission' => null],
+        ],
+        'Dispatcher' => [
+            ['route' => 'dispatcher.transports', 'permission' => 'view.dispatcher.transports'],
         ],
     ],
 ];

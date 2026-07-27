@@ -79,11 +79,12 @@
                         <x-ui.select.option value="Sales">Vendedor</x-ui.select.option>
                         <x-ui.select.option value="Clerk">{{ __('app.clerk') }}</x-ui.select.option>
                         <x-ui.select.option value="Receptionist">Recepcionista</x-ui.select.option>
+                        <x-ui.select.option value="Dispatcher">Operador de cabina</x-ui.select.option>
                     </x-ui.select>
                     <x-ui.error name="form.profile" />
                 </x-ui.field>
 
-                @if (in_array($form->profile, ['Clerk', 'Receptionist']))
+                @if (in_array($form->profile, ['Clerk', 'Receptionist', 'Dispatcher']))
                     <x-ui.field required>
                         <x-ui.label>Proveedores asignados</x-ui.label>
                         <p class="text-xs text-neutral-500 mb-2">Selecciona al menos un doctor, laboratorio u hospital al que pertenece este usuario.</p>

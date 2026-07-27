@@ -43,6 +43,9 @@ use App\Livewire\Receptionist\PendingResultsPage as ReceptionistPendingResultsPa
 use App\Livewire\Receptionist\PaymentPage as ReceptionistPaymentPage;
 use App\Livewire\Receptionist\RequestsPage as ReceptionistRequestsPage;
 
+// Livewire - Dispatcher
+use App\Livewire\Dispatcher\TransportsPage as DispatcherTransportsPage;
+
 // Livewire - Offices
 use App\Livewire\Offices\OfficesPage;
 
@@ -324,5 +327,11 @@ Route::middleware([
         // PARCHE GACHO
         Route::get('/dispensation', DispensationPage::class)
             ->name('recepcionist.dispensation');
+    });
+
+    Route::prefix('dispatcher')->middleware('profile:Dispatcher')->group(function () {
+        Route::get('/transports', DispatcherTransportsPage::class)
+            ->middleware('permission:view.dispatcher.transports')
+            ->name('dispatcher.transports');
     });
 });

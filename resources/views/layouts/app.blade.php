@@ -459,6 +459,18 @@
                             @endpermission
                         @break
 
+                        @case('Dispatcher')
+                            @permission('view.dispatcher.transports')
+                                <x-ui.navlist.item
+                                    icon="truck"
+                                    :label="'Traslados'"
+                                    href="{{ route('dispatcher.transports') }}"
+                                    :active="request()->routeIs('dispatcher.transports')"
+                                    x-on:click="closeSidebar()"
+                                />
+                            @endpermission
+                        @break
+
                         @default
                     @endswitch
                 </x-ui.navlist>

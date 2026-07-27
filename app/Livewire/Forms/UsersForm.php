@@ -21,7 +21,7 @@ class UsersForm extends Form
     #[Validate('required|digits:10|unique:users,phone')]
     public string $phone = '';
 
-    #[Validate('required|in:Admin,Doctor,Sales,Clerk,Receptionist,User')]
+    #[Validate('required|in:Admin,Doctor,Sales,Clerk,Receptionist,User,Dispatcher')]
     public string $profile = 'User';
 
     public array $doctorIds = [];
@@ -96,6 +96,12 @@ class UsersForm extends Form
                     ['permission_id' => 2, 'user_id' => $user->id],
                 ]);
                 break;
+
+            case 'Dispatcher':
+                DB::table('permission_user')->insert([
+                    ['permission_id' => 31, 'user_id' => $user->id],
+                ]);
+                break;  
         }
     }
 
