@@ -102,7 +102,7 @@ class DoctorsForm extends Form
      */
     public function createUser(array $input): User
     {
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'profile' => 'Doctor',
             'email' => Str::lower($input['email']),
@@ -111,6 +111,13 @@ class DoctorsForm extends Form
             // for now, the phone number will be the user's password
             'password' => Hash::make($input['phone']),
         ]);
+
+        DB::table('permission_user')->insert([
+            ['permission_id' => 26, 'user_id' => $user->id],
+            ['permission_id' => 27, 'user_id' => $user->id],
+        ]);
+        
+        return $user;
     }
 
     /**
