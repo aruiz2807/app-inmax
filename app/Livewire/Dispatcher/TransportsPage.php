@@ -114,6 +114,7 @@ class TransportsPage extends Component
     {
         return Service::query()
             ->orderBy('name')
+            ->limit(5)
             ->get();
     }
 

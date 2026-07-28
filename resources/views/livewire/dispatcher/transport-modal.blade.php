@@ -28,17 +28,17 @@
                 <x-ui.error name="selectedPatientId" />
             </x-ui.field>
 
-            @if($selectedPatient)
+            @if($this->selectedPatient)
                 <x-ui.card size="full" class="lg:col-span-2">
                     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <x-ui.text class="text-lg font-semibold">{{ $selectedPatient->name }}</x-ui.text>
-                            <x-ui.text class="text-sm text-neutral-500">{{ $selectedPatient->policy?->number }}</x-ui.text>
+                            <x-ui.text class="text-lg font-semibold">{{ $this->selectedPatient->name }}</x-ui.text>
+                            <x-ui.text class="text-sm text-neutral-500">{{ $this->selectedPatient->policy?->number }}</x-ui.text>
                         </div>
 
-                        @if($selectedPatient->policy)
-                            <x-ui.badge :icon="$selectedPatient->policy->status_icon" variant="outline" :color="$selectedPatient->policy->status_color" pill>
-                                {{ $selectedPatient->policy->status_text }}
+                        @if($this->selectedPatient->policy)
+                            <x-ui.badge :icon="$this->selectedPatient->policy->status_icon" variant="outline" :color="$this->selectedPatient->policy->status_color" pill>
+                                {{ $this->selectedPatient->policy->status_text }}
                             </x-ui.badge>
                         @endif
                     </div>
@@ -46,23 +46,23 @@
                     <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                         <div class="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
                             <x-ui.text class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Edad</x-ui.text>
-                            <x-ui.text class="mt-1 font-semibold">{{ $selectedPatient->age ?? 'N/D' }}</x-ui.text>
+                            <x-ui.text class="mt-1 font-semibold">{{ $this->selectedPatient->age ?? 'N/D' }}</x-ui.text>
                         </div>
 
                         <div class="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
                             <x-ui.text class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Teléfono</x-ui.text>
-                            <x-ui.text class="mt-1 font-semibold">{{ $selectedPatient->phone }}</x-ui.text>
+                            <x-ui.text class="mt-1 font-semibold">{{ $this->selectedPatient->phone }}</x-ui.text>
                         </div>
 
                         <div class="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
                             <x-ui.text class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Membresía</x-ui.text>
-                            <x-ui.text class="mt-1 font-semibold">{{ $selectedPatient->policy?->number ?? 'Sin membresía' }}</x-ui.text>
+                            <x-ui.text class="mt-1 font-semibold">{{ $this->selectedPatient->policy?->number ?? 'Sin membresía' }}</x-ui.text>
                         </div>
                     </div>
                 </x-ui.card>
             @endif
-
-            <x-ui.field>
+            
+            <x-ui.field class="lg:col-span-2">
                 <x-ui.label>Tipo de traslado</x-ui.label>
                 <x-ui.select wire:model.live="transportType" placeholder="Selecciona un tipo..." icon="truck" searchable>
                     <x-ui.select.option value="programado">Programado</x-ui.select.option>
@@ -72,13 +72,13 @@
                 <x-ui.error name="transportType" />
             </x-ui.field>
 
-            <x-ui.field>
+            <x-ui.field class="lg:col-span-1">
                 <x-ui.label>Origen</x-ui.label>
                 <x-ui.input wire:model.live="origin" placeholder="Escribe el origen del traslado" />
                 <x-ui.error name="origin" />
             </x-ui.field>
 
-            <x-ui.field>
+            <x-ui.field class="lg:col-span-1">
                 <x-ui.label>Destino</x-ui.label>
                 <x-ui.select wire:model.live="destinationSelection" placeholder="Buscar hospital o elegir otra dirección..." icon="building-office" searchable>
                     @foreach($this->hospitals as $hospital)
