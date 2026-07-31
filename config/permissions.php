@@ -114,6 +114,13 @@ return [
             'default_profiles' => ['Admin'],
             'route_names' => ['settings.whatsapp'],
         ],
+        'view.settings.whatsapp_console_templates' => [
+            'name' => 'Ver plantillas consola WhatsApp',
+            'group' => 'Configuraciones',
+            'description' => 'Permite administrar plantillas aprobadas para envio desde la consola WhatsApp.',
+            'default_profiles' => ['Admin'],
+            'route_names' => ['settings.whatsapp-console-templates'],
+        ],
         'view.settings.legal' => [
             'name' => 'Ver configuracion legal',
             'group' => 'Configuraciones',
@@ -238,6 +245,7 @@ return [
             ['route' => 'specialties', 'permission' => 'view.settings.specialties'],
             ['route' => 'plans', 'permission' => 'view.settings.plans'],
             ['route' => 'settings.whatsapp', 'permission' => 'view.settings.whatsapp'],
+            ['route' => 'settings.whatsapp-console-templates', 'permission' => 'view.settings.whatsapp_console_templates'],
             ['route' => 'settings.legal', 'permission' => 'view.settings.legal'],
             ['route' => 'settings.parameters', 'permission' => 'view.settings.parameters'],
             ['route' => 'settings.permissions', 'permission' => 'view.settings.permissions'],
