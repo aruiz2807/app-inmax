@@ -84,7 +84,7 @@ class UsersPage extends Component
 
     public function save(PinSetupTokenService $tokenService): void
     {
-        $needsDoctors = in_array($this->form->profile, ['Clerk', 'Receptionist']);
+        $needsDoctors = in_array($this->form->profile, ['Clerk', 'Receptionist', 'Dispatcher'], true);
 
         if ($needsDoctors && empty($this->form->doctorIds)) {
             $this->addError('form.doctorIds', 'Debe asignar al menos un doctor.');

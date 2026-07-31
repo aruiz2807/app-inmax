@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property numeric|null $commission
  * @property numeric|null $total
  * @property int|null $rating
+ * @property string|null $origin_address
+ * @property string|null $destination_address
+ * @property json|null $severity_assessment
  * @property string|null $comments
  * @property \App\Enums\AppointmentStatus|null $status
  * @property string|null $status_prescription
@@ -81,6 +84,9 @@ class Appointment extends Model
         'date',
         'time',
         'rating',
+        'origin_address',
+        'destination_address',
+        'severity_assessment',
         'comments',
         'status',
         'subtotal',

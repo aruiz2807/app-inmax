@@ -213,9 +213,9 @@ return [
             'route_names' => ['doctor.edit_appointments'],
         ],
         'view.dispatcher.transports' => [
-            'name' => 'Ver traslados',
+            'name' => 'Ver servicios de traslados',
             'group' => 'Operador de cabina',
-            'description' => 'Permite acceder al modulo de traslados.',
+            'description' => 'Permite acceder al modulo de servicios de traslados.',
             'default_profiles' => ['Dispatcher'],
             'route_names' => ['dispatcher.transports'],
         ],

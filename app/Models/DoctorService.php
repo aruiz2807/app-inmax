@@ -38,6 +38,8 @@ class DoctorService extends Model
     protected $fillable = [
         'doctor_id',
         'service_id',
+        'cost',
+        'price',
     ];
 
     /**

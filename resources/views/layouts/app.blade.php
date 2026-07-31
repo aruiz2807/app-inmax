@@ -463,7 +463,7 @@
                             @permission('view.dispatcher.transports')
                                 <x-ui.navlist.item
                                     icon="truck"
-                                    :label="'Traslados'"
+                                    :label="'Servicios'"
                                     href="{{ route('dispatcher.transports') }}"
                                     :active="request()->routeIs('dispatcher.transports')"
                                     x-on:click="closeSidebar()"

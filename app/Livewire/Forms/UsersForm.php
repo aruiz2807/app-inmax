@@ -76,7 +76,7 @@ class UsersForm extends Form
                 ]);
                 break;
             
-            case 'Recepcionist':
+            case 'Receptionist':
                 DB::table('permission_user')->insert([
                     ['permission_id' => 23, 'user_id' => $user->id],
                     ['permission_id' => 24, 'user_id' => $user->id],
@@ -139,7 +139,7 @@ class UsersForm extends Form
                     : Rule::unique('users', 'contact_email')->ignore($userId),
             ],
             'phone' => ['required', 'digits:10', Rule::unique('users', 'phone')->ignore($userId)],
-            'profile' => ['required', Rule::in(['Admin', 'Doctor', 'Sales', 'Clerk', 'Receptionist', 'User'])],
+            'profile' => ['required', Rule::in(['Admin', 'Doctor', 'Sales', 'Clerk', 'Receptionist', 'User', 'Dispatcher'])],
         ])->validate();
 
         $user = User::findOrFail($userId);
