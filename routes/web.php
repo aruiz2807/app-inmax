@@ -69,6 +69,7 @@ use App\Livewire\Specialties\SpecialtiesPage;
 // Livewire - Users
 use App\Livewire\Users\UsersPage;
 use App\Livewire\WhatsApp\WhatsAppConsolePage;
+use App\Livewire\WhatsApp\WhatsAppConsoleTemplatesPage;
 
 // Livewire - Mobile
 use App\Livewire\Mobile\ContactPage;
@@ -223,6 +224,10 @@ Route::middleware([
             ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.whatsapp')
             ->name('settings.whatsapp');
+        Route::get('/settings/whatsapp-console-templates', WhatsAppConsoleTemplatesPage::class)
+            ->middleware('profile:Admin,Sales')
+            ->middleware('permission:view.settings.whatsapp_console_templates')
+            ->name('settings.whatsapp-console-templates');
         Route::get('/settings/legal', LegalSettingsPage::class)
             ->middleware('profile:Admin,Sales')
             ->middleware('permission:view.settings.legal')

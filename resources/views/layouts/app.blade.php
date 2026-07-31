@@ -40,6 +40,7 @@
                 'view.settings.specialties',
                 'view.settings.plans',
                 'view.settings.whatsapp',
+                'view.settings.whatsapp_console_templates',
                 'view.settings.legal',
                 'view.settings.parameters',
                 'view.settings.permissions',
@@ -262,6 +263,16 @@
                                             :label="__('WhatsApp')"
                                             href="{{ route('settings.whatsapp') }}"
                                             :active="request()->routeIs('settings.whatsapp')"
+                                            x-on:click="closeSidebar()"
+                                        />
+                                    @endpermission
+
+                                    @permission('view.settings.whatsapp_console_templates')
+                                        <x-ui.navlist.item
+                                            icon="document-duplicate"
+                                            :label="'Plantillas consola'"
+                                            href="{{ route('settings.whatsapp-console-templates') }}"
+                                            :active="request()->routeIs('settings.whatsapp-console-templates')"
                                             x-on:click="closeSidebar()"
                                         />
                                     @endpermission
