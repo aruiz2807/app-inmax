@@ -23,57 +23,72 @@
     </x-ui.card>
 
     <x-ui.card size="full">
-        <div class="overflow-hidden rounded-xl border border-slate-200">
-            <div
-                class="grid grid-cols-[1.3fr_1fr_8rem_7rem_7rem] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span>Plantilla</span>
-                <span>Meta</span>
-                <span>Idioma</span>
-                <span>Variables</span>
-                <span>Estado</span>
-            </div>
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <div class="min-w-[74rem]">
+                <div
+                    class="grid grid-cols-[minmax(22rem,1.5fr)_minmax(12rem,1fr)_6rem_8rem_8rem_7rem_8rem] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <span>Plantilla</span>
+                    <span>Meta</span>
+                    <span>Idioma</span>
+                    <span>Encabezado</span>
+                    <span>Variables</span>
+                    <span>Estado</span>
+                    <span class="text-right">Acciones</span>
+                </div>
 
-            <div class="divide-y divide-slate-200">
-                @forelse ($templates as $template)
-                    <div wire:key="whatsapp-console-template-{{ $template->id }}"
-                        class="grid grid-cols-1 gap-3 px-4 py-4 text-sm lg:grid-cols-[1.3fr_1fr_8rem_7rem_7rem] lg:items-center">
-                        <div class="min-w-0">
-                            <p class="font-semibold text-slate-900">{{ $template->name }}</p>
-                            @if ($template->example_text)
-                                <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
-                                    {{ $template->example_text }}</p>
-                            @endif
+                <div class="divide-y divide-slate-200">
+                    @forelse ($templates as $template)
+                        <div wire:key="whatsapp-console-template-{{ $template->id }}"
+                            class="grid grid-cols-[minmax(22rem,1.5fr)_minmax(12rem,1fr)_6rem_8rem_8rem_7rem_8rem] items-center gap-3 px-4 py-4 text-sm">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-900">{{ $template->name }}</p>
+                                @if ($template->example_text)
+                                    <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                                        {{ $template->example_text }}</p>
+                                @endif
+                            </div>
+
+                            <div class="truncate text-slate-600">
+                                {{ $template->meta_template_name }}
+                            </div>
+
+                            <div class="text-slate-600">
+                                {{ $template->language_code }}
+                            </div>
+
+                            <div class="text-slate-600">
+                                {{ match ($template->header_media_type) {
+                                    'image' => 'Imagen',
+                                    'video' => 'Video',
+                                    'document' => 'PDF',
+                                    default => 'Ninguno',
+                                } }}
+                            </div>
+
+                            <div class="text-slate-600">
+                                {{ count($template->body_variables ?? []) }} body /
+                                {{ count($template->button_variables ?? []) }} boton
+                            </div>
+
+                            <div>
+                                <x-ui.badge :color="$template->is_active ? 'emerald' : 'slate'" size="sm" pill>
+                                    {{ $template->is_active ? 'Activa' : 'Inactiva' }}
+                                </x-ui.badge>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <x-ui.button type="button" size="sm" icon="pencil-square" variant="outline"
+                                    color="teal" wire:click="edit({{ $template->id }})">
+                                    Editar
+                                </x-ui.button>
+                            </div>
                         </div>
-
-                        <div class="truncate text-slate-600">
-                            {{ $template->meta_template_name }}
+                    @empty
+                        <div class="px-4 py-10 text-center text-sm text-slate-500">
+                            No hay plantillas de consola registradas.
                         </div>
-
-                        <div class="text-slate-600">
-                            {{ $template->language_code }}
-                        </div>
-
-                        <div class="text-slate-600">
-                            {{ count($template->body_variables ?? []) }} body /
-                            {{ count($template->button_variables ?? []) }} boton
-                        </div>
-
-                        <div class="flex items-center justify-between gap-3">
-                            <x-ui.badge :color="$template->is_active ? 'emerald' : 'slate'" size="sm" pill>
-                                {{ $template->is_active ? 'Activa' : 'Inactiva' }}
-                            </x-ui.badge>
-
-                            <x-ui.button type="button" size="sm" icon="pencil-square" variant="outline"
-                                color="teal" wire:click="edit({{ $template->id }})">
-                                Editar
-                            </x-ui.button>
-                        </div>
-                    </div>
-                @empty
-                    <div class="px-4 py-10 text-center text-sm text-slate-500">
-                        No hay plantillas de consola registradas.
-                    </div>
-                @endforelse
+                    @endforelse
+                </div>
             </div>
         </div>
     </x-ui.card>
@@ -102,6 +117,20 @@
                         <x-ui.label>Idioma</x-ui.label>
                         <x-ui.input wire:model="languageCode" placeholder="es_MX" />
                         <x-ui.error name="languageCode" />
+                    </x-ui.field>
+
+                    <x-ui.field>
+                        <x-ui.label>Encabezado multimedia</x-ui.label>
+                        <select
+                            wire:model="headerMediaType"
+                            class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15"
+                        >
+                            <option value="">Sin encabezado</option>
+                            <option value="image">Imagen</option>
+                            <option value="video">Video</option>
+                            <option value="document">Documento PDF</option>
+                        </select>
+                        <x-ui.error name="headerMediaType" />
                     </x-ui.field>
 
                     <x-ui.field>

@@ -306,6 +306,82 @@
                         @endif
                     </div>
 
+                    @if ($selectedConsoleTemplate->header_media_type)
+                        @php
+                            $headerType = $selectedConsoleTemplate->header_media_type;
+                            $headerLabel = match ($headerType) {
+                                'image' => 'Imagen de encabezado',
+                                'video' => 'Video de encabezado',
+                                'document' => 'Documento PDF de encabezado',
+                                default => 'Archivo de encabezado',
+                            };
+                            $headerAccept = match ($headerType) {
+                                'image' => 'image/jpeg,image/png,image/webp',
+                                'video' => 'video/mp4,video/3gpp,video/quicktime',
+                                'document' => 'application/pdf,.pdf',
+                                default => '',
+                            };
+                        @endphp
+
+                        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                            <x-ui.label>{{ $headerLabel }}</x-ui.label>
+
+                            @if ($headerType === 'image')
+                                <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                                    <label class="flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm text-slate-700">
+                                        <input type="radio" wire:model.live="templateHeaderSource" value="file" class="border-slate-300 text-teal-600 focus:ring-teal-500">
+                                        Subir archivo
+                                    </label>
+
+                                    <label class="flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm text-slate-700">
+                                        <input type="radio" wire:model.live="templateHeaderSource" value="url" class="border-slate-300 text-teal-600 focus:ring-teal-500">
+                                        URL publica
+                                    </label>
+                                </div>
+                            @endif
+
+                            @if ($headerType === 'image' && $templateHeaderSource === 'url')
+                                <x-ui.input
+                                    class="mt-3"
+                                    wire:model="templateHeaderMediaUrl"
+                                    placeholder="https://dominio.com/imagen.jpg"
+                                />
+                                <x-ui.error name="templateHeaderMediaUrl" />
+                            @else
+                                <input
+                                    type="file"
+                                    wire:model="templateHeaderAttachment"
+                                    accept="{{ $headerAccept }}"
+                                    class="mt-3 block w-full text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-amber-100"
+                                />
+                                <x-ui.error name="templateHeaderAttachment" />
+                            @endif
+
+                            <p class="mt-2 text-xs text-amber-700">
+                                @if ($headerType === 'document')
+                                    Esta plantilla requiere documento y la consola solo permite PDF.
+                                @elseif ($headerType === 'image')
+                                    Puedes subir una imagen JPG, PNG o WEBP, o pegar una URL publica de imagen.
+                                @else
+                                    Esta plantilla requiere un video MP4, 3GPP o MOV.
+                                @endif
+                            </p>
+
+                            @if ($templateHeaderAttachment)
+                                <div class="mt-3 rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-600">
+                                    <p class="font-medium text-slate-900">{{ $templateHeaderAttachment->getClientOriginalName() }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ number_format(($templateHeaderAttachment->getSize() ?? 0) / 1024, 1) }} KB
+                                    </p>
+                                </div>
+                            @endif
+
+                            <div wire:loading wire:target="templateHeaderAttachment" class="mt-3 text-xs text-amber-700">
+                                Cargando archivo...
+                            </div>
+                        </div>
+                    @endif
+
                     @foreach ([
                         ['title' => 'Variables body', 'variables' => $selectedConsoleTemplate->body_variables ?? [], 'property' => 'templateBodyValues'],
                         ['title' => 'Variables boton', 'variables' => $selectedConsoleTemplate->button_variables ?? [], 'property' => 'templateButtonValues'],

@@ -41,6 +41,9 @@ class WhatsAppConsolePage extends Component
     public string $replyMessage = '';
     public $replyAttachment = null;
     public ?int $selectedTemplateId = null;
+    public string $templateHeaderSource = 'file';
+    public $templateHeaderAttachment = null;
+    public string $templateHeaderMediaUrl = '';
     public array $templateBodyValues = [];
     public array $templateButtonValues = [];
 
@@ -350,16 +353,32 @@ class WhatsAppConsolePage extends Component
         $this->prepareTemplateValues();
     }
 
+    public function updatedTemplateHeaderSource(): void
+    {
+        if ($this->templateHeaderSource === 'url') {
+            $this->templateHeaderAttachment = null;
+            return;
+        }
+
+        $this->templateHeaderMediaUrl = '';
+    }
+
     public function sendConsoleTemplate(
         WhatsAppCloudApiService $service,
         WhatsAppConsoleTemplateVariableResolver $resolver
     ): void {
         Validator::make([
             'selectedTemplateId' => $this->selectedTemplateId,
+            'templateHeaderSource' => $this->templateHeaderSource,
+            'templateHeaderAttachment' => $this->templateHeaderAttachment,
+            'templateHeaderMediaUrl' => $this->templateHeaderMediaUrl,
             'templateBodyValues' => $this->templateBodyValues,
             'templateButtonValues' => $this->templateButtonValues,
         ], [
             'selectedTemplateId' => ['required', 'integer', 'exists:whatsapp_console_templates,id'],
+            'templateHeaderSource' => ['required', 'in:file,url'],
+            'templateHeaderAttachment' => ['nullable', 'file', 'max:102400'],
+            'templateHeaderMediaUrl' => ['nullable', 'url', 'max:2048'],
             'templateBodyValues' => ['nullable', 'array'],
             'templateBodyValues.*' => ['nullable', 'string', 'max:1024'],
             'templateButtonValues' => ['nullable', 'array'],
@@ -410,6 +429,8 @@ class WhatsAppConsolePage extends Component
             return;
         }
 
+        $this->validateTemplateHeaderAttachment($template);
+
         $phone = $conversation->contact->wa_id
             ?: $conversation->contact->phone
             ?: $conversation->contact->normalized_phone;
@@ -448,6 +469,9 @@ class WhatsAppConsolePage extends Component
             languageCode: $template->language_code,
             parameters: $bodyParameters,
             buttonUrlParameters: $buttonParameters,
+            headerFile: $this->templateHeaderAttachment,
+            headerMediaType: $template->header_media_type,
+            headerMediaUrl: trim($this->templateHeaderMediaUrl) !== '' ? trim($this->templateHeaderMediaUrl) : null,
         );
 
         if ($result['ok']) {
@@ -498,6 +522,9 @@ class WhatsAppConsolePage extends Component
             ? WhatsAppConsoleTemplate::query()->find($this->selectedTemplateId)
             : null;
 
+        $this->templateHeaderSource = 'file';
+        $this->templateHeaderAttachment = null;
+        $this->templateHeaderMediaUrl = '';
         $this->templateBodyValues = $this->emptyValuesFor($template?->body_variables ?? []);
         $this->templateButtonValues = $this->emptyValuesFor($template?->button_variables ?? []);
     }
@@ -505,6 +532,9 @@ class WhatsAppConsolePage extends Component
     private function resetTemplateState(): void
     {
         $this->selectedTemplateId = null;
+        $this->templateHeaderSource = 'file';
+        $this->templateHeaderAttachment = null;
+        $this->templateHeaderMediaUrl = '';
         $this->templateBodyValues = [];
         $this->templateButtonValues = [];
     }
@@ -516,5 +546,51 @@ class WhatsAppConsolePage extends Component
     private function emptyValuesFor(array $variables): array
     {
         return array_fill(0, count($variables), '');
+    }
+
+    private function validateTemplateHeaderAttachment(WhatsAppConsoleTemplate $template): void
+    {
+        $headerType = $template->header_media_type;
+
+        if (! filled($headerType)) {
+            return;
+        }
+
+        if ($headerType === 'image' && $this->templateHeaderSource === 'url') {
+            Validator::make([
+                'templateHeaderMediaUrl' => $this->templateHeaderMediaUrl,
+            ], [
+                'templateHeaderMediaUrl' => ['required', 'url', 'max:2048', 'regex:/^https?:\/\//i'],
+            ], [
+                'templateHeaderMediaUrl.required' => 'Pega la URL publica de la imagen de encabezado.',
+                'templateHeaderMediaUrl.url' => 'La URL publica de la imagen no es valida.',
+                'templateHeaderMediaUrl.regex' => 'La URL debe iniciar con http:// o https://.',
+            ])->validate();
+
+            return;
+        }
+
+        $rules = match ($headerType) {
+            'image' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp', 'max:10240'],
+            'video' => ['required', 'file', 'mimetypes:video/mp4,video/3gpp,video/quicktime', 'max:102400'],
+            'document' => ['required', 'file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:102400'],
+            default => ['prohibited'],
+        };
+
+        Validator::make([
+            'templateHeaderAttachment' => $this->templateHeaderAttachment,
+        ], [
+            'templateHeaderAttachment' => $rules,
+        ], [
+            'templateHeaderAttachment.required' => 'Adjunta el archivo de encabezado que requiere la plantilla.',
+            'templateHeaderAttachment.mimetypes' => match ($headerType) {
+                'image' => 'El encabezado debe ser una imagen JPG, PNG o WEBP.',
+                'video' => 'El encabezado debe ser un video MP4, 3GPP o MOV.',
+                'document' => 'El encabezado documento solo permite PDF.',
+                default => 'El archivo de encabezado no es valido.',
+            },
+            'templateHeaderAttachment.mimes' => 'El encabezado documento solo permite PDF.',
+            'templateHeaderAttachment.max' => 'El archivo de encabezado no debe superar 100MB.',
+        ])->validate();
     }
 }

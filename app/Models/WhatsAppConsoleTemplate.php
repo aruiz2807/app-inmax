@@ -23,6 +23,7 @@ class WhatsAppConsoleTemplate extends Model
         'meta_template_name',
         'language_code',
         'example_text',
+        'header_media_type',
         'body_variables',
         'button_variables',
         'is_active',

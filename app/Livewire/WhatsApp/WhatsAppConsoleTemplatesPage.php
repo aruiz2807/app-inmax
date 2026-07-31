@@ -17,6 +17,7 @@ class WhatsAppConsoleTemplatesPage extends Component
     public string $metaTemplateName = '';
     public string $languageCode = 'es_MX';
     public string $exampleText = '';
+    public string $headerMediaType = '';
     public bool $isActive = true;
 
     /**
@@ -60,6 +61,7 @@ class WhatsAppConsoleTemplatesPage extends Component
         $this->metaTemplateName = $template->meta_template_name;
         $this->languageCode = $template->language_code;
         $this->exampleText = $template->example_text ?? '';
+        $this->headerMediaType = $template->header_media_type ?? '';
         $this->isActive = (bool) $template->is_active;
         $this->bodyVariables = $this->normalizeVariables($template->body_variables ?? []);
         $this->buttonVariables = $this->normalizeVariables($template->button_variables ?? []);
@@ -81,6 +83,7 @@ class WhatsAppConsoleTemplatesPage extends Component
             ],
             'languageCode' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})?$/'],
             'exampleText' => ['nullable', 'string', 'max:2000'],
+            'headerMediaType' => ['nullable', Rule::in(['', 'image', 'video', 'document'])],
             'isActive' => ['boolean'],
             'bodyVariables' => ['nullable', 'array'],
             'bodyVariables.*.label' => ['required', 'string', 'max:120'],
@@ -112,6 +115,7 @@ class WhatsAppConsoleTemplatesPage extends Component
                 'meta_template_name' => trim($validated['metaTemplateName']),
                 'language_code' => trim($validated['languageCode']),
                 'example_text' => trim($validated['exampleText'] ?? '') ?: null,
+                'header_media_type' => filled($validated['headerMediaType'] ?? null) ? $validated['headerMediaType'] : null,
                 'body_variables' => $this->prepareVariables($validated['bodyVariables'] ?? []),
                 'button_variables' => $this->prepareVariables($validated['buttonVariables'] ?? []),
                 'is_active' => (bool) $validated['isActive'],
@@ -136,6 +140,7 @@ class WhatsAppConsoleTemplatesPage extends Component
             'name',
             'metaTemplateName',
             'exampleText',
+            'headerMediaType',
             'bodyVariables',
             'buttonVariables',
         ]);

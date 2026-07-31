@@ -29,17 +29,24 @@ class WhatsAppMessageRecorder
         array $payload,
         array $responseData,
         bool $ok,
+        ?array $attachmentData = null,
     ): WhatsAppMessage {
-        return $this->recordOutboundMessage(
+        $message = $this->recordOutboundMessage(
             to: $to,
             type: 'template',
-            bodyText: $this->buildTemplatePreview($templateName, $parameters, $buttonUrlParameters),
+            bodyText: $this->buildTemplatePreview($templateName, $parameters, $buttonUrlParameters, $attachmentData),
             payload: $payload,
             responseData: $responseData,
             ok: $ok,
             templateName: $templateName,
             languageCode: $languageCode,
         );
+
+        if ($attachmentData) {
+            $message->attachments()->create($attachmentData);
+        }
+
+        return $message->refresh();
     }
 
     /**
@@ -314,10 +321,15 @@ class WhatsAppMessageRecorder
      * @param  array<int, string>  $parameters
      * @param  array<int, string>  $buttonUrlParameters
      */
-    private function buildTemplatePreview(string $templateName, array $parameters, array $buttonUrlParameters): string
-    {
+    private function buildTemplatePreview(
+        string $templateName,
+        array $parameters,
+        array $buttonUrlParameters,
+        ?array $attachmentData = null
+    ): string {
         $previewParts = array_filter([
             '[Template] '.$templateName,
+            $attachmentData ? $this->mediaService->buildOutboundPreview($attachmentData) : null,
             ! empty($parameters) ? implode(' | ', $parameters) : null,
             ! empty($buttonUrlParameters) ? '[Button] '.implode(' | ', $buttonUrlParameters) : null,
         ]);
