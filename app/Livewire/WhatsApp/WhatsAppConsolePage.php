@@ -4,9 +4,12 @@ namespace App\Livewire\WhatsApp;
 
 use App\Models\WhatsAppContact;
 use App\Models\WhatsAppConversation;
+use App\Models\WhatsAppConsoleTemplate;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
+use App\Services\WhatsApp\WhatsAppConsoleTemplateVariableResolver;
+use App\Services\WhatsApp\WhatsAppConversationWindowService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
@@ -37,6 +40,12 @@ class WhatsAppConsolePage extends Component
     public bool $unreadOnly = false;
     public string $replyMessage = '';
     public $replyAttachment = null;
+    public ?int $selectedTemplateId = null;
+    public string $templateHeaderSource = 'file';
+    public $templateHeaderAttachment = null;
+    public string $templateHeaderMediaUrl = '';
+    public array $templateBodyValues = [];
+    public array $templateButtonValues = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -75,7 +84,7 @@ class WhatsAppConsolePage extends Component
 
         $selectedConversation = $this->selectedConversationId
             ? WhatsAppConversation::query()
-                ->with(['contact.user', 'messages.statuses', 'messages.primaryAttachment'])
+                ->with(['contact.user.company', 'contact.user.policy.plan', 'messages.statuses', 'messages.primaryAttachment'])
                 ->find($this->selectedConversationId)
             : null;
 
@@ -91,6 +100,10 @@ class WhatsAppConsolePage extends Component
         ];
 
         $settings = WhatsAppSetting::query()->first();
+        $windowService = app(WhatsAppConversationWindowService::class);
+        $selectedTemplate = $this->selectedTemplateId
+            ? WhatsAppConsoleTemplate::query()->where('is_active', true)->find($this->selectedTemplateId)
+            : null;
 
         return view('livewire.whatsapp.console-page', [
             'conversations' => $conversations,
@@ -98,6 +111,20 @@ class WhatsAppConsolePage extends Component
             'selectedMessages' => $selectedConversation?->messages()->with('primaryAttachment')->latest()->take(100)->get()->reverse()->values() ?? collect(),
             'summary' => $summary,
             'webhookSettings' => $settings,
+            'consoleTemplates' => WhatsAppConsoleTemplate::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(),
+            'selectedConsoleTemplate' => $selectedTemplate,
+            'canSendFreeFormMessage' => $selectedConversation
+                ? $windowService->canSendFreeFormMessage($selectedConversation)
+                : false,
+            'freeFormWindowExpiresAt' => $selectedConversation
+                ? $windowService->expiresAt($selectedConversation)
+                : null,
+            'freeFormWindowRemainingMinutes' => $selectedConversation
+                ? $windowService->remainingMinutes($selectedConversation)
+                : 0,
         ]);
     }
 
@@ -225,6 +252,17 @@ class WhatsAppConsolePage extends Component
             return;
         }
 
+        if (! app(WhatsAppConversationWindowService::class)->canSendFreeFormMessage($conversation)) {
+            $this->dispatch(
+                'notify',
+                type: 'warning',
+                content: 'La ventana de 24 horas ya vencio. Usa una plantilla para contactar al cliente.',
+                duration: 6000
+            );
+
+            return;
+        }
+
         $phone = $conversation->contact->wa_id
             ?: $conversation->contact->phone
             ?: $conversation->contact->normalized_phone;
@@ -299,10 +337,176 @@ class WhatsAppConsolePage extends Component
         );
     }
 
+    public function openTemplateModal(): void
+    {
+        $this->selectedTemplateId = WhatsAppConsoleTemplate::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->value('id');
+
+        $this->prepareTemplateValues();
+        $this->dispatch('open-whatsapp-template-send-modal');
+    }
+
+    public function updatedSelectedTemplateId(): void
+    {
+        $this->prepareTemplateValues();
+    }
+
+    public function updatedTemplateHeaderSource(): void
+    {
+        if ($this->templateHeaderSource === 'url') {
+            $this->templateHeaderAttachment = null;
+            return;
+        }
+
+        $this->templateHeaderMediaUrl = '';
+    }
+
+    public function sendConsoleTemplate(
+        WhatsAppCloudApiService $service,
+        WhatsAppConsoleTemplateVariableResolver $resolver
+    ): void {
+        Validator::make([
+            'selectedTemplateId' => $this->selectedTemplateId,
+            'templateHeaderSource' => $this->templateHeaderSource,
+            'templateHeaderAttachment' => $this->templateHeaderAttachment,
+            'templateHeaderMediaUrl' => $this->templateHeaderMediaUrl,
+            'templateBodyValues' => $this->templateBodyValues,
+            'templateButtonValues' => $this->templateButtonValues,
+        ], [
+            'selectedTemplateId' => ['required', 'integer', 'exists:whatsapp_console_templates,id'],
+            'templateHeaderSource' => ['required', 'in:file,url'],
+            'templateHeaderAttachment' => ['nullable', 'file', 'max:102400'],
+            'templateHeaderMediaUrl' => ['nullable', 'url', 'max:2048'],
+            'templateBodyValues' => ['nullable', 'array'],
+            'templateBodyValues.*' => ['nullable', 'string', 'max:1024'],
+            'templateButtonValues' => ['nullable', 'array'],
+            'templateButtonValues.*' => ['nullable', 'string', 'max:1024'],
+        ], [
+            'selectedTemplateId.required' => 'Selecciona una plantilla.',
+        ])->validate();
+
+        if (! $this->selectedConversationId) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'Selecciona una conversacion antes de enviar plantilla.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $conversation = WhatsAppConversation::query()
+            ->with(['contact.user.company', 'contact.user.policy.plan'])
+            ->find($this->selectedConversationId);
+
+        if (! $conversation || ! $conversation->contact) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'No se encontro la conversacion seleccionada.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $template = WhatsAppConsoleTemplate::query()
+            ->whereKey($this->selectedTemplateId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $template) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'La plantilla seleccionada no esta activa.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $this->validateTemplateHeaderAttachment($template);
+
+        $phone = $conversation->contact->wa_id
+            ?: $conversation->contact->phone
+            ?: $conversation->contact->normalized_phone;
+
+        if (! filled($phone)) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'La conversacion no tiene un numero de telefono valido.',
+                duration: 4000
+            );
+
+            return;
+        }
+
+        $setting = WhatsAppSetting::query()->first();
+
+        if (! $setting || ! filled($setting->access_token) || ! filled($setting->phone_number_id)) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                content: 'Primero configura Access Token e ID de linea en WhatsApp.',
+                duration: 5000
+            );
+
+            return;
+        }
+
+        $bodyParameters = $resolver->resolveBody($template, $conversation, $this->templateBodyValues);
+        $buttonParameters = $resolver->resolveButton($template, $conversation, $this->templateButtonValues);
+
+        $result = $service->sendTemplateMessage(
+            setting: $setting,
+            to: $phone,
+            templateName: $template->meta_template_name,
+            languageCode: $template->language_code,
+            parameters: $bodyParameters,
+            buttonUrlParameters: $buttonParameters,
+            headerFile: $this->templateHeaderAttachment,
+            headerMediaType: $template->header_media_type,
+            headerMediaUrl: trim($this->templateHeaderMediaUrl) !== '' ? trim($this->templateHeaderMediaUrl) : null,
+        );
+
+        if ($result['ok']) {
+            $this->dispatch('close-whatsapp-template-send-modal');
+            $this->resetTemplateState();
+
+            $this->dispatch(
+                'notify',
+                type: 'success',
+                content: 'Plantilla enviada correctamente.',
+                duration: 3000
+            );
+
+            return;
+        }
+
+        $errorMessage = data_get(
+            $result['data'],
+            'error.message',
+            'No fue posible enviar la plantilla de WhatsApp.'
+        );
+
+        $this->dispatch(
+            'notify',
+            type: 'error',
+            content: $errorMessage,
+            duration: 6000
+        );
+    }
+
     private function resetConversationState(): void
     {
         $this->replyMessage = '';
         $this->replyAttachment = null;
+        $this->resetTemplateState();
     }
 
     private function markConversationAsRead(WhatsAppConversation $conversation): void
@@ -310,5 +514,83 @@ class WhatsAppConsolePage extends Component
         $conversation->contact->forceFill([
             'unread_count' => 0,
         ])->save();
+    }
+
+    private function prepareTemplateValues(): void
+    {
+        $template = $this->selectedTemplateId
+            ? WhatsAppConsoleTemplate::query()->find($this->selectedTemplateId)
+            : null;
+
+        $this->templateHeaderSource = 'file';
+        $this->templateHeaderAttachment = null;
+        $this->templateHeaderMediaUrl = '';
+        $this->templateBodyValues = $this->emptyValuesFor($template?->body_variables ?? []);
+        $this->templateButtonValues = $this->emptyValuesFor($template?->button_variables ?? []);
+    }
+
+    private function resetTemplateState(): void
+    {
+        $this->selectedTemplateId = null;
+        $this->templateHeaderSource = 'file';
+        $this->templateHeaderAttachment = null;
+        $this->templateHeaderMediaUrl = '';
+        $this->templateBodyValues = [];
+        $this->templateButtonValues = [];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $variables
+     * @return array<int, string>
+     */
+    private function emptyValuesFor(array $variables): array
+    {
+        return array_fill(0, count($variables), '');
+    }
+
+    private function validateTemplateHeaderAttachment(WhatsAppConsoleTemplate $template): void
+    {
+        $headerType = $template->header_media_type;
+
+        if (! filled($headerType)) {
+            return;
+        }
+
+        if ($headerType === 'image' && $this->templateHeaderSource === 'url') {
+            Validator::make([
+                'templateHeaderMediaUrl' => $this->templateHeaderMediaUrl,
+            ], [
+                'templateHeaderMediaUrl' => ['required', 'url', 'max:2048', 'regex:/^https?:\/\//i'],
+            ], [
+                'templateHeaderMediaUrl.required' => 'Pega la URL publica de la imagen de encabezado.',
+                'templateHeaderMediaUrl.url' => 'La URL publica de la imagen no es valida.',
+                'templateHeaderMediaUrl.regex' => 'La URL debe iniciar con http:// o https://.',
+            ])->validate();
+
+            return;
+        }
+
+        $rules = match ($headerType) {
+            'image' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp', 'max:10240'],
+            'video' => ['required', 'file', 'mimetypes:video/mp4,video/3gpp,video/quicktime', 'max:102400'],
+            'document' => ['required', 'file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:102400'],
+            default => ['prohibited'],
+        };
+
+        Validator::make([
+            'templateHeaderAttachment' => $this->templateHeaderAttachment,
+        ], [
+            'templateHeaderAttachment' => $rules,
+        ], [
+            'templateHeaderAttachment.required' => 'Adjunta el archivo de encabezado que requiere la plantilla.',
+            'templateHeaderAttachment.mimetypes' => match ($headerType) {
+                'image' => 'El encabezado debe ser una imagen JPG, PNG o WEBP.',
+                'video' => 'El encabezado debe ser un video MP4, 3GPP o MOV.',
+                'document' => 'El encabezado documento solo permite PDF.',
+                default => 'El archivo de encabezado no es valido.',
+            },
+            'templateHeaderAttachment.mimes' => 'El encabezado documento solo permite PDF.',
+            'templateHeaderAttachment.max' => 'El archivo de encabezado no debe superar 100MB.',
+        ])->validate();
     }
 }

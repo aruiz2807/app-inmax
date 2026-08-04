@@ -115,6 +115,8 @@ class User extends Authenticatable
         'phone_country_code',
         'phone_verified_at',
         'birth_date',
+        'curp',
+        'passport',
         'company_id',
         'profile_photo_path',
     ];

@@ -81,7 +81,7 @@
                             @foreach($appointments as $appointment)
                                 <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-950/50 transition-colors">
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        {{ $appointment->date->format('d/m/Y') }}
+                                        {{ $appointment->note->created_at->format('d/m/Y') }}
                                     </td>
                                     <td class="px-4 py-3 font-medium">
                                         {{ $appointment->user->name }}

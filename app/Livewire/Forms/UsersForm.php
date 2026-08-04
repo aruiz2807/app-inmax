@@ -91,7 +91,7 @@ class UsersForm extends Form
                 ]);
                 break;
 
-            case 'Vendedor':
+            case 'Sales':
                 DB::table('permission_user')->insert([
                     ['permission_id' => 2, 'user_id' => $user->id],
                 ]);
