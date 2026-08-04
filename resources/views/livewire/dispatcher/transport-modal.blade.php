@@ -2,8 +2,9 @@
     id="transport-modal"
     animation="fade"
     width="5xl"
-    heading="Nuevo traslado"
-    description="Complete la información para registrar un nuevo traslado"
+    heading="{{ $isEditing ? 'Editar traslado' : 'Nuevo traslado' }}"
+    description="{{ $isEditing ? 'Actualice la información del traslado' : 'Complete la información para registrar un nuevo traslado' }}"
+    x-on:open-transport-modal.window="$data.open()"
     x-on:close-transport-modal.window="$data.close()"
 >
     <div class="space-y-6">
@@ -21,6 +22,7 @@
                         icon="magnifying-glass"
                         searchable
                         clearable
+                        :disabled="$isEditing"
                         search-emit="transport-patient-search"
                         x-on:transport-patient-search.debounce.300ms="$wire.set('patientSearch', $event.detail.search)"
                         wire:model.live="selectedPatientId"
@@ -270,7 +272,7 @@
 
                                             <div>
                                                 <x-ui.text class="font-semibold text-neutral-900">{{ $serviceData['service']->name }}</x-ui.text>
-                                                <x-ui.text class="text-xs text-neutral-500">${{ number_format((float) ($serviceData['service']->price ?? $this->resolveServicePrice((int) $serviceData['service']->id)), 2) }}</x-ui.text>
+                                                <x-ui.text class="text-xs text-neutral-500">${{ number_format((float) ($serviceData['service']->price ?? 0), 2) }}</x-ui.text>
                                             </div>
                                         </div>
 
@@ -448,7 +450,7 @@
             </x-ui.button>
 
             <x-ui.button wire:click="save" icon="check" color="teal">
-                Guardar
+                {{ $isEditing ? 'Actualizar' : 'Guardar' }}
             </x-ui.button>
         </div>
     </div>

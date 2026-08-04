@@ -160,20 +160,42 @@ final class TransportsTable extends PowerGridComponent
         ];
     }
 
-    public function actions($row)
+    public function actions(Appointment $row)
     {
+        $status = $row->status instanceof AppointmentStatus
+            ? $row->status
+            : AppointmentStatus::tryFrom((string) $row->status);
+
+        $isCompleted = $status === AppointmentStatus::COMPLETED;
+
         return [
             Button::add('show')
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
                 ->id()
                 ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
-                ->dispatch('showReceptionistPendingResultsDetail', ['appointmentId' => $row->id]),
+                ->dispatch('dispatcherShowTransportDetail', ['appointmentId' => $row->id]),
 
-            Button::add('upload')
+            $isCompleted
+                ? Button::add('edit_disabled')
+                    ->slot(Blade::render('<div class="flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
+                    ->id()
+                    ->class('text-neutral-500 px-2 py-1 rounded')
+                : Button::add('edit')
+                    ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
+                    ->id()
+                    ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
+                    ->dispatch('dispatcherEditTransport', ['appointmentId' => $row->id]),
+
+            $isCompleted
+                ? Button::add('close_disabled')
+                    ->slot(Blade::render('<div class="flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="clipboard-document-check" variant="outline" class="w-5 h-5"/><span>Cerrar</span></div>'))
+                    ->id()
+                    ->class('text-neutral-500 px-2 py-1 rounded')
+                : Button::add('close')
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="clipboard-document-check" variant="outline" class="w-5 h-5"/><span>Cerrar</span></div>'))
                 ->id()
                 ->class('text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors')
-                ->dispatch('showReceptionistPendingResultsUpload', ['appointmentId' => $row->id]),
+                ->dispatch('dispatcherCloseTransport', ['appointmentId' => $row->id]),
         ];
     }
 }

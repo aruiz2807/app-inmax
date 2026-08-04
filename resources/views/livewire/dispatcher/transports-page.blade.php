@@ -7,7 +7,7 @@
         <x-ui.heading class="flex items-center justify-between mb-4" level="h3" size="sm">
             <span>Traslados</span>
 
-            <x-ui.modal.trigger id="transport-modal" wire:click="resetForm">
+            <x-ui.modal.trigger id="transport-modal" wire:click="startCreate">
                     <x-ui.button color="teal" icon="plus-circle">
                         Nuevo servicio
                     </x-ui.button>
@@ -86,4 +86,6 @@
     </div>
 
     @includeIf('livewire.dispatcher.transport-modal')
+    @includeIf('livewire.dispatcher.transport-detail-modal')
+    @includeIf('livewire.dispatcher.transport-close-modal')
 </div>
