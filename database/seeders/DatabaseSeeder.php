@@ -53,6 +53,7 @@ class DatabaseSeeder extends Seeder
             RelationshipsSeeder::class,
             CfdiRegimesSeeder::class,
             CfdiUsesSeeder::class,
+            AmbulanceServicesSeeder::class,
         ]);
     }
 }
