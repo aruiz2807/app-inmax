@@ -104,20 +104,28 @@ final class TransportsTable extends PowerGridComponent
     private function renderStatusBadge(Appointment $appointment): string
     {
         $status = $appointment->status?->value;
+        $statusBadge = Blade::render('<x-status-badge status="'.$status.'" />');
 
         if ($status === AppointmentStatus::REQUESTED->value) {
-            return '<span class="px-2 py-1 text-xs font-bold rounded-full text-violet-700 bg-violet-100">Programado</span>';
+            $statusBadge = '<span class="px-2 py-1 text-xs font-bold rounded-full text-violet-700 bg-violet-100">Programado</span>';
         }
 
         if ($status === AppointmentStatus::BOOKED->value) {
-            return '<span class="px-2 py-1 text-xs font-bold rounded-full text-blue-700 bg-blue-100">En progreso</span>';
+            $statusBadge = '<span class="px-2 py-1 text-xs font-bold rounded-full text-blue-700 bg-blue-100">En progreso</span>';
         }
 
         if ($status === AppointmentStatus::COMPLETED->value) {
-            return '<span class="px-2 py-1 text-xs font-bold rounded-full text-green-700 bg-green-100">Finalizado</span>';
+            $statusBadge = '<span class="px-2 py-1 text-xs font-bold rounded-full text-green-700 bg-green-100">Finalizado</span>';
         }
 
-        return Blade::render('<x-status-badge status="'.$status.'" />');
+        if (! (bool) $appointment->edited) {
+            return $statusBadge;
+        }
+
+        return '<div class="flex flex-col items-start gap-1">'
+            .$statusBadge
+            .'<span class="px-2 py-1 text-xs font-bold rounded-full text-amber-700 bg-amber-100">Editado</span>'
+            .'</div>';
     }
 
     public function columns(): array
