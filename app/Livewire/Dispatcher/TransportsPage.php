@@ -702,7 +702,13 @@ class TransportsPage extends Component
 
     public function getBudgetSubtotalProperty()
     {
-        $transportPrice = $this->selectedTransportService
+        $selectedTransportServiceId = (int) ($this->selectedTransportServiceId ?? 0);
+        $selectedTransportData = $this->transportServicesData
+            ->first(fn (array $item) => (int) $item['service']->id === $selectedTransportServiceId);
+
+        $isTransportIncluded = (bool) ($selectedTransportData['included'] ?? false);
+
+        $transportPrice = $this->selectedTransportService && ! $isTransportIncluded
             ? (float) $this->selectedTransportService->price
             : 0;
 
@@ -876,6 +882,7 @@ class TransportsPage extends Component
                 'pain_scale' => $this->severityPainScale,
             ]),
             'comments' => $this->notes,
+            'edited' => $this->isEditing,
         ];
 
         $appointment = null;

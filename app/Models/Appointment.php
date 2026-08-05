@@ -98,7 +98,8 @@ class Appointment extends Model
         'payment_reference',
         'payment_attachment_path',
         'payment_attachment_name',
-        'status_prescription'
+        'status_prescription',
+        'edited',
     ];
 
     protected $casts = [
