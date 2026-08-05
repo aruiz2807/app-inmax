@@ -43,6 +43,18 @@
                     <x-ui.error name="form.name" />
                 </x-ui.field>
 
+                <x-ui.field>
+                    <x-ui.label>Costo</x-ui.label>
+                    <x-ui.input wire:model="form.cost" name="cost" placeholder="100" />
+                    <x-ui.error name="form.cost" />
+                </x-ui.field>
+
+                <x-ui.field required>
+                    <x-ui.label>Precio</x-ui.label>
+                    <x-ui.input wire:model="form.price" name="price" placeholder="150" />
+                    <x-ui.error name="form.price" />
+                </x-ui.field>
+
                 <x-ui.radio.group wire:model="form.type" name="type" label="Tipo de servicio" variant="cards" direction="horizontal" class="mt-4">
                     <x-ui.radio.item
                         icon="ticket"

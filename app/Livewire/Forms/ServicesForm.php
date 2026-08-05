@@ -14,6 +14,11 @@ class ServicesForm extends Form
     #[Validate('required')]
     public $type = 'Event';
 
+    #[Validate('required')]
+    public $price = 0;
+    
+    public $cost = null;
+
     /**
     * Store the service in the DB.
     */
@@ -21,7 +26,7 @@ class ServicesForm extends Form
     {
         $this->validate();
 
-        Service::create($this->only(['name', 'type']));
+        Service::create($this->only(['name', 'type', 'price', 'cost']));
     }
 
     /**
@@ -31,6 +36,8 @@ class ServicesForm extends Form
     {
         $this->name = $service->name;
         $this->type = $service->type;
+        $this->price = $service->price;
+        $this->cost = $service->cost;
     }
 
     /**
@@ -45,6 +52,8 @@ class ServicesForm extends Form
         $service->update([
             'name' => $this->name,
             'type' => $this->type,
+            'price' => $this->price,
+            'cost' => $this->cost,
         ]);
     }
 }
