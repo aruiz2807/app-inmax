@@ -3,8 +3,11 @@
 namespace App\Livewire\Appointments;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\ExternalServicesType;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
+use App\Models\PolicyExternalService;
+use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -20,6 +23,14 @@ class AppointmentsPage extends Component
     public $historyAppointments;
     public array $historyServiceAttachments = [];
     public array $historyResultsComments = [];
+    public $historyExternalServices;
+    public bool $showHistoryUploadSections = false;
+    public bool $showHistoryUploadForm = false;
+    public string $historyUploadType = '';
+    public string $historyUploadDate = '';
+    public string $historyUploadName = '';
+    public string $historyUploadComments = '';
+    public $historyUploadFile = null;
 
     #[Layout('layouts.app')]
     public function render()
@@ -78,9 +89,86 @@ class AppointmentsPage extends Component
             ->orderByDesc('time')
             ->get();
 
+        $this->refreshHistoryExternalServices();
         $this->initializeHistoryUploadState();
+        $this->showHistoryUploadSections = false;
+        $this->closeHistoryUploadForm();
 
         $this->dispatch('open-history-appointment-modal');
+    }
+
+    public function toggleHistoryUploadSections(): void
+    {
+        $this->showHistoryUploadSections = ! $this->showHistoryUploadSections;
+    }
+
+    public function openHistoryUploadForm(string $type): void
+    {
+        $this->resetHistoryUploadForm();
+        $this->historyUploadType = $type;
+        $this->historyUploadDate = now()->format('Y-m-d');
+        $this->showHistoryUploadForm = true;
+    }
+
+    public function closeHistoryUploadForm(): void
+    {
+        $this->resetHistoryUploadForm();
+        $this->showHistoryUploadForm = false;
+    }
+
+    public function saveHistoryExternalService(): void
+    {
+        $this->validate([
+            'historyUploadName' => 'required|string|max:255',
+            'historyUploadDate' => 'required|date',
+            'historyUploadComments' => 'nullable|string|max:1000',
+            'historyUploadType' => ['required', new Enum(ExternalServicesType::class)],
+            'historyUploadFile' => 'max:10240',
+        ]);
+
+        if (! $this->historyPatient) {
+            return;
+        }
+
+        $policy = $this->historyPatient->policy;
+
+        if (! $policy) {
+            $this->dispatch('notify',
+                type: 'warning',
+                content: 'El paciente no tiene membresia activa para registrar archivos.',
+                duration: 3500
+            );
+
+            return;
+        }
+
+        $attachmentPath = null;
+        $attachmentName = null;
+
+        if ($this->historyUploadFile) {
+            $file = $this->historyUploadFile;
+            $attachmentPath = $file->store('external-services');
+            $attachmentName = $file->getClientOriginalName();
+        }
+
+        PolicyExternalService::create([
+            'policy_id' => $policy->id,
+            'name' => $this->historyUploadName,
+            'date' => $this->historyUploadDate,
+            'comments' => $this->historyUploadComments ?: null,
+            'type' => $this->historyUploadType,
+            'attachment_path' => $attachmentPath,
+            'attachment_name' => $attachmentName,
+        ]);
+
+        $this->refreshHistoryExternalServices();
+        $this->closeHistoryUploadForm();
+
+        $this->dispatch('notify',
+            type: 'success',
+            content: 'Archivo importado exitosamente.',
+            duration: 3500
+        );
     }
 
     public function saveHistoryResultsAndKeepPending(int $appointmentId): void
@@ -115,10 +203,10 @@ class AppointmentsPage extends Component
             return;
         }
 
-        if ($appointment->status !== AppointmentStatus::RESULTS_PENDING) {
+        if (! in_array($appointment->status, [AppointmentStatus::RESULTS_PENDING, AppointmentStatus::COMPLETED], true)) {
             $this->dispatch('notify',
                 type: 'warning',
-                content: 'La carga de resultados solo esta disponible para citas pendientes de resultados.',
+                content: 'La carga de resultados solo esta disponible para consultas atendidas o pendientes de resultados.',
                 duration: 3500
             );
 
@@ -168,7 +256,7 @@ class AppointmentsPage extends Component
             ->whereNull('attachment_path')
             ->exists();
 
-        if ($markAsCompleted) {
+        if ($markAsCompleted || $appointment->status === AppointmentStatus::COMPLETED) {
             $appointment->update([
                 'status' => AppointmentStatus::COMPLETED,
             ]);
@@ -210,6 +298,20 @@ class AppointmentsPage extends Component
             ->get();
 
         $this->initializeHistoryUploadState();
+    }
+
+    private function refreshHistoryExternalServices(): void
+    {
+        if (! $this->historyPatient?->policy?->id) {
+            $this->historyExternalServices = collect();
+
+            return;
+        }
+
+        $this->historyExternalServices = PolicyExternalService::query()
+            ->where('policy_id', $this->historyPatient->policy->id)
+            ->orderByDesc('date')
+            ->get();
     }
 
     private function initializeHistoryUploadState(): void
@@ -256,5 +358,17 @@ class AppointmentsPage extends Component
         $this->historyAppointments = null;
         $this->historyServiceAttachments = [];
         $this->historyResultsComments = [];
+        $this->historyExternalServices = collect();
+        $this->showHistoryUploadSections = false;
+        $this->closeHistoryUploadForm();
+    }
+
+    private function resetHistoryUploadForm(): void
+    {
+        $this->historyUploadType = '';
+        $this->historyUploadDate = now()->format('Y-m-d');
+        $this->historyUploadName = '';
+        $this->historyUploadComments = '';
+        $this->historyUploadFile = null;
     }
 }
