@@ -46,7 +46,10 @@ final class DispensationTable extends PowerGridComponent
     {
         return Appointment::query()
             ->leftJoin('appointment_notes', 'appointment_notes.appointment_id', '=', 'appointments.id')
+            ->leftJoin('users as patients', 'patients.id', '=', 'appointments.user_id')
             ->leftJoin('doctors', 'doctors.id', '=', 'appointments.doctor_id')
+            ->leftJoin('users as doctor_users', 'doctor_users.id', '=', 'doctors.user_id')
+            ->leftJoin('policies as patient_policies', 'patient_policies.user_id', '=', 'appointments.user_id')
             ->select('appointments.*', 'appointment_notes.id as appointment_note_id', 'appointment_notes.created_at as appointment_note_date')
             ->with(['user.policy', 'doctor.user'])
             ->where('doctors.type', 'Doctor')
@@ -158,12 +161,12 @@ final class DispensationTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('Receta', 'appointment_note_id', 'appointment_note_id')
+            Column::make('Receta', 'appointment_note_id', 'appointment_notes.id')
                 ->searchable()
                 ->sortable()
                 ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy('appointment_notes.id', $direction)),
 
-            Column::make('Nombre paciente', 'patient_display', 'patient_name')
+            Column::make('Nombre paciente', 'patient_display', 'patients.name')
                 ->searchable()
                 ->sortable()
                 ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
@@ -185,7 +188,7 @@ final class DispensationTable extends PowerGridComponent
                 ))
                 ->hidden(isHidden: true, isForceHidden: false),
 
-            Column::make('No. Membresía', 'membership_number')
+            Column::make('No. Membresía', 'membership_number', 'patient_policies.number')
                 ->searchable()
                 ->sortable()
                 ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
@@ -196,7 +199,7 @@ final class DispensationTable extends PowerGridComponent
                     $direction
                 )),
 
-            Column::make('Médico prescriptor', 'prescriber_doctor_display', 'prescriber_doctor')
+            Column::make('Médico prescriptor', 'prescriber_doctor_display', 'doctor_users.name')
                 ->searchable()
                 ->sortable()
                 ->sortUsing(fn (Builder $query, string $direction) => $query->orderBy(
