@@ -88,4 +88,5 @@
     @includeIf('livewire.dispatcher.transport-modal')
     @includeIf('livewire.dispatcher.transport-detail-modal')
     @includeIf('livewire.dispatcher.transport-close-modal')
+    @includeIf('livewire.dispatcher.transport-cancel-modal')
 </div>

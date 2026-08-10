@@ -149,16 +149,14 @@
             this.isOpen = true;
         },
 
-        close() {
-            if (this.persistent) return;
+        close(force = false) {
+            if (this.persistent && !force) return;
             // clean the global $modal store (mandantory even for isolated modals)
             $modal.close(this.modalId);
             this.isOpen = false;
         },
         forseClose() {
-            // clean the global $modal store (mandantory even for isolated modals)
-            $modal.close(this.modalId);
-            this.isOpen = false;
+            this.close(true);
         },
 
         handleBackdropClick(event) {
@@ -327,7 +325,7 @@
                         {{-- Close Button --}}
                         @if($closeButton)
                             <x-ui.button
-                                x-on:click="$data.close();"
+                                x-on:click="$data.close(true);"
                                 variant="none"
                                 {{-- prevent the icon to be aware of our current icon --}}
                                 :icon="null"

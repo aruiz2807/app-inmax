@@ -55,6 +55,9 @@ class TransportsPage extends Component
     public bool $isEditing = false;
     public ?Appointment $closingAppointment = null;
     public ?int $closingAppointmentId = null;
+    public ?Appointment $cancellingAppointment = null;
+    public ?int $cancellingAppointmentId = null;
+    public ?string $cancelReason = null;
     public $frapAttachment = null;
     public array $closePerformedServices = [];
     public array $closeAdditionalServices = [];
@@ -210,6 +213,75 @@ class TransportsPage extends Component
 
         $this->loadCloseSummaryFromAppointment($appointment);
         $this->dispatch('open-transport-close-modal');
+    }
+
+    #[On('dispatcherCancelTransport')]
+    public function openCancelTransport(int $appointmentId)
+    {
+        $appointment = $this->managedAppointmentsQuery()
+            ->whereKey($appointmentId)
+            ->first();
+
+        if (! $appointment || in_array($appointment->status, [AppointmentStatus::COMPLETED, AppointmentStatus::CANCELLED, AppointmentStatus::REJECTED, AppointmentStatus::NO_SHOW], true)) {
+            return;
+        }
+
+        $this->resetCancelState();
+        $this->cancellingAppointment = $appointment;
+        $this->cancellingAppointmentId = $appointment->id;
+        $this->dispatch('open-transport-cancel-modal');
+    }
+
+    public function confirmCancelTransport()
+    {
+        $this->validate([
+            'cancelReason' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'cancelReason.max' => 'El motivo no puede superar 2000 caracteres.',
+        ]);
+
+        if (! $this->cancellingAppointmentId) {
+            return;
+        }
+
+        $appointment = $this->managedAppointmentsQuery()
+            ->whereKey($this->cancellingAppointmentId)
+            ->first();
+
+        if (! $appointment || in_array($appointment->status, [AppointmentStatus::COMPLETED, AppointmentStatus::CANCELLED, AppointmentStatus::REJECTED, AppointmentStatus::NO_SHOW], true)) {
+            return;
+        }
+
+        $currentComments = trim((string) $appointment->comments);
+        $formattedReason = trim((string) $this->cancelReason);
+
+        $newComments = $currentComments !== ''
+            ? rtrim($currentComments) . PHP_EOL . 'Cancelado por: ' . $formattedReason
+            : 'Cancelado por: ' . $formattedReason;
+
+        $appointment->update([
+            'status' => AppointmentStatus::CANCELLED,
+            'comments' => $newComments,
+        ]);
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: 'Traslado cancelado correctamente.',
+            duration: 3500
+        );
+
+        $this->dispatch('close-transport-cancel-modal');
+        $this->dispatch('pg:eventRefresh-dispatcherTransportsTable');
+        $this->resetCancelState();
+    }
+
+    public function resetCancelState()
+    {
+        $this->cancellingAppointment = null;
+        $this->cancellingAppointmentId = null;
+        $this->cancelReason = null;
+        $this->resetValidation();
     }
 
     public function finalizeCloseTransport()

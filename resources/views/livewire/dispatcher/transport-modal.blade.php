@@ -2,6 +2,7 @@
     id="transport-modal"
     animation="fade"
     width="5xl"
+    persistent
     heading="{{ $isEditing ? 'Editar traslado' : 'Nuevo traslado' }}"
     description="{{ $isEditing ? 'Actualice la información del traslado' : 'Complete la información para registrar un nuevo traslado' }}"
     x-on:open-transport-modal.window="$data.open()"
@@ -445,7 +446,7 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-2">
-            <x-ui.button x-on:click="$data.close()" icon="x-mark" variant="outline" color="zinc">
+            <x-ui.button x-on:click="$data.close(true)" icon="x-mark" variant="outline" color="zinc">
                 Cancelar
             </x-ui.button>
 

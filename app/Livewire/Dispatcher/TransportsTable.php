@@ -55,6 +55,7 @@ final class TransportsTable extends PowerGridComponent
             ->when(in_array($this->tab, ['in_progress', 'inProgress'], true), fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::BOOKED))
             ->when($this->tab === 'completed', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::COMPLETED))
             ->when($this->tab === 'cancelled', fn (Builder $query) => $query->whereIn('appointments.status', [
+                AppointmentStatus::CANCELLED,
                 AppointmentStatus::REJECTED,
                 AppointmentStatus::NO_SHOW,
             ]));
@@ -175,6 +176,7 @@ final class TransportsTable extends PowerGridComponent
             : AppointmentStatus::tryFrom((string) $row->status);
 
         $isCompleted = $status === AppointmentStatus::COMPLETED;
+        $isCancelled = in_array($status, [AppointmentStatus::CANCELLED, AppointmentStatus::REJECTED, AppointmentStatus::NO_SHOW], true);
 
         return [
             Button::add('show')
@@ -183,7 +185,7 @@ final class TransportsTable extends PowerGridComponent
                 ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('dispatcherShowTransportDetail', ['appointmentId' => $row->id]),
 
-            $isCompleted
+            $isCompleted || $isCancelled
                 ? Button::add('edit_disabled')
                     ->slot(Blade::render('<div class="flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                     ->id()
@@ -194,7 +196,7 @@ final class TransportsTable extends PowerGridComponent
                     ->class('text-teal-600 hover:bg-teal-50 px-2 py-1 rounded transition-colors')
                     ->dispatch('dispatcherEditTransport', ['appointmentId' => $row->id]),
 
-            $isCompleted
+            $isCompleted || $isCancelled
                 ? Button::add('close_disabled')
                     ->slot(Blade::render('<div class="flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="clipboard-document-check" variant="outline" class="w-5 h-5"/><span>Cerrar</span></div>'))
                     ->id()
@@ -204,6 +206,17 @@ final class TransportsTable extends PowerGridComponent
                 ->id()
                 ->class('text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('dispatcherCloseTransport', ['appointmentId' => $row->id]),
+
+            $isCompleted || $isCancelled
+                ? Button::add('cancel_disabled')
+                    ->slot(Blade::render('<div class="flex items-center gap-2 opacity-40 cursor-not-allowed"><x-ui.icon name="x-circle" variant="outline" class="w-5 h-5"/><span>Cancelar</span></div>'))
+                    ->id()
+                    ->class('text-neutral-500 px-2 py-1 rounded')
+                : Button::add('cancel')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="x-circle" variant="outline" class="w-5 h-5"/><span>Cancelar</span></div>'))
+                ->id()
+                ->class('text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('dispatcherCancelTransport', ['appointmentId' => $row->id]),
         ];
     }
 }
