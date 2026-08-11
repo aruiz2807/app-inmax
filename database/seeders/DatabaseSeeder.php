@@ -54,6 +54,7 @@ class DatabaseSeeder extends Seeder
             CfdiRegimesSeeder::class,
             CfdiUsesSeeder::class,
             AmbulanceServicesSeeder::class,
+            ParameterAmbulancesCommissionSeeder::class,
         ]);
     }
 }

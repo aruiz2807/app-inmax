@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\PolicyService;
+use App\Models\Parameter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -405,16 +406,30 @@ class TransportsPage extends Component
 
         $doctorDiscount = ((float) ($appointment->doctor?->discount ?? 0)) / 100;
         $doctorCommission = ((float) ($appointment->doctor?->commission ?? 0)) / 100;
+        $ambParamComission = Parameter::query()->where('type', 'AMB')->where('key', 'Comision')->value('value');
 
         if ($servicesIncludedTotal > 0) {
-            $commission = round($servicesIncludedTotal * $doctorCommission, 2);
+            if ($ambParamComission) {
+                $commission = (float) $ambParamComission;
+            } else {
+                $commission = round($servicesIncludedTotal * $doctorCommission, 2);
+            }
+            
+            // aplicando los $200 a favor de INMAX
+            // $this->closeCommission = (-$servicesIncludedTotal) + $commission;
+            // $this->closeProviderTotal = $subtotal + $servicesIncludedTotal - $commission;
 
-            $this->closeCommission = (-$servicesIncludedTotal) - $commission;
-            $this->closeProviderTotal = $subtotal+$servicesIncludedTotal - $commission;
+            $this->closeCommission = (-$servicesIncludedTotal);
+            $this->closeProviderTotal = $subtotal + $servicesIncludedTotal;
             $this->closeSubtotal = $subtotal;
             
         } else {
-            $this->closeCommission = round($this->closeSubtotal * $doctorCommission, 2);
+            if ($ambParamComission) {
+                $this->closeCommission = (float) $ambParamComission;
+            } else {
+                $this->closeCommission = round($this->closeSubtotal * $doctorCommission, 2);
+            }
+            
             $this->closeProviderTotal = ($this->closeSubtotal - $this->closeDiscount - $this->closeCommission);
         }
 

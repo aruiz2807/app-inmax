@@ -26,6 +26,9 @@ class CouponsForm extends Form
 
     public $service = null;
 
+    #[Validate('required')]
+    public $inmax_coverage_percent = '0';
+
     /**
     * Store the service in the DB.
     */
@@ -40,6 +43,7 @@ class CouponsForm extends Form
             'value' => str_replace(',', '', $this->value),
             'limit_min' => str_replace(',', '', $this->min),
             'limit_max' => str_replace(',', '', $this->max),
+            'inmax_coverage_percent' => str_replace(',', '', $this->inmax_coverage_percent),
         ]);
     }
 
@@ -54,6 +58,7 @@ class CouponsForm extends Form
         $this->value = $coupon->value;
         $this->min = $coupon->limit_min;
         $this->max = $coupon->limit_max;
+        $this->inmax_coverage_percent = $coupon->inmax_coverage_percent;
     }
 
     /**
@@ -72,6 +77,7 @@ class CouponsForm extends Form
             'value' => str_replace(',', '', $this->value),
             'limit_min' => str_replace(',', '', $this->min),
             'limit_max' => str_replace(',', '', $this->max),
+            'inmax_coverage_percent' => str_replace(',', '', $this->inmax_coverage_percent),
         ]);
     }
 }

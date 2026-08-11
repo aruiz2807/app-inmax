@@ -83,6 +83,14 @@
                     <x-ui.error name="form.max" />
                 </x-ui.field>
 
+                <x-ui.field required>
+                    <x-ui.label>Porcentaje de cobertura Inmax</x-ui.label>
+                    <x-ui.input wire:model="form.inmax_coverage_percent" name="inmax_coverage_percent" x-mask:dynamic="$money($input)" placeholder="0.00">
+                        <x-slot name="prefix">%</x-slot>
+                    </x-ui.input>
+                    <x-ui.error name="form.inmax_coverage_percent" />
+                </x-ui.field>
+
                 <x-ui.field>
                     <x-ui.label>Servicios disponibles</x-ui.label>
                     <x-ui.select

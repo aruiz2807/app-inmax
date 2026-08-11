@@ -46,6 +46,7 @@ class Coupon extends Model
         'value',
         'limit_min',
         'limit_max',
+        'inmax_coverage_percent',
     ];
 
     /**
