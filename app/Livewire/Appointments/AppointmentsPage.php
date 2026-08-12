@@ -7,6 +7,7 @@ use App\Enums\ExternalServicesType;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\PolicyExternalService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -370,5 +371,21 @@ class AppointmentsPage extends Component
         $this->historyUploadName = '';
         $this->historyUploadComments = '';
         $this->historyUploadFile = null;
+    }
+
+    #[On('orderAppointment')]
+    public function orderAppointment($appointmentId)
+    {
+        $appointment = Appointment::findOrFail($appointmentId);
+
+        $pdf = Pdf::loadView('pdf.order', [
+            'appointment' => $appointment,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "order-{$appointment->id}.pdf"
+        );
     }
 }

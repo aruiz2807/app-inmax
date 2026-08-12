@@ -141,6 +141,12 @@ final class AppointmentsTable extends PowerGridComponent
                 ->id()
                 ->class('text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('historyAppointment', ['appointmentId' => $row->id]),
+
+            Button::add('order')
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="document-arrow-down" variant="outline" class="w-5 h-5"/><span>Orden</span></div>'))
+                ->id()
+                ->class('text-gray-600 hover:bg-gray-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('orderAppointment', ['appointmentId' => $row->id])
         ];
     }
 
@@ -165,6 +171,10 @@ final class AppointmentsTable extends PowerGridComponent
                     \App\Enums\AppointmentStatus::NO_SHOW,
                     \App\Enums\AppointmentStatus::REJECTED,
                 ]))
+                ->hide(),
+
+            Rule::button('order')
+                ->when(fn($model) => is_null($model->requested_by_user_id))
                 ->hide(),
 
         ];
