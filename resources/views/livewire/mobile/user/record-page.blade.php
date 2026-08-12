@@ -127,7 +127,13 @@
 
                                             @foreach($record->services as $service)
                                                 @if($service->status === 'Completed')
-                                                <x-ui.text class="text-sm">{{$service->name}}</x-ui.text>
+                                                    @if($service->attachment_path)
+                                                        <a href="{{ route('attachment.download', $service->id) }}">
+                                                            <x-ui.text class="text-sm">{{$service->name}}</x-ui.text>
+                                                        </a>
+                                                    @else
+                                                        <x-ui.text class="text-sm">{{$service->name}}</x-ui.text>
+                                                    @endif
                                                 @endif
                                             @endforeach
                                         </div>
