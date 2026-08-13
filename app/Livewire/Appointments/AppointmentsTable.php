@@ -137,7 +137,7 @@ final class AppointmentsTable extends PowerGridComponent
                 ->dispatch('cancelAppointment', ['appointmentId' => $row->id]),
 
             Button::add('history')
-                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Historial completo</span></div>'))
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Historial</span></div>'))
                 ->id()
                 ->class('text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors')
                 ->dispatch('historyAppointment', ['appointmentId' => $row->id]),
