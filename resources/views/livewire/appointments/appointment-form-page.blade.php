@@ -67,7 +67,7 @@
     </x-ui.field>
     @endif
 
-    @if($selectedDoctor && !$appointment)
+    @if($selectedDoctor)
     <x-ui.field class="mt-2">
         <div class="flex justify-between items-center mb-1">
             <x-ui.label>Servicios</x-ui.label>
@@ -82,7 +82,6 @@
             searchable
             multiple
             clearable
-            :disabled="$appointment !== null"
             wire:model.live="selectedServices">
                 @foreach($this->services as $service)
                     <x-ui.select.option value="{{ $service->id }}">
@@ -200,7 +199,7 @@
 
     <div class="w-full flex justify-end gap-3 pt-4">
         <x-ui.button wire:click="clear" x-on:click="$data.close();" icon="x-mark" variant="outline">
-            Cancel
+            Cancelar
         </x-ui.button>
 
         <x-ui.button wire:click="schedule" icon="check" variant="primary" color="teal">

@@ -149,6 +149,18 @@ class AppointmentFormPage extends Component
                 'date' => $this->selectedDate,
                 'time' => $this->selectedTime,
             ]);
+
+            AppointmentService::where('appointment_id', $this->appointment->id)->delete();
+
+            foreach($this->servicesData as $service)
+            {
+                AppointmentService::create([
+                    'appointment_id' => $this->appointment->id,
+                    'service_id' => $service['id'] ?? null,
+                    'unregistered_service' => $service['unregistered_service'] ?? null,
+                    'covered' => $service['included'],
+                ]);
+            }
         }
         else
         {
