@@ -245,7 +245,7 @@ final class AppointmentsTable extends PowerGridComponent
             $canOpenTicket
                 ? Button::add('ticket_menu')
                     ->slot(Blade::render(<<<'BLADE'
-                        <x-ui.dropdown>
+                        <x-ui.dropdown portal>
                             <x-slot:button class="text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors inline-flex items-center gap-2">
                                 <x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/>
                                 <span>Ticket</span>
