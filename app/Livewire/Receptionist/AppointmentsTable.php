@@ -80,6 +80,7 @@ final class AppointmentsTable extends PowerGridComponent
                 $pendingQuery
                     ->whereNull('user_payment')
                     ->whereIn('appointments.status', [
+                        AppointmentStatus::BOOKED->value,
                         AppointmentStatus::COMPLETED->value,
                         AppointmentStatus::RESULTS_PENDING->value,
                     ]);
@@ -225,12 +226,13 @@ final class AppointmentsTable extends PowerGridComponent
 
     public function actions(Appointment $row): array
     {
-        $canOpenTicket = !is_null($row->user_payment) && !is_null($row->note?->id);
+        $canOpenTicket = !is_null($row->user_payment);
         $isPaid = !is_null($row->user_payment);
         $status = $row->status instanceof AppointmentStatus
             ? $row->status
             : AppointmentStatus::tryFrom((string) $row->status);
         $canSettle = in_array($status, [
+            AppointmentStatus::BOOKED,
             AppointmentStatus::COMPLETED,
             AppointmentStatus::RESULTS_PENDING,
         ], true);

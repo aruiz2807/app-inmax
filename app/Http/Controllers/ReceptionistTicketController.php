@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\AppointmentNote;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,11 +22,8 @@ class ReceptionistTicketController extends Controller
             'user:id,name',
         ]);
 
-        $note = $appointment->note;
-
-        if (! $note) {
-            abort(404, 'No existe nota para esta consulta.');
-        }
+        // Citas liquidadas antes de tener nota (ej. cerradas desde recepcion) la generan aqui
+        $note = $appointment->note ?: AppointmentNote::firstOrCreate(['appointment_id' => $appointment->id]);
 
         $pdf = Pdf::loadView('pdf.ticket', [
             'note' => $note,

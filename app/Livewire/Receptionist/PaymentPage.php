@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Receptionist;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\AppointmentNote;
+use App\Models\AppointmentService;
 use App\Models\Parameter;
 use App\Models\PolicyService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -32,6 +35,8 @@ class PaymentPage extends Component
     public Collection $availableCoupons;
     public null|int|string $selectedCouponId = null;
     public float $couponDiscountValue = 0;
+    public bool $canManageServices = false;
+    public array $servicesToComplete = [];
 
     #[Layout('layouts.app')]
     public function render()
@@ -56,8 +61,23 @@ class PaymentPage extends Component
         $this->payment_method = (string) ($this->appointment->payment_method ?? '');
         $this->payment_reference = $this->appointment->payment_reference;
 
+        $this->canManageServices = $this->appointment->status === AppointmentStatus::BOOKED;
+
+        if ($this->canManageServices) {
+            foreach ($this->appointment->services as $service) {
+                $this->servicesToComplete[$service->id] = $service->status === AppointmentStatus::COMPLETED->value;
+            }
+        }
+
         $this->checkCouponAvailability();
         $this->calculateTotals();
+    }
+
+    public function updated($name): void
+    {
+        if (str_starts_with($name, 'servicesToComplete.')) {
+            $this->calculateTotals();
+        }
     }
 
     public function updatedSubtotal(): void
@@ -72,6 +92,11 @@ class PaymentPage extends Component
 
     public function save(): void
     {
+        if ($this->canManageServices && ! collect($this->servicesToComplete)->contains(true)) {
+            $this->addError('servicesToComplete', 'Debe marcar al menos un servicio como realizado.');
+            return;
+        }
+
         $allServicesCovered = $this->allCompletedServicesCovered();
 
         if ($this->parseMoney($this->subtotal) <= 0 && ! $allServicesCovered) {
@@ -84,6 +109,11 @@ class PaymentPage extends Component
 
     public function confirmPayment()
     {
+        if ($this->canManageServices && ! collect($this->servicesToComplete)->contains(true)) {
+            $this->addError('servicesToComplete', 'Debe marcar al menos un servicio como realizado.');
+            return;
+        }
+
         $this->validatePaymentFields();
 
         $subtotal = $this->parseMoney($this->subtotal);
@@ -92,6 +122,10 @@ class PaymentPage extends Component
         if ($subtotal <= 0 && ! $allServicesCovered) {
             $this->addError('subtotal', 'Ingrese un monto valido.');
             return;
+        }
+
+        if ($this->canManageServices) {
+            $this->persistServicesCompletion();
         }
 
         $this->calculateTotals();
@@ -108,7 +142,7 @@ class PaymentPage extends Component
             $attachmentName = $this->payment_attachment->getClientOriginalName();
         }
 
-        $this->appointment->update([
+        $updateData = [
             'subtotal' => $subtotal,
             'coupon_discount' => $this->couponDiscountValue,
             'user_payment' => $this->parseMoney($this->user_payment),
@@ -118,7 +152,14 @@ class PaymentPage extends Component
             'payment_reference' => $this->payment_reference,
             'payment_attachment_path' => $attachmentPath,
             'payment_attachment_name' => $attachmentName,
-        ]);
+        ];
+
+        // Una cita Booked pasa a Completed al cerrar su cuenta
+        if ($this->canManageServices) {
+            $updateData['status'] = AppointmentStatus::COMPLETED;
+        }
+
+        $this->appointment->update($updateData);
 
         $this->dispatch('close-payment-modal');
         $this->paymentSaved = true;
@@ -211,7 +252,7 @@ class PaymentPage extends Component
 
     private function calculateTotals(): void
     {
-        // Check if an included MG consultation is being performed
+        // Verifica si se esta realizando una consulta MG incluida
         $mgParam = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
         $mgServiceId = $mgParam ? (int) $mgParam->value : null;
 
@@ -219,7 +260,7 @@ class PaymentPage extends Component
         if ($mgServiceId) {
             $isMGIncluded = $this->appointment->services->where('service_id', $mgServiceId)
                 ->where('covered', 1)
-                ->where('status', 'Completed') // In PaymentPage, services are already marked Completed by doctor
+                ->filter(fn ($service) => $this->isServiceCompleted($service))
                 ->isNotEmpty();
         }
 
@@ -293,10 +334,39 @@ class PaymentPage extends Component
     private function allCompletedServicesCovered(): bool
     {
         $completedServices = $this->appointment->services
-            ->where('status', 'Completed');
+            ->filter(fn ($service) => $this->isServiceCompleted($service));
 
         return $completedServices->isNotEmpty()
             && $completedServices->every(fn ($service) => (bool) $service->covered);
+    }
+
+    private function isServiceCompleted(AppointmentService $service): bool
+    {
+        if ($this->canManageServices) {
+            return (bool) ($this->servicesToComplete[$service->id] ?? false);
+        }
+
+        return $service->status === AppointmentStatus::COMPLETED->value;
+    }
+
+    private function persistServicesCompletion(): void
+    {
+        $appointmentServices = $this->appointment->services->keyBy('id');
+
+        foreach ($this->servicesToComplete as $serviceId => $isDone) {
+            if (! isset($appointmentServices[$serviceId])) {
+                continue;
+            }
+
+            $appointmentServices[$serviceId]->update([
+                'status' => $isDone ? AppointmentStatus::COMPLETED->value : AppointmentStatus::CANCELLED->value,
+            ]);
+        }
+
+        // El ticket requiere una nota; las citas Booked aun no tienen una
+        AppointmentNote::firstOrCreate(['appointment_id' => $this->appointment->id]);
+
+        $this->appointment->load('services.service:id,name', 'note');
     }
 
     private function formatMoney(null|string|float|int $value): string

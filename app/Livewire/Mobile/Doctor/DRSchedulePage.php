@@ -199,7 +199,8 @@ class DRSchedulePage extends Component
             'requested_by_user_id' => Auth::user()->id,
             'date' => $this->selectedDate,
             'time' => $this->selectedTime,
-            'status' => $doctor->specialty->id == $paramSpecialty->value ? \App\Enums\AppointmentStatus::BOOKED : \App\Enums\AppointmentStatus::REQUESTED,
+            'status' => \App\Enums\AppointmentStatus::BOOKED,
+            //'status' => $doctor->specialty->id == $paramSpecialty->value ? \App\Enums\AppointmentStatus::BOOKED : \App\Enums\AppointmentStatus::REQUESTED,
         ]);
 
         foreach($this->servicesData as $service)

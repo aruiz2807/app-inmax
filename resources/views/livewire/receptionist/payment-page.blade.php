@@ -45,32 +45,69 @@
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
             <x-ui.icon name="clipboard-document-list" class="self-center" />
-            <x-ui.text class="text-base ml-2">Servicios completados</x-ui.text>
+            <x-ui.text class="text-base ml-2">{{ $canManageServices ? 'Servicios' : 'Servicios completados' }}</x-ui.text>
         </x-ui.heading>
 
-        @php
-            $completedServices = $appointment->services->filter(fn ($service) => $service->status === 'Completed');
-        @endphp
-
-        @if($completedServices->isEmpty())
-            <x-ui.text class="text-sm text-neutral-500">No hay servicios completados en esta cita.</x-ui.text>
-        @else
-            <div class="flex flex-col w-full gap-2">
-                @foreach($completedServices as $service)
-                    <div class="flex p-2 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
-                        <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
-
-                        <div class="flex flex-col w-full">
-                            <div class="flex items-center justify-between pl-4 pb-2">
+        @if($canManageServices)
+            @if($appointment->services->isEmpty())
+                <x-ui.text class="text-sm text-neutral-500">Esta cita no tiene servicios registrados.</x-ui.text>
+            @else
+                <div class="flex flex-col w-full">
+                    @foreach($appointment->services as $service)
+                        <div class="grid grid-cols-12 items-center gap-2 pb-2">
+                            <div class="col-span-5">
                                 <x-ui.text class="text-base pr-1">{{ $service->name ?? 'Servicio' }}</x-ui.text>
+                            </div>
+
+                            <div class="col-span-3 flex justify-center">
                                 <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
                                     {{ $service->covered_text }}
                                 </x-ui.badge>
                             </div>
+
+                            <div class="col-span-4 flex justify-end">
+                                <x-ui.switch
+                                    wire:model.live="servicesToComplete.{{ $service->id }}"
+                                    label="Realizado"
+                                    onClass="bg-teal"
+                                    iconOff="x-mark"
+                                    iconOn="check"
+                                />
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
+                    @endforeach
+
+                    @if(!collect($servicesToComplete)->contains(true))
+                        <span class="mt-2 text-sm text-red-500">Ningun servicio ha sido marcado como realizado.</span>
+                    @endif
+                    <x-ui.error name="servicesToComplete" />
+                </div>
+            @endif
+        @else
+            @php
+                $completedServices = $appointment->services->filter(fn ($service) => $service->status === 'Completed');
+            @endphp
+
+            @if($completedServices->isEmpty())
+                <x-ui.text class="text-sm text-neutral-500">No hay servicios completados en esta cita.</x-ui.text>
+            @else
+                <div class="flex flex-col w-full gap-2">
+                    @foreach($completedServices as $service)
+                        <div class="flex p-2 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
+                            <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
+
+                            <div class="flex flex-col w-full">
+                                <div class="flex items-center justify-between pl-4 pb-2">
+                                    <x-ui.text class="text-base pr-1">{{ $service->name ?? 'Servicio' }}</x-ui.text>
+                                    <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
+                                        {{ $service->covered_text }}
+                                    </x-ui.badge>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         @endif
     </x-ui.card>
 
