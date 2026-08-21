@@ -10,8 +10,10 @@ use App\Models\Appointment;
 use App\Models\Medication;
 use App\Models\AppointmentPrescription;
 use App\Models\AppointmentService;
+use App\Models\DoctorService;
 use App\Models\Parameter;
 use App\Models\PolicyService;
+use App\Models\Service;
 use App\Services\Appointments\AppointmentCompletedNotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -258,6 +260,7 @@ class DRNotesPage extends Component
     public function updated($name, $value)
     {
         if (str_starts_with($name, 'form.services.')) {
+            $this->syncSubtotalWithServices();
             $this->calculateTotals();
         }
     }
@@ -265,6 +268,63 @@ class DRNotesPage extends Component
     public function updatedSubtotal($value)
     {
         $this->calculateTotals();
+    }
+
+    /**
+     * Sum the doctor's price for every service marked as completed and use it as the account subtotal.
+     */
+    private function syncSubtotalWithServices()
+    {
+        if ($this->hasReceptionistAssigned) {
+            return;
+        }
+
+        $servicesSubtotal = $this->calculateServicesSubtotal();
+
+        if ($servicesSubtotal > 0) {
+            $this->subtotal = number_format($servicesSubtotal, 2);
+        }
+    }
+
+    private function calculateServicesSubtotal()
+    {
+        $serviceIds = $this->services->pluck('service_id')->filter()->all();
+
+        $doctorPrices = $this->getDoctorPrices($serviceIds);
+
+        // Fallback to the service's default price when the doctor has no specific price set
+        $servicePrices = Service::whereIn('id', $serviceIds)->pluck('price', 'id');
+
+        return $this->services->reduce(function ($carry, $service) use ($doctorPrices, $servicePrices) {
+            if (empty($this->form->services[$service->id]) || !$service->service_id) {
+                return $carry;
+            }
+
+            $price = $doctorPrices[$service->service_id] ?? $servicePrices[$service->service_id] ?? 0;
+
+            return $carry + (float) $price;
+        }, 0.0);
+    }
+
+    private function getDoctorPrices(array $serviceIds)
+    {
+        $doctorId = $this->appointment->doctor_id ?: $this->user->doctor->id;
+
+        return DoctorService::where('doctor_id', $doctorId)
+            ->whereIn('service_id', $serviceIds)
+            ->pluck('price', 'service_id');
+    }
+
+    /**
+     * Get the price of a single service, falling back to the service's default price.
+     */
+    private function getServicePrice(int $serviceId): float
+    {
+        $price = $this->getDoctorPrices([$serviceId])[$serviceId]
+            ?? Service::where('id', $serviceId)->value('price')
+            ?? 0;
+
+        return (float) $price;
     }
 
     public function updatedSelectedCouponId($value)
@@ -310,6 +370,7 @@ class DRNotesPage extends Component
             ? (float) ($this->appointment->coupon_discount ?? 0)
             : 0;
         $selectedBenefit = null;
+        $couponInmaxCoverage = 0;
         
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
@@ -320,6 +381,7 @@ class DRNotesPage extends Component
                 } elseif ($coupon->type === 'Percentage') {
                     $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
                 }
+                $couponInmaxCoverage = round($coupon->inmax_coverage_percent / 100, 2);
             }
         }
 
@@ -346,6 +408,17 @@ class DRNotesPage extends Component
         } elseif ($selectedBenefit) {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format($effectiveSubtotal - ($subtotal - $memberDiscount - $commission_amount), 2);
+
+            if ($couponInmaxCoverage > 0) {
+                // Coverage applies to the price of the specific service the coupon targets, not the whole subtotal
+                $couponServiceAmount = $coupon->service_id
+                    ? $this->getServicePrice($coupon->service_id)
+                    : $subtotal;
+
+                $inmaxCommission = round($couponServiceAmount * $couponInmaxCoverage, 2);
+                $this->commision = number_format(-$inmaxCommission, 2);
+                $this->total = number_format($inmaxCommission, 2);
+            }
         } else {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format($commission_amount, 2);

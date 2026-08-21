@@ -6,8 +6,10 @@ use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\AppointmentNote;
 use App\Models\AppointmentService;
+use App\Models\DoctorService;
 use App\Models\Parameter;
 use App\Models\PolicyService;
+use App\Models\Service;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -76,8 +78,64 @@ class PaymentPage extends Component
     public function updated($name): void
     {
         if (str_starts_with($name, 'servicesToComplete.')) {
+            $this->syncSubtotalWithServices();
             $this->calculateTotals();
         }
+    }
+
+    /**
+     * Sum the doctor's price for every service marked as completed and use it as the account subtotal.
+     */
+    private function syncSubtotalWithServices(): void
+    {
+        if (! $this->canManageServices) {
+            return;
+        }
+
+        $servicesSubtotal = $this->calculateServicesSubtotal();
+
+        if ($servicesSubtotal > 0) {
+            $this->subtotal = $this->formatMoney($servicesSubtotal);
+        }
+    }
+
+    private function calculateServicesSubtotal(): float
+    {
+        $serviceIds = $this->appointment->services->pluck('service_id')->filter()->all();
+
+        $doctorPrices = $this->getDoctorPrices($serviceIds);
+
+        // Fallback to the service's default price when the doctor has no specific price set
+        $servicePrices = Service::whereIn('id', $serviceIds)->pluck('price', 'id');
+
+        return $this->appointment->services->reduce(function ($carry, $service) use ($doctorPrices, $servicePrices) {
+            if (! $this->isServiceCompleted($service) || ! $service->service_id) {
+                return $carry;
+            }
+
+            $price = $doctorPrices[$service->service_id] ?? $servicePrices[$service->service_id] ?? 0;
+
+            return $carry + (float) $price;
+        }, 0.0);
+    }
+
+    private function getDoctorPrices(array $serviceIds)
+    {
+        return DoctorService::where('doctor_id', $this->appointment->doctor_id)
+            ->whereIn('service_id', $serviceIds)
+            ->pluck('price', 'service_id');
+    }
+
+    /**
+     * Get the price of a single service, falling back to the service's default price.
+     */
+    private function getServicePrice(int $serviceId): float
+    {
+        $price = $this->getDoctorPrices([$serviceId])[$serviceId]
+            ?? Service::where('id', $serviceId)->value('price')
+            ?? 0;
+
+        return (float) $price;
     }
 
     public function updatedSubtotal(): void
@@ -286,6 +344,7 @@ class PaymentPage extends Component
         $doctorCommission = $doctor->commission / 100;
         $this->couponDiscountValue = 0;
         $selectedBenefit = null;
+        $couponInmaxCoverage = 0;
 
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
@@ -298,6 +357,8 @@ class PaymentPage extends Component
                 } elseif ($coupon->type === 'Percentage') {
                     $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
                 }
+
+                $couponInmaxCoverage = round($coupon->inmax_coverage_percent / 100, 2);
             }
         }
 
@@ -320,6 +381,17 @@ class PaymentPage extends Component
             $providerTotal = $subtotal - $memberDiscount - $commission;
             $this->total = $this->formatMoney($providerTotal);
             $this->commision = $this->formatMoney($effectiveSubtotal - $providerTotal);
+
+            if ($couponInmaxCoverage > 0) {
+                // Coverage applies to the price of the specific service the coupon targets, not the whole subtotal
+                $couponServiceAmount = $coupon->service_id
+                    ? $this->getServicePrice($coupon->service_id)
+                    : $subtotal;
+
+                $inmaxCommission = round($couponServiceAmount * $couponInmaxCoverage, 2);
+                $this->commision = $this->formatMoney(-$inmaxCommission);
+                $this->total = $this->formatMoney($inmaxCommission);
+            }
         } else {
             $this->commision = $this->formatMoney($commission);
             $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
