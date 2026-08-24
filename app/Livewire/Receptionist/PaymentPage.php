@@ -370,7 +370,7 @@ class PaymentPage extends Component
                 : max(0, $subtotal - $memberDiscount);
         }
 
-        $commission = $subtotal * $doctorCommission;
+        $commission = $effectiveSubtotal * $doctorCommission;
 
         $this->user_payment = $this->formatMoney($effectiveSubtotal);
 

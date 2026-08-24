@@ -398,7 +398,7 @@ class DRNotesPage extends Component
         $this->user_payment = number_format($effectiveSubtotal, 2);
         
         // The commission Inmax charges the doctor
-        $commission_amount = $subtotal * $doc_commision;
+        $commission_amount = $effectiveSubtotal * $doc_commision;
         
         // Total for the doctor: Subtotal - Platform Commission - Discount/Coupon
         

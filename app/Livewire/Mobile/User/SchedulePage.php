@@ -11,6 +11,7 @@ use App\Models\Parameter;
 use App\Models\PolicyService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -172,24 +173,53 @@ class SchedulePage extends Component
 
     public function schedule()
     {
-        $appointment = Appointment::create([
-            'user_id' => Auth::user()->id,
-            'office_id' => $this->selectedOffice,
-            'date' => $this->selectedDate,
-            'time' => $this->selectedTime,
-            'status' => \App\Enums\AppointmentStatus::BOOKED,
-        ]);
+        $lock = Cache::lock("appointment-schedule:{$this->selectedOffice}:{$this->selectedDate}:{$this->selectedTime}", 10);
 
-        if ($this->mgServiceId) {
-            AppointmentService::create([
-                'appointment_id' => $appointment->id,
-                'service_id' => $this->mgServiceId,
-                'covered' => $this->isIncluded,
-            ]);
+        if (! $lock->get()) {
+            return;
         }
 
-        session()->flash('appointment_confirmation_id', $appointment->id);
+        try {
+            $existingAppointment = Appointment::query()
+                ->where('office_id', $this->selectedOffice)
+                ->whereDate('date', $this->selectedDate)
+                ->whereTime('time', $this->selectedTime)
+                ->where('status', \App\Enums\AppointmentStatus::BOOKED)
+                ->first();
 
-        return $this->redirect(ScheduleConfirmationPage::class);
+            if ($existingAppointment) {
+                if ($existingAppointment->user_id === Auth::id()) {
+                    session()->flash('appointment_confirmation_id', $existingAppointment->id);
+
+                    return $this->redirect(ScheduleConfirmationPage::class);
+                }
+
+                $this->addError('selectedTime', 'El horario seleccionado ya no está disponible.');
+
+                return;
+            }
+
+            $appointment = Appointment::create([
+                'user_id' => Auth::id(),
+                'office_id' => $this->selectedOffice,
+                'date' => $this->selectedDate,
+                'time' => $this->selectedTime,
+                'status' => \App\Enums\AppointmentStatus::BOOKED,
+            ]);
+
+            if ($this->mgServiceId) {
+                AppointmentService::create([
+                    'appointment_id' => $appointment->id,
+                    'service_id' => $this->mgServiceId,
+                    'covered' => $this->isIncluded,
+                ]);
+            }
+
+            session()->flash('appointment_confirmation_id', $appointment->id);
+
+            return $this->redirect(ScheduleConfirmationPage::class);
+        } finally {
+            $lock->release();
+        }
     }
 }

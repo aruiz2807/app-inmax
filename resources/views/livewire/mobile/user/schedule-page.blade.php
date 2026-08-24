@@ -132,7 +132,7 @@
         </x-ui.card>
 
         <div class="flex justify-center mt-8 mb-8">
-            <x-ui.button wire:click="schedule" icon="check" color="teal">Programar consulta</x-ui.button>
+            <x-ui.button wire:click="schedule" wire:loading.attr="disabled" wire:target="schedule" icon="check" color="teal">Programar consulta</x-ui.button>
         </div>
     </div>
 </div>
