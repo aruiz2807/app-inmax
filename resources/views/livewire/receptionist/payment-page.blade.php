@@ -53,6 +53,14 @@
                 <x-ui.text class="text-sm text-neutral-500">Esta cita no tiene servicios registrados.</x-ui.text>
             @else
                 <div class="flex flex-col w-full">
+                    <div class="grid grid-cols-12 items-center gap-2 pb-2">
+                        <div class="col-span-8">
+                        </div>
+
+                        <div class="col-span-4 flex justify-end">
+                            <x-ui.text class="text-base pr-1">Realizado</x-ui.text>
+                        </div>
+                    </div>
                     @foreach($appointment->services as $service)
                         <div class="grid grid-cols-12 items-center gap-2 pb-2">
                             <div class="col-span-5">
@@ -68,7 +76,7 @@
                             <div class="col-span-4 flex justify-end">
                                 <x-ui.switch
                                     wire:model.live="servicesToComplete.{{ $service->id }}"
-                                    label="Realizado"
+                                    label=""
                                     onClass="bg-teal"
                                     iconOff="x-mark"
                                     iconOn="check"

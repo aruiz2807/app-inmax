@@ -41,6 +41,14 @@
                 </x-ui.heading>
 
                 <div class="flex flex-col w-full">
+                    <div class="grid grid-cols-12 items-center gap-2 pb-2">
+                        <div class="col-span-8">
+                        </div>
+
+                        <div class="col-span-4 flex justify-end">
+                            <x-ui.text class="text-base pr-1">Realizado</x-ui.text>
+                        </div>
+                    </div>
                     @foreach($services as $service)
                         <div class="grid grid-cols-12 items-center gap-2 pb-2">
                             <div class="col-span-5">
@@ -56,7 +64,7 @@
                             <div class="col-span-4 flex justify-end">
                                 <x-ui.switch
                                     wire:model.live="form.services.{{ $service->id }}"
-                                    label="Realizado"
+                                    label=""
                                     onClass="bg-teal"
                                     iconOff="x-mark"
                                     iconOn="check"

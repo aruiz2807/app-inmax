@@ -76,8 +76,8 @@
                                             <div class="flex flex-col justify-start ml-1">
                                                 <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
                                                 @if($ext->attachment_path)
-                                                    <a href="{{ route('external-service.download', $ext->id) }}">
-                                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                                    <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                                        <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
                                                     </a>
                                                 @else
                                                     <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
@@ -120,8 +120,8 @@
                                             <div class="flex flex-col justify-start ml-1">
                                                 <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
                                                 @if($ext->attachment_path)
-                                                    <a href="{{ route('external-service.download', $ext->id) }}">
-                                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                                    <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                                        <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
                                                     </a>
                                                 @else
                                                     <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
@@ -164,8 +164,8 @@
                                             <div class="flex flex-col justify-start ml-1">
                                                 <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
                                                 @if($ext->attachment_path)
-                                                    <a href="{{ route('external-service.download', $ext->id) }}">
-                                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                                    <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                                        <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
                                                     </a>
                                                 @else
                                                     <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
@@ -208,8 +208,8 @@
                                             <div class="flex flex-col justify-start ml-1">
                                                 <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
                                                 @if($ext->attachment_path)
-                                                    <a href="{{ route('external-service.download', $ext->id) }}">
-                                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                                    <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                                        <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
                                                     </a>
                                                 @else
                                                     <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
