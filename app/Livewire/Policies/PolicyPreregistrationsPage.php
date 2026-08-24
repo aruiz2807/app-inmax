@@ -85,16 +85,40 @@ class PolicyPreregistrationsPage extends Component
 
     public ?string $preregistrationDuplicatePhoneWarning = null;
 
+    public bool $isMobileDevice = false;
+
     public function mount(): void
     {
+        $this->isMobileDevice = $this->detectMobileDevice();
         $this->loadPreregistrationOptions();
         $this->applyRequestPrefill();
+    }
+
+    protected function detectMobileDevice(): bool
+    {
+        $forcedDevice = request()->query('device');
+
+        if ($forcedDevice === 'mobile') {
+            return true;
+        }
+
+        if ($forcedDevice === 'desktop') {
+            return false;
+        }
+
+        $userAgent = strtolower((string) request()->userAgent());
+
+        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
     }
 
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.policies.policy-preregistrations-page', [
+        $view = $this->isMobileDevice
+            ? 'livewire.policies.policy-preregistrations-page-mobile'
+            : 'livewire.policies.policy-preregistrations-page';
+
+        return view($view, [
             'preregistrations' => $this->preregistrationsQuery()->paginate($this->preregistrationPerPage),
         ]);
     }

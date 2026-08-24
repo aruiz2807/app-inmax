@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read \App\Models\User|null $cancelledBy
  * @property-read string $status_color
  * @property-read string $status_label
+ * @property-read string $status_icon
  * @property-read string $type_label
  * @property-read \App\Models\Policy|null $parentPolicy
  * @property-read \App\Models\Plan|null $plan
@@ -136,6 +137,19 @@ class PolicyPreregistration extends Model
             $this->used_at !== null => 'emerald',
             $this->expires_at->isPast() => 'amber',
             default => 'teal',
+        };
+    }
+
+    /**
+     * Badge icon for UI rendering.
+     */
+    public function getStatusIconAttribute(): string
+    {
+        return match (true) {
+            $this->cancelled_at !== null => 'x-circle',
+            $this->used_at !== null => 'shield-check',
+            $this->expires_at->isPast() => 'clock',
+            default => 'paper-airplane',
         };
     }
 
