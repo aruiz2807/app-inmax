@@ -1,5 +1,6 @@
 <div
-    x-data
+    x-data="{ customServiceModal: false }"
+    @close-custom-service-modal.window="customServiceModal = false"
     x-on:payment-completed.window="
         if ($event.detail.ticketUrl) {
             window.open($event.detail.ticketUrl, '_blank');
@@ -89,6 +90,8 @@
                         <span class="mt-2 text-sm text-red-500">Ningun servicio ha sido marcado como realizado.</span>
                     @endif
                     <x-ui.error name="servicesToComplete" />
+
+                    @include('livewire.appointments.partials.add-services')
                 </div>
             @endif
         @else

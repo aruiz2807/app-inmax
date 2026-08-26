@@ -3,6 +3,7 @@
 namespace App\Livewire\Receptionist;
 
 use App\Enums\AppointmentStatus;
+use App\Livewire\Concerns\WithAppointmentServiceAdditions;
 use App\Models\Appointment;
 use App\Models\AppointmentNote;
 use App\Models\AppointmentService;
@@ -21,6 +22,7 @@ use Livewire\WithFileUploads;
 
 class PaymentPage extends Component
 {
+    use WithAppointmentServiceAdditions;
     use WithFileUploads;
 
     public Appointment $appointment;
@@ -81,6 +83,36 @@ class PaymentPage extends Component
             $this->syncSubtotalWithServices();
             $this->calculateTotals();
         }
+    }
+
+    /**
+     * Persist a newly selected service as an AppointmentService marked as done.
+     */
+    public function registerNewService(array $serviceData): void
+    {
+        if (! $this->canManageServices) {
+            return;
+        }
+
+        $appointmentService = AppointmentService::create([
+            'appointment_id' => $this->appointment->id,
+            'service_id' => $serviceData['id'] ?? null,
+            'unregistered_service' => $serviceData['unregistered_service'] ?? null,
+            'covered' => $serviceData['included'] ? 1 : 0,
+            'status' => AppointmentStatus::COMPLETED->value,
+        ]);
+
+        $this->servicesToComplete[$appointmentService->id] = true;
+    }
+
+    /**
+     * Reload the appointment services collection and recalculate totals.
+     */
+    public function refreshAppointmentServices(): void
+    {
+        $this->appointment->load('services.service:id,name');
+        $this->syncSubtotalWithServices();
+        $this->calculateTotals();
     }
 
     /**

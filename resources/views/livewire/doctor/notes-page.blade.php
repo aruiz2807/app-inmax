@@ -1,4 +1,4 @@
-<div class="space-y-4">
+<div class="space-y-4" x-data="{ customServiceModal: false }" @close-custom-service-modal.window="customServiceModal = false">
     <x-slot name="header">
         {{ $isEditing ? 'Editar nota medica' : 'Nota medica' }}
     </x-slot>
@@ -76,6 +76,10 @@
 
                     @if(!collect($form->services ?? [])->contains(true))
                         <span class="mt-2 text-sm text-red-500">Ningun servicio ha sido marcado como realizado.</span>
+                    @endif
+
+                    @if(!$isEditing)
+                        @include('livewire.appointments.partials.add-services')
                     @endif
                 </div>
             </x-ui.card>

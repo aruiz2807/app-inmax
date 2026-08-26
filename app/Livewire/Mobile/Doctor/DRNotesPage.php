@@ -3,6 +3,7 @@
 namespace App\Livewire\Mobile\Doctor;
 
 use App\Enums\AppointmentStatus;
+use App\Livewire\Concerns\WithAppointmentServiceAdditions;
 use App\Livewire\Forms\DoctorNotesForm;
 use App\Livewire\Mobile\Doctor\NotesConfirmationPage;
 use App\Enums\DoctorType;
@@ -23,6 +24,7 @@ use Livewire\WithFileUploads;
 
 class DRNotesPage extends Component
 {
+    use WithAppointmentServiceAdditions;
     use WithFileUploads;
 
     public DoctorNotesForm $form;
@@ -263,6 +265,34 @@ class DRNotesPage extends Component
             $this->syncSubtotalWithServices();
             $this->calculateTotals();
         }
+    }
+
+    /**
+     * Persist a newly selected service as an AppointmentService marked as done.
+     */
+    public function registerNewService(array $serviceData): void
+    {
+        $appointmentService = AppointmentService::create([
+            'appointment_id' => $this->appointment->id,
+            'service_id' => $serviceData['id'] ?? null,
+            'unregistered_service' => $serviceData['unregistered_service'] ?? null,
+            'covered' => $serviceData['included'] ? 1 : 0,
+            'status' => 'Completed',
+        ]);
+
+        $this->form->services[$appointmentService->id] = true;
+        $this->form->attachments[$appointmentService->id] = null;
+    }
+
+    /**
+     * Reload the appointment services collection and recalculate totals.
+     */
+    public function refreshAppointmentServices(): void
+    {
+        $this->appointment->load('services.service');
+        $this->services = $this->appointment->services;
+        $this->syncSubtotalWithServices();
+        $this->calculateTotals();
     }
 
     public function updatedSubtotal($value)

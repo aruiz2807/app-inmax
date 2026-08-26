@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ customServiceModal: false }" @close-custom-service-modal.window="customServiceModal = false">
     <div class="relative w-full">
         <img src="/img/top.png" alt="Header" class="w-full object-cover">
     </div>
@@ -79,6 +79,10 @@
                 Ningun servicio ha sido marcado como realizado.
             </span>
         @endif
+
+            @if(!$isEditing)
+                @include('livewire.appointments.partials.add-services')
+            @endif
         </div>
     </x-ui.card>
 
