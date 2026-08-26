@@ -22,7 +22,7 @@ class DRHistoryPage extends Component
     public bool $canEditAppointments = false;
     public ?string $dateFrom = null;
     public ?string $dateTo = null;
-    public string $tab = 'pending';
+    public string $tab = 'upcoming';
 
     public function render()
     {

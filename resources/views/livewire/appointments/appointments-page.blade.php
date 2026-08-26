@@ -21,7 +21,57 @@
 
     <div class="pt-2">
         <x-ui.card size="full">
-            <livewire:appointments.appointments-table />
+            <div class="flex gap-2 mb-4 border-b border-neutral-200">
+                <button
+                    type="button"
+                    wire:click="setTab('booked')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'booked',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'booked',
+                    ])
+                >
+                    Agendadas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('completed')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'completed',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'completed',
+                    ])
+                >
+                    Atendidas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('cancelled')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'cancelled',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'cancelled',
+                    ])
+                >
+                    Canceladas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('all')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'all',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'all',
+                    ])
+                >
+                    Todas
+                </button>
+            </div>
+
+            <livewire:appointments.appointments-table :tab="$tab" :key="'appointments-table-'.$tab" />
         </x-ui.card>
     </div>
 

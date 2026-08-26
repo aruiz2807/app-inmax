@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,6 +18,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class PoliciesPage extends Component
 {
     use WithFileUploads;
+
+    #[Url(as: 'tab')]
+    public string $tab = 'inactive';
 
     public ?int $policyId = null;
     public ?string $policyType = null;
@@ -39,6 +43,15 @@ class PoliciesPage extends Component
     public $services = [];
     public $policy_type;
     public $icon;
+
+    public function setTab(string $tab): void
+    {
+        if (! in_array($tab, ['all', 'active', 'inactive', 'cancelled'], true)) {
+            return;
+        }
+
+        $this->tab = $tab;
+    }
 
     #[Layout('layouts.app')]
     public function render()

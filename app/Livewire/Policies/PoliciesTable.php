@@ -24,6 +24,7 @@ final class PoliciesTable extends PowerGridComponent
     use WithExport; 
 
     public string $tableName = 'policiesTable';
+    public string $tab = 'inactive';
 
     public function setUp(): array
     {
@@ -43,21 +44,14 @@ final class PoliciesTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        $policies = null;
         $user = Auth::user();
 
-        if($user->profile === 'Sales')
-        {
-            $policies = Policy::query()
-                ->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id,phone,profile_photo_path', 'user.company:id,name'])
-                ->where('sales_user_id', $user->id);
-        }
-        else
-        {
-            $policies = Policy::query()->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id,phone,profile_photo_path', 'user.company:id,name']);
-        }
-
-         return $policies;
+        return Policy::query()
+            ->with(['plan:id,name,type', 'sales_user:id,name', 'user:id,name,company_id,phone,profile_photo_path', 'user.company:id,name'])
+            ->when($user->profile === 'Sales', fn (Builder $query) => $query->where('sales_user_id', $user->id))
+            ->when($this->tab === 'active', fn (Builder $query) => $query->where('status', 'Active'))
+            ->when($this->tab === 'inactive', fn (Builder $query) => $query->where('status', 'Inactive'))
+            ->when($this->tab === 'cancelled', fn (Builder $query) => $query->where('status', 'Cancelled'));
     }
 
     public function relationSearch(): array

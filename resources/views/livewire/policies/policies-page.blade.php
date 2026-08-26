@@ -41,7 +41,57 @@
 
     <div class="pt-2">
         <x-ui.card size="full">
-            <livewire:policies.policies-table />
+            <div class="flex gap-2 mb-4 border-b border-neutral-200">
+                <button
+                    type="button"
+                    wire:click="setTab('inactive')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'inactive',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'inactive',
+                    ])
+                >
+                    Inactivas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('active')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'active',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'active',
+                    ])
+                >
+                    Activas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('cancelled')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'cancelled',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'cancelled',
+                    ])
+                >
+                    Canceladas
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="setTab('all')"
+                    @class([
+                        'px-4 py-2 text-sm font-medium transition-colors',
+                        'border-b-2 border-teal-600 text-teal-600' => $tab === 'all',
+                        'text-neutral-600 hover:text-neutral-900' => $tab !== 'all',
+                    ])
+                >
+                    Todas
+                </button>
+            </div>
+
+            <livewire:policies.policies-table :tab="$tab" :key="'policies-table-'.$tab" />
         </x-ui.card>
     </div>
 

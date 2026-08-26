@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Appointments;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,7 @@ use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 final class AppointmentsTable extends PowerGridComponent
 {
     public string $tableName = 'appointmentsTable';
+    public string $tab = 'booked';
 
     public function setUp(): array
     {
@@ -41,7 +43,17 @@ final class AppointmentsTable extends PowerGridComponent
             ->leftJoin('users as doctor_users', 'doctor_users.id', '=', 'doctors.user_id')
             ->leftJoin('offices', 'offices.id', '=', 'appointments.office_id')
             ->leftJoin('specialties', 'specialties.id', '=', 'doctors.specialty_id')
-            ->with(['user:id,name', 'doctor.user:id,name', 'doctor.specialty:id,name,service_id', 'doctor.specialty.service:id,name', 'office:id,name']);
+            ->with(['user:id,name', 'doctor.user:id,name', 'doctor.specialty:id,name,service_id', 'doctor.specialty.service:id,name', 'office:id,name'])
+            ->when($this->tab === 'booked', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::BOOKED->value))
+            ->when($this->tab === 'completed', fn (Builder $query) => $query->whereIn('appointments.status', [
+                AppointmentStatus::COMPLETED->value,
+                AppointmentStatus::RESULTS_PENDING->value,
+            ]))
+            ->when($this->tab === 'cancelled', fn (Builder $query) => $query->whereIn('appointments.status', [
+                AppointmentStatus::CANCELLED->value,
+                AppointmentStatus::NO_SHOW->value,
+                AppointmentStatus::REJECTED->value,
+            ]));
     }
 
     public function relationSearch(): array

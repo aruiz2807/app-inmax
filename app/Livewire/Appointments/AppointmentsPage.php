@@ -11,12 +11,16 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class AppointmentsPage extends Component
 {
     use WithFileUploads;
+
+    #[Url(as: 'tab')]
+    public string $tab = 'booked';
 
     public $appointmentId;
     public $appointment;
@@ -32,6 +36,15 @@ class AppointmentsPage extends Component
     public string $historyUploadName = '';
     public string $historyUploadComments = '';
     public $historyUploadFile = null;
+
+    public function setTab(string $tab): void
+    {
+        if (! in_array($tab, ['all', 'booked', 'completed', 'cancelled'], true)) {
+            return;
+        }
+
+        $this->tab = $tab;
+    }
 
     #[Layout('layouts.app')]
     public function render()
