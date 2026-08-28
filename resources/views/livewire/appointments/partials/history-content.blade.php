@@ -1,0 +1,499 @@
+<x-ui.card size="full" class="border-t-2 border-teal-500">
+    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+            <x-ui.text class="text-base font-semibold">{{ $historyPatient->name }}</x-ui.text>
+            <x-ui.text class="text-sm opacity-75">No. Membresia: {{ $historyPatient->policy?->number ?? '-' }}</x-ui.text>
+        </div>
+
+        <div class="flex flex-col items-start gap-1.5 md:items-end">
+            <x-ui.badge icon="calendar" variant="outline" color="teal" pill>
+                {{ $historyAppointments?->count() ?? 0 }} consultas
+            </x-ui.badge>
+
+            <x-ui.button
+                type="button"
+                icon="arrow-up-tray"
+                variant="ghost"
+                color="teal"
+                size="xs"
+                class="px-1.5"
+                wire:click="toggleHistoryUploadSections"
+            >
+                Archivos
+            </x-ui.button>
+        </div>
+    </div>
+</x-ui.card>
+
+@if($showHistoryUploadSections)
+    <x-ui.card size="full" class="border border-teal-200 bg-teal-50/30">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="folder-open" class="self-center" />
+            <x-ui.text class="ml-2 text-base">Archivos</x-ui.text>
+        </x-ui.heading>
+
+        @php
+            $historyExternalServicesData = $historyExternalServices ?? collect();
+        @endphp
+
+        <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <x-ui.card size="full" x-data="{ open: true }" class="bg-white border border-neutral-200">
+                <x-ui.heading class="flex pb-2 cursor-pointer select-none" level="h3" size="sm" x-on:click="open = !open">
+                    <x-ui.icon name="clipboard-document-list" class="self-center" />
+                    <x-ui.text class="ml-2 text-base flex-1">Diagnosticos y tratamientos</x-ui.text>
+                    <x-ui.icon name="chevron-up" class="self-center w-4 h-4 transition-transform" x-bind:class="open ? '' : 'rotate-180'" />
+                </x-ui.heading>
+
+                <div x-show="open" x-collapse>
+                    <button wire:click="openHistoryUploadForm('{{ \App\Enums\ExternalServicesType::Diagnosis->value }}')"
+                            class="flex items-center gap-1 text-sm text-blue-600 font-medium hover:underline mb-3">
+                        <x-ui.icon name="arrow-up-tray" class="w-4 h-4" />
+                        Subir archivo
+                    </button>
+
+                    <div class="flex flex-col justify-center p-3 bg-white rounded-2xl shadow-sm border border-white/50">
+                        @if($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Diagnosis)->isEmpty())
+                            <x-ui.text class="text-sm">No hay archivos en esta seccion</x-ui.text>
+                        @endif
+
+                        @foreach($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Diagnosis) as $ext)
+                            @unless($loop->first)
+                                <x-ui.separator />
+                            @endunless
+                            <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                                <x-ui.icon name="paper-clip" />
+                                <div class="flex flex-col justify-start ml-1">
+                                    <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
+                                    @if($ext->attachment_path)
+                                        <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                            <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
+                                        </a>
+                                    @else
+                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                    @endif
+                                    @if($ext->comments)
+                                        <x-ui.text class="text-xs text-gray-500">{{$ext->comments}}</x-ui.text>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </x-ui.card>
+
+            <x-ui.card size="full" x-data="{ open: false }" class="bg-white border border-neutral-200">
+                <x-ui.heading class="flex pb-2 cursor-pointer select-none" level="h3" size="sm" x-on:click="open = !open">
+                    <x-ui.icon name="paper-clip" class="self-center" />
+                    <x-ui.text class="ml-2 text-base flex-1">Vacunas</x-ui.text>
+                    <x-ui.icon name="chevron-up" class="self-center w-4 h-4 transition-transform" x-bind:class="open ? '' : 'rotate-180'" />
+                </x-ui.heading>
+
+                <div x-show="open" x-collapse>
+                    <button wire:click="openHistoryUploadForm('{{ \App\Enums\ExternalServicesType::Vaccine->value }}')"
+                            class="flex items-center gap-1 text-sm text-blue-600 font-medium hover:underline mb-3">
+                        <x-ui.icon name="arrow-up-tray" class="w-4 h-4" />
+                        Subir archivo
+                    </button>
+
+                    <div class="flex flex-col justify-center p-3 bg-white rounded-2xl shadow-sm border border-white/50">
+                        @if($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Vaccine)->isEmpty())
+                            <x-ui.text class="text-sm">No hay archivos en esta seccion</x-ui.text>
+                        @endif
+
+                        @foreach($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Vaccine) as $ext)
+                            @unless($loop->first)
+                                <x-ui.separator />
+                            @endunless
+                            <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                                <x-ui.icon name="paper-clip" />
+                                <div class="flex flex-col justify-start ml-1">
+                                    <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
+                                    @if($ext->attachment_path)
+                                        <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                            <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
+                                        </a>
+                                    @else
+                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                    @endif
+                                    @if($ext->comments)
+                                        <x-ui.text class="text-xs text-gray-500">{{$ext->comments}}</x-ui.text>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </x-ui.card>
+
+            <x-ui.card size="full" x-data="{ open: false }" class="bg-white border border-neutral-200">
+                <x-ui.heading class="flex pb-2 cursor-pointer select-none" level="h3" size="sm" x-on:click="open = !open">
+                    <x-ui.icon name="calendar" class="self-center" />
+                    <x-ui.text class="ml-2 text-base flex-1">Consultas / Estudios</x-ui.text>
+                    <x-ui.icon name="chevron-up" class="self-center w-4 h-4 transition-transform" x-bind:class="open ? '' : 'rotate-180'" />
+                </x-ui.heading>
+
+                <div x-show="open" x-collapse>
+                    <button wire:click="openHistoryUploadForm('{{ \App\Enums\ExternalServicesType::Prescription->value }}')"
+                            class="flex items-center gap-1 text-sm text-blue-600 font-medium hover:underline mb-3">
+                        <x-ui.icon name="arrow-up-tray" class="w-4 h-4" />
+                        Subir archivo
+                    </button>
+
+                    <div class="flex flex-col justify-center p-3 bg-white rounded-2xl shadow-sm border border-white/50">
+                        @if($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Prescription)->isEmpty())
+                            <x-ui.text class="text-sm">No hay archivos en esta seccion</x-ui.text>
+                        @endif
+
+                        @foreach($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Prescription) as $ext)
+                            @unless($loop->first)
+                                <x-ui.separator />
+                            @endunless
+                            <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                                <x-ui.icon name="paper-clip" />
+                                <div class="flex flex-col justify-start ml-1">
+                                    <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
+                                    @if($ext->attachment_path)
+                                        <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                            <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
+                                        </a>
+                                    @else
+                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                    @endif
+                                    @if($ext->comments)
+                                        <x-ui.text class="text-xs text-gray-500">{{$ext->comments}}</x-ui.text>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </x-ui.card>
+
+            <x-ui.card size="full" x-data="{ open: false }" class="bg-white border border-neutral-200">
+                <x-ui.heading class="flex pb-2 cursor-pointer select-none" level="h3" size="sm" x-on:click="open = !open">
+                    <x-ui.icon name="paper-clip" class="self-center" />
+                    <x-ui.text class="ml-2 text-base flex-1">Imagenologia y estudios</x-ui.text>
+                    <x-ui.icon name="chevron-up" class="self-center w-4 h-4 transition-transform" x-bind:class="open ? '' : 'rotate-180'" />
+                </x-ui.heading>
+
+                <div x-show="open" x-collapse>
+                    <button wire:click="openHistoryUploadForm('{{ \App\Enums\ExternalServicesType::Analysis->value }}')"
+                            class="flex items-center gap-1 text-sm text-blue-600 font-medium hover:underline mb-3">
+                        <x-ui.icon name="arrow-up-tray" class="w-4 h-4" />
+                        Subir archivo
+                    </button>
+
+                    <div class="flex flex-col justify-center p-3 bg-white rounded-2xl shadow-sm border border-white/50">
+                        @if($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Analysis)->isEmpty())
+                            <x-ui.text class="text-sm">No hay archivos en esta seccion</x-ui.text>
+                        @endif
+
+                        @foreach($historyExternalServicesData->where('type', \App\Enums\ExternalServicesType::Analysis) as $ext)
+                            @unless($loop->first)
+                                <x-ui.separator />
+                            @endunless
+                            <div class="w-full grid grid-cols-[2rem_auto] justify-stretch items-center mt-1 mb-1">
+                                <x-ui.icon name="paper-clip" />
+                                <div class="flex flex-col justify-start ml-1">
+                                    <x-ui.text class="text-sm font-semibold">{{$ext->date->format('d/m/Y')}}</x-ui.text>
+                                    @if($ext->attachment_path)
+                                        <a href="{{ route('external-service.download', $ext->id) }}" class="text-blue-600 underline hover:underline">
+                                            <span class="text-sm text-blue-600 underline">{{$ext->name}}</span>
+                                        </a>
+                                    @else
+                                        <x-ui.text class="text-sm">{{$ext->name}}</x-ui.text>
+                                    @endif
+                                    @if($ext->comments)
+                                        <x-ui.text class="text-xs text-gray-500">{{$ext->comments}}</x-ui.text>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </x-ui.card>
+        </div>
+    </x-ui.card>
+@endif
+
+@if(blank($historyAppointments) || $historyAppointments->isEmpty())
+    <x-ui.card size="full">
+        <x-ui.text class="text-sm opacity-70">No se encontraron consultas para este miembro.</x-ui.text>
+    </x-ui.card>
+@else
+    <div class="space-y-6">
+        @foreach($historyAppointments as $historyItem)
+            @php
+                $completedServices = $historyItem->services
+                    ->where('status', \App\Enums\AppointmentStatus::COMPLETED->value)
+                    ->values();
+
+            @endphp
+
+            <div class="rounded-2xl border-2 border-teal-200 bg-white p-1.5 shadow-sm" x-data="{ open: @js($loop->first) }">
+                <x-ui.card size="full" class="border border-neutral-100">
+                    <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between pb-2 border-b border-neutral-100">
+                        <div class="space-y-1">
+                            <x-ui.text class="text-base font-semibold">
+                                Consulta #{{ $historyItem->id }} - {{ $historyItem->doctor?->user?->name ?? $historyItem->office?->name ?? 'Sin proveedor' }}
+                            </x-ui.text>
+                            <x-ui.text class="text-sm opacity-80">
+                                {{ $historyItem->date?->format('d/m/Y') }} {{ $historyItem->time?->format('h:i A') }}
+                            </x-ui.text>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <x-status-badge :status="$historyItem->status?->value ?? ''" />
+
+                            <button
+                                type="button"
+                                x-on:click="open = !open"
+                                class="inline-flex items-center gap-1 rounded-md border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                            >
+                                <span x-show="!open">Expandir</span>
+                                <span x-show="open">Contraer</span>
+                                <x-ui.icon name="chevron-down" class="w-4 h-4 transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div x-show="open" x-transition.opacity.duration.200ms class="space-y-4">
+                        <div class="grid gap-2 text-sm md:grid-cols-2">
+                            <p><span class="font-semibold">Proveedor:</span> {{ $historyItem->doctor?->user?->name ?? $historyItem->office?->name ?? 'Sin proveedor' }}</p>
+                            <p><span class="font-semibold">Especialidad/Tipo:</span> {{ $historyItem->doctor?->specialty?->name ?? 'Consulta por oficina' }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                            <x-ui.card size="full" class="bg-neutral-50 border border-neutral-200">
+                                <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                                    <x-ui.icon name="clipboard-document-list" class="self-center" />
+                                    <x-ui.text class="ml-2 text-base">Consultas realizadas / Servicios</x-ui.text>
+                                </x-ui.heading>
+
+                                @if($completedServices->isEmpty())
+                                    <x-ui.text class="text-sm opacity-70">Sin servicios completados en esta cita.</x-ui.text>
+                                @else
+                                    <div class="grid grid-cols-1 gap-2">
+                                        @foreach($completedServices as $service)
+                                            <div class="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3">
+                                                <x-ui.text class="pr-2 text-sm">{{ $service->name ?? 'Servicio' }}</x-ui.text>
+                                                <x-ui.badge :icon="$service->covered_icon" variant="outline" :color="$service->covered_color" pill>
+                                                    {{ $service->covered_text }}
+                                                </x-ui.badge>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </x-ui.card>
+
+                            <x-ui.card size="full" class="bg-neutral-50 border border-neutral-200">
+                                <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                                    <x-ui.icon name="document-text" class="self-center" />
+                                    <x-ui.text class="ml-2 text-base">Recetas emitidas</x-ui.text>
+                                </x-ui.heading>
+
+                                @if($historyItem->prescriptions->isEmpty())
+                                    <x-ui.text class="text-sm opacity-70">No hay recetas para esta cita.</x-ui.text>
+                                @else
+                                    <div class="grid grid-cols-1 gap-2">
+                                        @foreach($historyItem->prescriptions as $prescription)
+                                            <div class="rounded-lg border border-gray-100 bg-white p-2 shadow-sm">
+                                                @if($prescription->medication)
+                                                    <x-ui.text class="text-sm font-bold">{{ $prescription->medication->name }} ({{ $prescription->medication->trade_name ?? '' }})</x-ui.text>
+                                                    <x-ui.text class="text-xs text-gray-600">
+                                                        {{ $prescription->quantity }} {{ $prescription->medication->packaging }} - {{ $prescription->dose }} - {{ $prescription->frequency }} - {{ $prescription->duration }}
+                                                    </x-ui.text>
+                                                @else
+                                                    <x-ui.text class="text-sm font-bold">{{ $prescription->description }}</x-ui.text>
+                                                    <x-ui.text class="text-xs text-gray-600">
+                                                        {{ $prescription->quantity }} {{ $prescription->dose }} - {{ $prescription->frequency }} - {{ $prescription->duration }}
+                                                    </x-ui.text>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </x-ui.card>
+                        </div>
+
+                        <x-ui.card size="full" class="bg-neutral-50 border border-neutral-200">
+                            <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                                <x-ui.icon name="clipboard-document-list" class="self-center" />
+                                <x-ui.text class="ml-2 text-base">Nota medica</x-ui.text>
+                            </x-ui.heading>
+
+                            @if($historyItem->note)
+                                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    <div>
+                                        <x-ui.text class="text-xs font-semibold uppercase opacity-70">Sintomas</x-ui.text>
+                                        <x-ui.text class="text-sm">{{ $historyItem->note->symptoms ?: 'Sin captura' }}</x-ui.text>
+                                    </div>
+                                    <div>
+                                        <x-ui.text class="text-xs font-semibold uppercase opacity-70">Hallazgos fisicos</x-ui.text>
+                                        <x-ui.text class="text-sm">{{ $historyItem->note->findings ?: 'Sin captura' }}</x-ui.text>
+                                    </div>
+                                    <div>
+                                        <x-ui.text class="text-xs font-semibold uppercase opacity-70">Diagnostico</x-ui.text>
+                                        <x-ui.text class="text-sm">{{ $historyItem->note->diagnosis ?: 'Sin captura' }}</x-ui.text>
+                                    </div>
+                                    <div>
+                                        <x-ui.text class="text-xs font-semibold uppercase opacity-70">Tratamiento</x-ui.text>
+                                        <x-ui.text class="text-sm">{{ $historyItem->note->treatment ?: 'Sin captura' }}</x-ui.text>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-ui.text class="text-xs font-semibold uppercase opacity-70">Notas y recomendaciones</x-ui.text>
+                                        <x-ui.text class="text-sm">{{ $historyItem->note->notes ?: 'Sin captura' }}</x-ui.text>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-ui.text class="text-xs font-semibold uppercase opacity-70">Enlace/comentario de resultados</x-ui.text>
+                                        @if(filled($historyItem->note->results_comment))
+                                            <a href="{{ $historyItem->note->results_comment }}" target="_blank" class="text-blue-600 hover:underline break-all text-sm">
+                                                {{ $historyItem->note->results_comment }}
+                                            </a>
+                                        @else
+                                            <x-ui.text class="text-sm">Sin captura</x-ui.text>
+                                        @endif
+                                    </div>
+                                </div>
+                            @else
+                                <x-ui.text class="text-sm opacity-70">Esta cita no tiene nota medica registrada.</x-ui.text>
+                            @endif
+                        </x-ui.card>
+
+                        <x-ui.card size="full" class="bg-neutral-50 border border-neutral-200">
+                            <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                                <x-ui.icon name="paper-clip" class="self-center" />
+                                <x-ui.text class="ml-2 text-base">Archivos y analisis cargados</x-ui.text>
+                            </x-ui.heading>
+
+                            <x-ui.error name="historyServiceAttachments.{{ $historyItem->id }}" />
+
+                            @if($completedServices->isEmpty())
+                                <x-ui.text class="text-sm opacity-70">Esta cita no tiene servicios completados para adjuntar resultados.</x-ui.text>
+                            @else
+                                <div class="space-y-4">
+                                    @foreach($completedServices as $service)
+                                        @php
+                                            $extension = strtolower(pathinfo((string) $service->attachment_name, PATHINFO_EXTENSION));
+                                            $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
+                                            $isPdf = $extension === 'pdf';
+                                            $canManageResultsUpload = in_array($historyItem->status, [
+                                                \App\Enums\AppointmentStatus::RESULTS_PENDING,
+                                                \App\Enums\AppointmentStatus::COMPLETED,
+                                            ], true);
+                                        @endphp
+
+                                        <div class="rounded-lg border border-neutral-200 bg-white p-3">
+                                            <div class="grid grid-cols-1 gap-2 md:grid-cols-5 md:items-center">
+                                                <div class="md:col-span-2">
+                                                    <x-ui.text class="text-sm font-semibold">{{ $service->name ?? 'Servicio' }}</x-ui.text>
+
+                                                    @if($service->attachment_name)
+                                                        <x-ui.text class="mt-1 text-xs text-neutral-500">Adjunto actual:</x-ui.text>
+                                                        <a href="{{ route('attachment.download', $service->id) }}" class="text-sm text-sky-700 hover:underline break-all">
+                                                            {{ $service->attachment_name }}
+                                                        </a>
+                                                    @endif
+                                                </div>
+
+                                                <div class="md:col-span-3 space-y-2">
+                                                    @if($canManageResultsUpload)
+                                                        <input
+                                                            type="file"
+                                                            wire:model="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}"
+                                                            placeholder="Seleccione un archivo para adjuntar"
+                                                            class="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                        />
+                                                    @endif
+
+                                                    @if($canManageResultsUpload)
+                                                        <x-ui.error name="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}" />
+
+                                                        <div wire:loading wire:target="historyServiceAttachments.{{ $historyItem->id }}.{{ $service->id }}" class="text-sm text-neutral-600">
+                                                            Subiendo archivo...
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            @if($service->attachment_name)
+                                                @if($isImage)
+                                                    <img
+                                                        src="{{ route('attachment.preview', $service->id) }}"
+                                                        alt="Archivo de resultados"
+                                                        class="mt-3 w-full rounded-lg border border-neutral-200 object-contain max-h-80"
+                                                    />
+                                                @elseif($isPdf)
+                                                    <iframe
+                                                        src="{{ route('attachment.preview', $service->id) }}"
+                                                        class="mt-3 h-80 w-full rounded-lg border border-neutral-200"
+                                                        title="Vista previa PDF"
+                                                    ></iframe>
+                                                @else
+                                                    <x-ui.text class="mt-3 text-xs text-neutral-600">
+                                                        Vista previa no disponible para este formato. Puede descargar el archivo para revisarlo.
+                                                    </x-ui.text>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                @if($historyItem->status === \App\Enums\AppointmentStatus::RESULTS_PENDING)
+                                    <div class="pt-2">
+                                        <x-ui.field>
+                                            <x-ui.label>Enlace de resultados (opcional)</x-ui.label>
+                                            <x-ui.input
+                                                wire:model.defer="historyResultsComments.{{ $historyItem->id }}"
+                                                placeholder="https://..."
+                                            />
+                                        </x-ui.field>
+                                        <x-ui.error name="historyResultsComments.{{ $historyItem->id }}" />
+                                        <x-ui.text class="mt-1 text-xs text-neutral-500">
+                                            Si no adjuntas archivo, puedes guardar un enlace con los resultados.
+                                        </x-ui.text>
+
+                                        <div class="mt-2 flex flex-col gap-2 md:flex-row md:justify-end">
+                                            <x-ui.button
+                                                type="button"
+                                                color="amber"
+                                                icon="clock"
+                                                wire:click="saveHistoryResultsAndKeepPending({{ $historyItem->id }})"
+                                            >
+                                                Subir el resto despues
+                                            </x-ui.button>
+
+                                            <x-ui.button
+                                                type="button"
+                                                color="teal"
+                                                icon="check"
+                                                wire:click="saveHistoryResultsAndFinalize({{ $historyItem->id }})"
+                                            >
+                                                Ya incluidos, finalizar
+                                            </x-ui.button>
+                                        </div>
+                                    </div>
+                                @elseif($historyItem->status === \App\Enums\AppointmentStatus::COMPLETED)
+                                    <div class="pt-2 flex justify-end">
+                                        <x-ui.button
+                                            type="button"
+                                            color="teal"
+                                            icon="check"
+                                            wire:click="saveHistoryResultsAndFinalize({{ $historyItem->id }})"
+                                        >
+                                            Guardar archivos
+                                        </x-ui.button>
+                                    </div>
+                                @endif
+                            @endif
+                        </x-ui.card>
+                    </div>
+                    </div>
+                </x-ui.card>
+            </div>
+        @endforeach
+    </div>
+@endif
+
+@includeWhen($showHistoryUploadForm, 'livewire.appointments.partials.history-upload-form-modal')

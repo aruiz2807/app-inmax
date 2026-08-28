@@ -214,9 +214,10 @@ final class AppointmentsTable extends PowerGridComponent
                     ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors'),
 
             Button::add('record')
-                ->slot(Blade::render('<a href="'.route('doctor.record', ['user' => $row->user_id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Historial</span></a>'))
+                ->slot(Blade::render('<div class="inline-flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Historial</span></div>'))
                 ->id()
-                ->class('w-[120px] text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors'),
+                ->class('w-[120px] text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
+                ->dispatch('historyAppointment', ['appointmentId' => $row->id]),
 
             $isUpcoming
                 ? Button::add('noshow')

@@ -200,4 +200,6 @@
             </x-ui.button>
         </div>
     </x-ui.modal>
+
+    @include('livewire.appointments.history-modal', ['isMobileDevice' => true])
 </div>

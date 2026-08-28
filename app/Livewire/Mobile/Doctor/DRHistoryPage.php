@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Mobile\Doctor;
 
+use App\Livewire\Concerns\WithPatientHistoryModal;
 use App\Livewire\Mobile\Doctor\NoShowConfirmationPage;
 use App\Models\Appointment;
 use App\Models\Permission;
@@ -12,9 +13,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class DRHistoryPage extends Component
 {
+    use WithFileUploads;
+    use WithPatientHistoryModal;
+
     public $upcomingAppointments = null;
     public $pastAppointments = null;
     public $appointmentId = null;
@@ -221,7 +226,7 @@ class DRHistoryPage extends Component
 
     public function record($id)
     {
-        return $this->redirectRoute('doctor.record', ['user' => $id]);
+        $this->historyForUser($id);
     }
 
     public function notes($id)
