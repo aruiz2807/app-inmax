@@ -202,7 +202,7 @@
             Cancelar
         </x-ui.button>
 
-        <x-ui.button wire:click="schedule" icon="check" variant="primary" color="teal">
+        <x-ui.button wire:click="schedule" wire:loading.attr="disabled" wire:target="schedule" icon="check" variant="primary" color="teal">
             Guardar
         </x-ui.button>
     </div>
