@@ -17,7 +17,7 @@ class ParameterDoctorDesktopVersionSeeder extends Seeder
             ['type' => 'SITE', 'key' => 'Doctor_VersionDesktop'],
              [
                 'description' => 'Habilitar versión de escritorio para doctores',
-                'value' => 'Inactiva',
+                'value' => 'Activa',
             ]
         );
     }
