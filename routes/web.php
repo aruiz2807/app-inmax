@@ -301,7 +301,7 @@ Route::middleware([
         Route::get('/my-profile', DRProfilePage::class)->name('doctor.my-profile');
     });
 
-    Route::prefix('clerk')->middleware('profile:Clerk')->group(function () {
+    Route::prefix('clerk')->middleware('profile:Clerk,Receptionist')->group(function () {
         Route::get('/dashboard', ClerkDashboardPage::class)->name('clerk.dashboard');
         Route::get('/dispensation', DispensationPage::class)
             ->middleware('permission:view.clerk.dispensation')
@@ -328,10 +328,6 @@ Route::middleware([
         Route::get('/payment/{appointment}/{type}/ticket', ReceptionistTicketController::class)
             ->middleware('permission:view.receptionist.appointments')
             ->name('receptionist.payment.ticket');
-
-        // PARCHE GACHO
-        Route::get('/dispensation', DispensationPage::class)
-            ->name('recepcionist.dispensation');
     });
 
     Route::prefix('dispatcher')->middleware('profile:Dispatcher')->group(function () {
