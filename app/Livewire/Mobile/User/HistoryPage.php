@@ -91,7 +91,7 @@ class HistoryPage extends Component
 
         $pdf = Pdf::loadView('pdf.prescription', [
             'note' => $note,
-            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx'
         ])->setPaper('letter', 'portrait');
 
         return response()->streamDownload(

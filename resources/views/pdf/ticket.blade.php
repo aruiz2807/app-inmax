@@ -150,7 +150,7 @@
 
         <div class="footer">
             Gracias por su preferencia<br>
-            www.inmax.com
+            www.inmax.mx
         </div>
     </div>
 </body>

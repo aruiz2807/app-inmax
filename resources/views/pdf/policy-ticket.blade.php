@@ -123,7 +123,7 @@
         <div class="footer">
             Gracias por su preferencia<br>
             {{ $contactEmail }}<br>
-            www.inmax.com
+            www.inmax.mx
         </div>
     </div>
 </body>

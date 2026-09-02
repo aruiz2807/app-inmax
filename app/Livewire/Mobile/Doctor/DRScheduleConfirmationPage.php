@@ -35,7 +35,7 @@ class DRScheduleConfirmationPage extends Component
 
         $pdf = Pdf::loadView('pdf.order', [
             'appointment' => $appointment,
-            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx'
         ])->setPaper('letter', 'portrait');
 
         return response()->streamDownload(

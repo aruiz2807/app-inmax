@@ -428,7 +428,7 @@ class CheckoutModal extends Component
             'discountType' => $discountType,
             'total' => number_format($total, 2),
             'benefitLabel' => $this->useMembersDiscount ? 'Membresia' : ($this->useCoupon ? 'Cupon' : 'Sin beneficio'),
-            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com'
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx'
         ])->setPaper([0, 0, 226, 567], 'portrait');
 
         return response()->streamDownload(

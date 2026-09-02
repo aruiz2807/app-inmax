@@ -308,7 +308,7 @@ class PoliciesPage extends Component
 
         $pdf = Pdf::loadView('pdf.policy-ticket', [
             'policy' => $policy,
-            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.com',
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx',
             'paymentMethodLabel' => $policy->payment_method ? ($paymentMethodMap[$policy->payment_method] ?? $policy->payment_method) : 'No registrado',
             'planPrice' => number_format((float) ($policy->plan?->price ?? 0), 2),
         ])->setPaper([0, 0, 226, 567], 'portrait');
