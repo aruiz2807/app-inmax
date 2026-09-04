@@ -73,7 +73,7 @@ class AppointmentService extends Model
      */
     protected function getCoveredIconAttribute()
     {
-        return $this->covered ? 'shield-check' : 'shield-exclamation';
+        return $this->isEffectivelyCovered() ? 'shield-check' : 'shield-exclamation';
     }
 
     /**
@@ -81,7 +81,7 @@ class AppointmentService extends Model
      */
     protected function getCoveredColorAttribute()
     {
-        return $this->covered ? 'green' : 'yellow';
+        return $this->isEffectivelyCovered() ? 'green' : 'yellow';
     }
 
     /**
@@ -89,7 +89,31 @@ class AppointmentService extends Model
      */
     protected function getCoveredTextAttribute()
     {
-        return $this->covered ? 'Incluido' : 'Adicional';
+        return $this->isEffectivelyCovered() ? 'Incluido' : 'Adicional';
+    }
+
+    /**
+     * Whether the service is covered, either stored as such or via an unused "Service" coupon on the patient's policy.
+     */
+    public function isEffectivelyCovered(): bool
+    {
+        if ($this->covered) {
+            return true;
+        }
+
+        if (! $this->service_id) {
+            return false;
+        }
+
+        $policy = $this->appointment?->user?->policy;
+
+        if (! $policy) {
+            return false;
+        }
+
+        $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
+
+        return PolicyService::coversService($policyId, $this->service_id, $this->appointment->doctor_id);
     }
 
     /**

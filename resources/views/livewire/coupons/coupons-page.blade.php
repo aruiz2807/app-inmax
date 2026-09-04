@@ -51,6 +51,12 @@
                         label="Porcentaje"
                         description="El cupón descuenta el porcentaje indicado"
                     />
+                    <x-ui.radio.item
+                        icon="briefcase"
+                        value="Service"
+                        label="Servicio"
+                        description="El cupón cubre el servicio indicado"
+                    />
                 </x-ui.radio.group>
 
                 <x-ui.field required>

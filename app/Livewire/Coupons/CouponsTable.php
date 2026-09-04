@@ -47,7 +47,7 @@ final class CouponsTable extends PowerGridComponent
             ->add('id')
             ->add('name')
             ->add('type')
-            ->add('type_formatted', fn ($model) => $model->type === 'Amount' ? 'Importe' : 'Porcentaje')
+            ->add('type_formatted', fn ($model) => $model->type === 'Amount' ? 'Importe' : ($model->type === 'Percentage' ? 'Porcentaje' : 'Servicio'))
             ->add('value')
             ->add('limit_min')
             ->add('limit_max')
