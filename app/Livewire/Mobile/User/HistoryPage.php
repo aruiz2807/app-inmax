@@ -32,7 +32,7 @@ class HistoryPage extends Component
                 ['status', \App\Enums\AppointmentStatus::BOOKED],
                 ['user_id', Auth::user()->id],
             ])
-            ->whereDate('date', '>=', today())
+            //->whereDate('date', '>=', today())
             ->orderBy('date')
             ->orderBy('time')
             ->get();
