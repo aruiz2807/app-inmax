@@ -91,7 +91,7 @@ class DRHistoryPage extends Component
             })
             ->with(['user.policy', 'doctor.user', 'office'])
             ->where('status', \App\Enums\AppointmentStatus::BOOKED)
-            ->whereDate('date', '>=', today())
+            //->whereDate('date', '>=', today())
             ->orderBy('date')
             ->orderBy('time');
 
