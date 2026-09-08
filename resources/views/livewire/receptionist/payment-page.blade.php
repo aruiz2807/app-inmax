@@ -84,6 +84,23 @@
                                 />
                             </div>
                         </div>
+
+                        @if(!empty($servicesToComplete[$service->id]))
+                            <div class="grid grid-cols-12 items-center gap-2 pb-2">
+                                <div class="col-span-8">
+                                    <x-ui.label class="text-sm">Precio del servicio</x-ui.label>
+                                </div>
+                                <div class="col-span-4">
+                                    <x-ui.input
+                                        wire:model.live="servicePrices.{{ $service->id }}"
+                                        placeholder="0.00"
+                                    >
+                                        <x-slot name="prefix">$</x-slot>
+                                    </x-ui.input>
+                                    <x-ui.error name="servicePrices.{{ $service->id }}" />
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
 
                     @if(!collect($servicesToComplete)->contains(true))
@@ -130,13 +147,19 @@
 
             <x-ui.field>
                 <x-ui.label>Monto total de la cuenta</x-ui.label>
-                <x-ui.input
-                    wire:model.live="subtotal"
-                    name="subtotal" x-mask:dynamic="$money($input)"
-                    placeholder="0.00"
-                >
-                    <x-slot name="prefix">$</x-slot>
-                </x-ui.input>
+                @if($canManageServices)
+                    <x-ui.alerts variant="info" icon="currency-dollar">
+                        <x-ui.alerts.heading>${{ $subtotal }}</x-ui.alerts.heading>
+                    </x-ui.alerts>
+                @else
+                    <x-ui.input
+                        wire:model.live="subtotal"
+                        name="subtotal" x-mask:dynamic="$money($input)"
+                        placeholder="0.00"
+                    >
+                        <x-slot name="prefix">$</x-slot>
+                    </x-ui.input>
+                @endif
             </x-ui.field>
 
             @if($hasCouponAvailable)
@@ -166,8 +189,10 @@
                                 <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
                                     @if($benefit->coupon->type === 'Amount')
                                         Descuento de ${{ number_format($benefit->coupon->value, 2) }}
-                                    @else
+                                    @elseif($benefit->coupon->type === 'Percentage')
                                         {{ $benefit->coupon->value }}% de descuento
+                                    @else
+                                        Servicio Gratis
                                     @endif
                                 </p>
                             </div>

@@ -106,7 +106,13 @@
                 <tr>
                     <td class="qty">1</td>
                     <td class="desc">{!! nl2br(e($service->name)) !!}</td>
-                    <td class="price">{{ $service->covered ? 'Incluido' : 'Adicional' }}</td>
+                    <td class="price">
+                        @if($service->subtotal !== null)
+                            ${{ number_format((float) $service->subtotal, 2) }}
+                        @else
+                            {{ $service->covered ? 'Incluido' : 'Adicional' }}
+                        @endif
+                    </td>
                 </tr>
                 @endif
             @endforeach

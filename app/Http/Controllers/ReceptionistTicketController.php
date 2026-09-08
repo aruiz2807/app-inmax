@@ -27,11 +27,11 @@ class ReceptionistTicketController extends Controller
 
         $pdf = Pdf::loadView('pdf.ticket', [
             'note' => $note,
-            'subtotal' => number_format((float) $appointment->subtotal, 2),
-            'coupon_discount' => number_format((float) $appointment->coupon_discount, 2),
-            'payment' => number_format((float) $appointment->user_payment, 2),
-            'commision' => number_format((float) $appointment->commission, 2),
-            'total' => number_format((float) $appointment->total, 2),
+            'subtotal' => $this->formatServiceAmount($appointment, 'subtotal'),
+            'coupon_discount' => $this->formatServiceAmount($appointment, 'coupon_discount'),
+            'payment' => $this->formatServiceAmount($appointment, 'user_payment'),
+            'commision' => $this->formatServiceAmount($appointment, 'commission'),
+            'total' => $this->formatServiceAmount($appointment, 'total'),
             'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx',
             'type' => $type,
         ])->setPaper([0, 0, 226, 567], 'portrait');
@@ -40,5 +40,17 @@ class ReceptionistTicketController extends Controller
             fn () => print($pdf->output()),
             "ticket-{$note->id}-{$type}.pdf"
         );
+    }
+
+    private function formatServiceAmount(Appointment $appointment, string $column): string
+    {
+        $completedServices = $appointment->services->where('status', 'Completed');
+
+        $hasServiceAmounts = $completedServices->contains(fn ($service) => $service->{$column} !== null);
+        $amount = $hasServiceAmounts
+            ? $completedServices->sum($column)
+            : $appointment->{$column};
+
+        return number_format((float) $amount, 2);
     }
 }

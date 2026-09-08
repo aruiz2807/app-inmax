@@ -18,6 +18,7 @@ class DoctorNotesForm extends Form
     public $notes = '';
     public $attachments = [];
     public $services = [];
+    public $servicePrices = [];
     public $isDoctor;
 
     /**
@@ -39,6 +40,8 @@ class DoctorNotesForm extends Form
                         $fail('Debe marcar al menos un servicio como realizado.');
                     }
                 }],
+            'servicePrices' => ['nullable', 'array'],
+            'servicePrices.*' => ['nullable', 'numeric', 'min:0'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
         ];
@@ -62,6 +65,12 @@ class DoctorNotesForm extends Form
             $data = [
                 'status' => $isDone ? 'Completed' : 'Cancelled',
             ];
+
+            if ($isDone) {
+                $data['subtotal'] = isset($this->servicePrices[$serviceId]) && $this->servicePrices[$serviceId] !== ''
+                    ? (float) str_replace(',', '', (string) $this->servicePrices[$serviceId])
+                    : null;
+            }
 
             if ($isDone && !empty($this->attachments[$serviceId]))
             {

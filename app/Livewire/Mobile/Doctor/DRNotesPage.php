@@ -93,6 +93,7 @@ class DRNotesPage extends Component
         {
             $this->form->services[$service->id] = (string) $service->status === AppointmentStatus::COMPLETED->value;
             $this->form->attachments[$service->id] = null;
+            $this->form->servicePrices[$service->id] = $this->defaultServicePrice($service);
         }
 
         if ($this->appointment->note) {
@@ -110,11 +111,30 @@ class DRNotesPage extends Component
         $this->couponDiscountValue = (float) ($this->appointment->coupon_discount ?? 0);
 
         if (!$this->isEditing) {
+            $this->syncSubtotalWithServices();
             $this->calculateTotals();
         }
 
         $this->loadPrescriptions();
         $this->checkCouponAvailability();
+    }
+
+    /**
+     * Prefill a service's price with the previously captured amount, or fall back to the doctor/service default price.
+     */
+    private function defaultServicePrice(AppointmentService $service): string
+    {
+        if ($service->subtotal !== null) {
+            return number_format((float) $service->subtotal, 2);
+        }
+
+        if (! $service->service_id) {
+            return '';
+        }
+
+        $price = $this->getServicePrice($service->service_id);
+
+        return $price > 0 ? number_format($price, 2) : '';
     }
 
     protected function detectMobileDevice(): bool
@@ -261,7 +281,7 @@ class DRNotesPage extends Component
 
     public function updated($name, $value)
     {
-        if (str_starts_with($name, 'form.services.')) {
+        if (str_starts_with($name, 'form.services.') || str_starts_with($name, 'form.servicePrices.')) {
             $this->syncSubtotalWithServices();
             $this->calculateTotals();
         }
@@ -282,6 +302,7 @@ class DRNotesPage extends Component
 
         $this->form->services[$appointmentService->id] = true;
         $this->form->attachments[$appointmentService->id] = null;
+        $this->form->servicePrices[$appointmentService->id] = $this->defaultServicePrice($appointmentService);
     }
 
     /**
@@ -309,30 +330,22 @@ class DRNotesPage extends Component
             return;
         }
 
-        $servicesSubtotal = $this->calculateServicesSubtotal();
-
-        if ($servicesSubtotal > 0) {
-            $this->subtotal = number_format($servicesSubtotal, 2);
-        }
+        $this->subtotal = number_format($this->calculateServicesSubtotal(), 2);
     }
 
+    /**
+     * Sum the price captured per service for every service marked as completed.
+     */
     private function calculateServicesSubtotal()
     {
-        $serviceIds = $this->services->pluck('service_id')->filter()->all();
-
-        $doctorPrices = $this->getDoctorPrices($serviceIds);
-
-        // Fallback to the service's default price when the doctor has no specific price set
-        $servicePrices = Service::whereIn('id', $serviceIds)->pluck('price', 'id');
-
-        return $this->services->reduce(function ($carry, $service) use ($doctorPrices, $servicePrices) {
-            if (empty($this->form->services[$service->id]) || !$service->service_id) {
+        return $this->services->reduce(function ($carry, $service) {
+            if (empty($this->form->services[$service->id])) {
                 return $carry;
             }
 
-            $price = $doctorPrices[$service->service_id] ?? $servicePrices[$service->service_id] ?? 0;
+            $price = (float) str_replace(',', '', (string) ($this->form->servicePrices[$service->id] ?? 0));
 
-            return $carry + (float) $price;
+            return $carry + $price;
         }, 0.0);
     }
 
@@ -355,6 +368,21 @@ class DRNotesPage extends Component
             ?? 0;
 
         return (float) $price;
+    }
+
+    private function getCouponServiceAmount(int $serviceId): float
+    {
+        $service = $this->services->firstWhere('service_id', $serviceId);
+
+        if (! $service || empty($this->form->services[$service->id])) {
+            return 0;
+        }
+
+        $capturedPrice = $this->form->servicePrices[$service->id] ?? null;
+
+        return $capturedPrice !== null && $capturedPrice !== ''
+            ? (float) str_replace(',', '', (string) $capturedPrice)
+            : $this->getServicePrice($serviceId);
     }
 
     public function updatedSelectedCouponId($value)
@@ -406,10 +434,18 @@ class DRNotesPage extends Component
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
             if ($selectedBenefit) {
                 $coupon = $selectedBenefit->coupon;
+                $couponServiceAmount = $coupon->service_id
+                    ? $this->getCouponServiceAmount($coupon->service_id)
+                    : 0;
+
                 if ($coupon->type === 'Amount') {
                     $this->couponDiscountValue = (float) $coupon->value;
                 } elseif ($coupon->type === 'Percentage') {
-                    $this->couponDiscountValue = round($subtotal * ($coupon->value / 100), 2);
+                    $couponBase = $coupon->service_id ? $couponServiceAmount : $subtotal;
+
+                    $this->couponDiscountValue = round($couponBase * ($coupon->value / 100), 2);
+                } elseif ($coupon->type === 'Service') {
+                    $this->couponDiscountValue = $couponServiceAmount;
                 }
                 $couponInmaxCoverage = round($coupon->inmax_coverage_percent / 100, 2);
             }
@@ -439,10 +475,19 @@ class DRNotesPage extends Component
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format($effectiveSubtotal - ($subtotal - $memberDiscount - $commission_amount), 2);
 
-            if ($couponInmaxCoverage > 0) {
+            if ($coupon->type === 'Service') {
+                $remainingCommission = $effectiveSubtotal * $doc_commision;
+                $inmaxCommission = round($couponServiceAmount * $couponInmaxCoverage, 2);
+
+                $this->commision = number_format($remainingCommission + $inmaxCommission, 2);
+                $this->total = number_format(
+                    max(0, $effectiveSubtotal - $remainingCommission) + $inmaxCommission,
+                    2
+                );
+            } elseif ($couponInmaxCoverage > 0) {
                 // Coverage applies to the price of the specific service the coupon targets, not the whole subtotal
                 $couponServiceAmount = $coupon->service_id
-                    ? $this->getServicePrice($coupon->service_id)
+                    ? $this->getCouponServiceAmount($coupon->service_id)
                     : $subtotal;
 
                 $inmaxCommission = round($couponServiceAmount * $couponInmaxCoverage, 2);
@@ -452,6 +497,63 @@ class DRNotesPage extends Component
         } else {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format($commission_amount, 2);
+        }
+    }
+
+    /**
+     * Distribute the appointment-level financial breakdown across every completed service,
+     * proportionally to the price captured for each one.
+     */
+    private function persistServiceFinancials(): void
+    {
+        if ($this->hasReceptionistAssigned) {
+            return;
+        }
+
+        $totalSubtotal = floatval(str_replace(',', '', (string) $this->subtotal));
+        $totalCoupon = $this->couponDiscountValue;
+        $totalUserPayment = floatval(str_replace(',', '', (string) $this->user_payment));
+        $totalCommission = floatval(str_replace(',', '', (string) $this->commision));
+        $totalAmount = floatval(str_replace(',', '', (string) $this->total));
+        $selectedBenefit = $this->selectedCouponId
+            ? $this->availableCoupons->firstWhere('id', $this->selectedCouponId)
+            : null;
+        $serviceCoupon = $selectedBenefit?->coupon;
+        $serviceCouponId = $serviceCoupon?->type === 'Service' ? $serviceCoupon->service_id : null;
+        $serviceCouponPrice = $serviceCouponId ? $this->getCouponServiceAmount($serviceCouponId) : 0;
+        $serviceCouponCoverage = $serviceCoupon
+            ? round($serviceCouponPrice * ((float) $serviceCoupon->inmax_coverage_percent / 100), 2)
+            : 0;
+        $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice);
+
+        foreach ($this->services as $service) {
+            if (empty($this->form->services[$service->id])) {
+                continue;
+            }
+
+            $price = (float) str_replace(',', '', (string) ($this->form->servicePrices[$service->id] ?? 0));
+
+            if ($serviceCouponId && (int) $service->service_id === (int) $serviceCouponId) {
+                $service->update([
+                    'subtotal' => $price,
+                    'coupon_discount' => $price,
+                    'user_payment' => 0,
+                    'commission' => $serviceCouponCoverage,
+                    'total' => $serviceCouponCoverage,
+                ]);
+
+                continue;
+            }
+
+            $share = $remainingSubtotal > 0 ? $price / $remainingSubtotal : 0;
+
+            $service->update([
+                'subtotal' => $price,
+                'coupon_discount' => $serviceCouponId ? 0 : round($totalCoupon * $share, 2),
+                'user_payment' => round($totalUserPayment * $share, 2),
+                'commission' => round(($serviceCouponId ? $totalCommission - $serviceCouponCoverage : $totalCommission) * $share, 2),
+                'total' => round(($serviceCouponId ? $totalAmount - $serviceCouponCoverage : $totalAmount) * $share, 2),
+            ]);
         }
     }
 
@@ -488,6 +590,7 @@ class DRNotesPage extends Component
 
                 if (! empty($updateData)) {
                     $this->appointment->update($updateData);
+                    $this->persistServiceFinancials();
                 }
 
                 $this->dispatch('close-notes-modal');
@@ -580,6 +683,7 @@ class DRNotesPage extends Component
         }
 
         $this->appointment->update($updateData);
+        $this->persistServiceFinancials();
 
         if (!empty($this->prescriptions)) // has at least one element
         { 

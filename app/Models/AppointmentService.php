@@ -14,6 +14,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $attachment_path
  * @property string|null $attachment_name
  * @property string $status
+ * @property numeric|null $subtotal
+ * @property numeric|null $coupon_discount
+ * @property numeric|null $user_payment
+ * @property numeric|null $commission
+ * @property numeric|null $total
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Appointment $appointment
@@ -48,6 +53,11 @@ class AppointmentService extends Model
         'unregistered_service',
         'covered',
         'status',
+        'subtotal',
+        'coupon_discount',
+        'user_payment',
+        'commission',
+        'total',
         'attachment_path',
         'attachment_name',
     ];

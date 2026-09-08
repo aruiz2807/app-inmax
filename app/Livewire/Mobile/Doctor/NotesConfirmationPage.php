@@ -27,7 +27,7 @@ class NotesConfirmationPage extends Component
             return redirect()->route('doctor.home');
         }
 
-        $this->note = AppointmentNote::with(['appointment.prescriptions.medication', 'appointment.doctor.user', 'appointment.doctor.specialty', 'appointment.user'])
+        $this->note = AppointmentNote::with(['appointment.prescriptions.medication', 'appointment.doctor.user', 'appointment.doctor.specialty', 'appointment.user', 'appointment.services'])
             ->where('id', $noteId)
             ->firstOrFail();
 
@@ -82,12 +82,12 @@ class NotesConfirmationPage extends Component
 
     public function getSubtotalProperty()
     {
-        return number_format($this->note->appointment->subtotal, 2);
+        return $this->formatServiceAmount('subtotal');
     }
 
     public function getCouponDiscountProperty()
     {
-        return number_format($this->note->appointment->coupon_discount, 2);
+        return $this->formatServiceAmount('coupon_discount');
     }
 
     public function getDiscountProperty()
@@ -97,16 +97,29 @@ class NotesConfirmationPage extends Component
 
     public function getPaymentProperty()
     {
-        return number_format($this->note->appointment->user_payment, 2);
+        return $this->formatServiceAmount('user_payment');
     }
 
     public function getTotalProperty()
     {
-        return number_format($this->note->appointment->total, 2);
+        return $this->formatServiceAmount('total');
     }
 
     public function getCommissionProperty()
     {
-        return number_format($this->note->appointment->commission, 2);
+        return $this->formatServiceAmount('commission');
+    }
+
+    private function formatServiceAmount(string $column): string
+    {
+        $appointment = $this->note->appointment;
+        $completedServices = $appointment->services->where('status', 'Completed');
+
+        $hasServiceAmounts = $completedServices->contains(fn ($service) => $service->{$column} !== null);
+        $amount = $hasServiceAmounts
+            ? $completedServices->sum($column)
+            : $appointment->{$column};
+
+        return number_format((float) $amount, 2);
     }
 }
