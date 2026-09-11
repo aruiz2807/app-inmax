@@ -38,7 +38,7 @@ class HistoryPage extends Component
             ->get();
 
         $this->pastAppointments = Appointment::where('user_id', Auth::user()->id)
-            ->whereIn('status', [\App\Enums\AppointmentStatus::COMPLETED, \App\Enums\AppointmentStatus::CANCELLED, \App\Enums\AppointmentStatus::NO_SHOW])
+            ->whereIn('status', [\App\Enums\AppointmentStatus::COMPLETED])
             ->orderBy('date')
             ->orderBy('time')
             ->get();

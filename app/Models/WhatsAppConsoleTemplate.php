@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WhatsAppConsoleTemplate extends Model
 {
@@ -19,6 +20,7 @@ class WhatsAppConsoleTemplate extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'whatsapp_message_template_id',
         'name',
         'meta_template_name',
         'language_code',
@@ -27,6 +29,8 @@ class WhatsAppConsoleTemplate extends Model
         'body_variables',
         'button_variables',
         'is_active',
+        'allow_console',
+        'allow_marketing',
     ];
 
     /**
@@ -40,6 +44,13 @@ class WhatsAppConsoleTemplate extends Model
             'body_variables' => 'array',
             'button_variables' => 'array',
             'is_active' => 'boolean',
+            'allow_console' => 'boolean',
+            'allow_marketing' => 'boolean',
         ];
+    }
+
+    public function metaTemplate(): BelongsTo
+    {
+        return $this->belongsTo(WhatsAppMessageTemplate::class, 'whatsapp_message_template_id');
     }
 }

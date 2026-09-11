@@ -30,6 +30,20 @@
                         <x-ui.error name="phoneNumberId" />
                     </x-ui.field>
 
+                    <x-ui.field>
+                        <x-ui.label>Business Account ID</x-ui.label>
+                        <x-ui.input wire:model="businessAccountId" placeholder="ID de WhatsApp Business Account" />
+                        <p class="mt-1 text-xs text-slate-500">Requerido para sincronizar y crear plantillas desde Meta.</p>
+                        <x-ui.error name="businessAccountId" />
+                    </x-ui.field>
+
+                    <x-ui.field>
+                        <x-ui.label>Meta App ID</x-ui.label>
+                        <x-ui.input wire:model="metaAppId" placeholder="ID de la app de Meta" />
+                        <p class="mt-1 text-xs text-slate-500">Requerido para crear plantillas con encabezado multimedia.</p>
+                        <x-ui.error name="metaAppId" />
+                    </x-ui.field>
+
                     <x-ui.field :required="! $hasStoredAccessToken">
                         <x-ui.label>Access Token</x-ui.label>
                         <x-ui.input wire:model="accessToken" type="password" placeholder="{{ $hasStoredAccessToken ? 'Token guardado. Escribe uno nuevo para reemplazar.' : 'Pega aqui el token de Meta' }}" />
@@ -96,6 +110,120 @@
                         <p class="mt-1 text-xs text-slate-500">Se usa solo si una plantilla no tiene idioma especifico.</p>
                         <x-ui.error name="defaultLanguage" />
                     </x-ui.field>
+                </x-ui.fieldset>
+
+                <x-ui.fieldset label="Plantillas Meta" class="mt-4">
+                    <div class="pb-4">
+                        <div class="min-w-0">
+                            <p class="text-sm text-slate-600">
+                                Sincroniza plantillas existentes en Meta o crea nuevas plantillas para revision.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="w-full min-w-0 overflow-hidden rounded-xl border border-slate-200">
+                        <div class="w-full min-w-0">
+                            <div class="grid gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                                <div class="min-w-0">
+                                    <x-ui.input
+                                        wire:model.live.debounce.350ms="metaTemplateSearch"
+                                        placeholder="Buscar por plantilla, idioma, estado o categoria..."
+                                    />
+                                </div>
+
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    <x-ui.button type="button" size="sm" variant="outline" icon="arrow-path" wire:click="syncMetaTemplates">
+                                        Sincronizar Meta
+                                    </x-ui.button>
+
+                                    <x-ui.modal.trigger id="whatsapp-meta-template-modal">
+                                        <x-ui.button type="button" size="sm" color="teal" icon="plus-circle">
+                                            Nueva plantilla Meta
+                                        </x-ui.button>
+                                    </x-ui.modal.trigger>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-[minmax(11rem,1.25fr)_4.5rem_7rem_7rem_minmax(7rem,.8fr)_5rem_12rem] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                <span>Plantilla</span>
+                                <span>Idioma</span>
+                                <span>Estado</span>
+                                <span>Categoria</span>
+                                <span>Variables</span>
+                                <span>Activa</span>
+                                <span class="text-right">Acciones</span>
+                            </div>
+
+                            <div class="divide-y divide-slate-200">
+                                @forelse ($metaTemplates as $item)
+                                    @php
+                                        $template = $item['model'];
+                                        $requirements = $item['requirements'];
+                                    @endphp
+                                    <div class="grid grid-cols-[minmax(11rem,1.25fr)_4.5rem_7rem_7rem_minmax(7rem,.8fr)_5rem_12rem] items-center gap-3 px-4 py-4 text-sm"
+                                        wire:key="meta-template-{{ $template->id }}">
+                                        <div class="min-w-0">
+                                            <p class="truncate font-semibold text-slate-900">{{ $template->name }}</p>
+                                            <p class="truncate text-xs text-slate-500">{{ $template->meta_id }}</p>
+                                        </div>
+
+                                        <div class="text-slate-600">{{ $template->language_code }}</div>
+
+                                        <div>
+                                            <x-ui.badge :color="$template->status === 'APPROVED' ? 'emerald' : ($template->status === 'REJECTED' ? 'red' : 'amber')" size="sm" pill>
+                                                {{ $template->status }}
+                                            </x-ui.badge>
+                                        </div>
+
+                                        <div class="text-slate-600">{{ $template->category ?: 'N/A' }}</div>
+
+                                        <div class="text-xs text-slate-600">
+                                            {{ $requirements['body_variables'] }} body /
+                                            {{ $requirements['header_variables'] }} header /
+                                            {{ $item['button_variables'] }} boton
+                                            @if ($item['header_media_type'])
+                                                <p class="mt-1 text-slate-500">Header {{ $item['header_media_type'] }}</p>
+                                            @endif
+                                        </div>
+
+                                        <div>
+                                            <x-ui.badge :color="$template->is_active ? 'emerald' : 'slate'" size="sm" pill>
+                                                {{ $template->is_active ? 'Si' : 'No' }}
+                                            </x-ui.badge>
+                                        </div>
+
+                                        <div class="flex justify-end gap-2">
+                                            <x-ui.button type="button" size="sm" variant="outline" icon="eye"
+                                                wire:click="previewMetaTemplate({{ $template->id }})">
+                                                Ver
+                                            </x-ui.button>
+
+                                            <x-ui.button type="button" size="sm" variant="outline"
+                                                wire:click="toggleMetaTemplate({{ $template->id }})">
+                                                {{ $template->is_active ? 'Ocultar' : 'Activar' }}
+                                            </x-ui.button>
+
+                                            <x-ui.button type="button" size="sm" color="teal"
+                                                wire:click="createOperationalTemplateFromMeta({{ $template->id }})"
+                                                :disabled="$template->status !== 'APPROVED'">
+                                                Usar
+                                            </x-ui.button>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="px-4 py-10 text-center text-sm text-slate-500">
+                                        No hay plantillas sincronizadas desde Meta.
+                                    </div>
+                                @endforelse
+                            </div>
+
+                            @if ($metaTemplates->hasPages())
+                                <div class="border-t border-slate-200 bg-white px-4 py-3">
+                                    {{ $metaTemplates->links() }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </x-ui.fieldset>
 
                 <x-ui.fieldset label="Parametros por plantilla" class="mt-4">
@@ -285,4 +413,222 @@
             @endif
         </x-ui.card>
     </div>
+
+    <x-ui.modal id="whatsapp-meta-template-modal" animation="fade" width="4xl"
+        heading="Nueva plantilla Meta"
+        description="Crea una plantilla en Meta para revision. Cuando sea aprobada, sincronizala y marcala como usable."
+        x-on:close-whatsapp-meta-template-modal.window="$data.close()">
+        <form wire:submit="createMetaTemplate" class="space-y-4">
+            <x-ui.fieldset label="Datos generales">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-ui.field required>
+                        <x-ui.label>Nombre Meta</x-ui.label>
+                        <x-ui.input wire:model="newTemplateName" placeholder="promo_cliente_2026" />
+                        <p class="mt-1 text-xs text-slate-500">Solo minusculas, numeros y guion bajo.</p>
+                        <x-ui.error name="newTemplateName" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
+                        <x-ui.label>Idioma</x-ui.label>
+                        <x-ui.input wire:model="newTemplateLanguage" placeholder="es_MX" />
+                        <x-ui.error name="newTemplateLanguage" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
+                        <x-ui.label>Categoria</x-ui.label>
+                        <select wire:model="newTemplateCategory"
+                            class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/15">
+                            <option value="MARKETING">MARKETING</option>
+                            <option value="UTILITY">UTILITY</option>
+                        </select>
+                        <x-ui.error name="newTemplateCategory" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
+                        <x-ui.label>Tipo de encabezado</x-ui.label>
+                        <select wire:model.live="newTemplateHeaderType"
+                            class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/15">
+                            <option value="NONE">Sin encabezado</option>
+                            <option value="TEXT">Texto</option>
+                            <option value="IMAGE">Imagen</option>
+                            <option value="VIDEO">Video</option>
+                            <option value="DOCUMENT">Documento PDF</option>
+                        </select>
+                        <x-ui.error name="newTemplateHeaderType" />
+                    </x-ui.field>
+                </div>
+            </x-ui.fieldset>
+
+            @if ($newTemplateHeaderType === 'TEXT')
+                <x-ui.fieldset label="Encabezado de texto">
+                    <x-ui.field required>
+                        <x-ui.label>Texto encabezado</x-ui.label>
+                        <x-ui.input wire:model="newTemplateHeaderText" placeholder="Hola {{1}}" />
+                        <x-ui.error name="newTemplateHeaderText" />
+                    </x-ui.field>
+
+                    <x-ui.field>
+                        <x-ui.label>Ejemplos de encabezado</x-ui.label>
+                        <x-ui.input wire:model="newTemplateHeaderExamples" placeholder="Juan" />
+                        <p class="mt-1 text-xs text-slate-500">Un ejemplo por variable, separado con |.</p>
+                        <x-ui.error name="newTemplateHeaderExamples" />
+                    </x-ui.field>
+                </x-ui.fieldset>
+            @elseif (in_array($newTemplateHeaderType, ['IMAGE', 'VIDEO', 'DOCUMENT'], true))
+                <x-ui.fieldset label="Muestra multimedia">
+                    <x-ui.field required>
+                        <x-ui.label>Archivo de muestra</x-ui.label>
+                        <input type="file" wire:model="newTemplateHeaderSample"
+                            class="block w-full rounded-xl border border-slate-200 bg-white p-2 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-teal-700 hover:file:bg-teal-100">
+                        <p class="mt-1 text-xs text-slate-500">
+                            Imagen: JPG/PNG. Video: MP4/3GPP/MOV. Documento: PDF.
+                        </p>
+                        <x-ui.error name="newTemplateHeaderSample" />
+                    </x-ui.field>
+                </x-ui.fieldset>
+            @endif
+
+            <x-ui.fieldset label="Contenido">
+                <x-ui.field required>
+                    <x-ui.label>Body</x-ui.label>
+                    <x-ui.textarea wire:model="newTemplateBody" rows="5"
+                        placeholder="Hola {{1}}, tenemos una promocion para ti." />
+                    <p class="mt-1 text-xs text-slate-500">Variables consecutivas: @{{1}}, @{{2}}.</p>
+                    <x-ui.error name="newTemplateBody" />
+                </x-ui.field>
+
+                <x-ui.field>
+                    <x-ui.label>Ejemplos body</x-ui.label>
+                    <x-ui.input wire:model="newTemplateBodyExamples" placeholder="Juan|Plan familiar" />
+                    <p class="mt-1 text-xs text-slate-500">Un ejemplo por variable, separado con |.</p>
+                    <x-ui.error name="newTemplateBodyExamples" />
+                </x-ui.field>
+
+                <x-ui.field>
+                    <x-ui.label>Footer</x-ui.label>
+                    <x-ui.input wire:model="newTemplateFooter" placeholder="SANEMI SOLUCIONES" />
+                    <x-ui.error name="newTemplateFooter" />
+                </x-ui.field>
+            </x-ui.fieldset>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <x-ui.button type="button" x-on:click="$data.close();" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+
+                <x-ui.button type="submit" color="teal" icon="paper-airplane">
+                    Enviar a Meta
+                </x-ui.button>
+            </div>
+        </form>
+    </x-ui.modal>
+
+    @php
+        $preview = $this->metaTemplatePreviewData();
+        $previewTemplate = $preview['template'];
+        $previewHeader = $preview['header'];
+        $previewBody = $preview['body'];
+        $previewFooter = $preview['footer'];
+        $previewButtons = $preview['buttons'];
+    @endphp
+
+    <x-ui.modal id="whatsapp-meta-template-preview-modal" animation="fade" width="4xl"
+        heading="Vista de plantilla Meta"
+        description="Contenido sincronizado desde Meta, incluyendo body, ejemplos y componentes."
+        x-on:open-whatsapp-meta-template-preview-modal.window="$data.open()">
+        @if ($previewTemplate)
+            <div class="space-y-4">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="font-semibold text-slate-900">{{ $previewTemplate->name }}</span>
+                        <span class="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">{{ $previewTemplate->language_code }}</span>
+                        <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700">{{ $previewTemplate->status }}</span>
+                        @if ($previewTemplate->category)
+                            <span class="rounded-full bg-slate-200 px-2 py-1 text-xs text-slate-700">{{ $previewTemplate->category }}</span>
+                        @endif
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">Meta ID: {{ $previewTemplate->meta_id }}</p>
+                </div>
+
+                @if ($previewHeader)
+                    <div class="rounded-xl border border-slate-200 p-4">
+                        <p class="text-sm font-semibold text-slate-900">Encabezado</p>
+                        <p class="mt-1 text-xs uppercase tracking-wide text-slate-500">
+                            {{ $previewHeader['format'] ?? 'TEXT' }}
+                        </p>
+
+                        @if (filled($previewHeader['text'] ?? null))
+                            <div class="mt-3 whitespace-pre-line rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+                                {{ $previewHeader['text'] }}
+                            </div>
+                        @endif
+
+                        @if (data_get($previewHeader, 'example.header_text'))
+                            <div class="mt-3">
+                                <p class="text-xs font-semibold text-slate-500">Ejemplos header</p>
+                                <p class="mt-1 text-sm text-slate-700">
+                                    {{ implode(' | ', (array) data_get($previewHeader, 'example.header_text', [])) }}
+                                </p>
+                            </div>
+                        @elseif (data_get($previewHeader, 'example.header_handle'))
+                            <div class="mt-3">
+                                <p class="text-xs font-semibold text-slate-500">Muestra multimedia</p>
+                                <p class="mt-1 break-all text-sm text-slate-700">
+                                    {{ implode(' | ', (array) data_get($previewHeader, 'example.header_handle', [])) }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-sm font-semibold text-slate-900">Body</p>
+                    <div class="mt-3 whitespace-pre-line rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+                        {{ $previewBody['text'] ?? 'Sin body sincronizado.' }}
+                    </div>
+
+                    @if (data_get($previewBody, 'example.body_text.0'))
+                        <div class="mt-3">
+                            <p class="text-xs font-semibold text-slate-500">Ejemplos body</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach ((array) data_get($previewBody, 'example.body_text.0', []) as $example)
+                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                                        {{ $example }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                @if ($previewFooter)
+                    <div class="rounded-xl border border-slate-200 p-4">
+                        <p class="text-sm font-semibold text-slate-900">Footer</p>
+                        <p class="mt-2 text-sm text-slate-700">{{ $previewFooter['text'] ?? '' }}</p>
+                    </div>
+                @endif
+
+                @if ($previewButtons)
+                    <div class="rounded-xl border border-slate-200 p-4">
+                        <p class="text-sm font-semibold text-slate-900">Botones</p>
+                        <div class="mt-3 space-y-2">
+                            @foreach ($previewButtons as $button)
+                                <div class="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                                    <p class="font-medium">{{ $button['text'] ?? 'Boton' }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">{{ $button['type'] ?? '' }}</p>
+                                    @if (filled($button['url'] ?? null))
+                                        <p class="mt-1 break-all text-xs text-slate-500">{{ $button['url'] }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @else
+            <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
+                Selecciona una plantilla para ver su contenido.
+            </div>
+        @endif
+    </x-ui.modal>
 </div>

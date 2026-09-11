@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property string $api_version
  * @property string|null $phone_number_id
+ * @property string|null $business_account_id
+ * @property string|null $meta_app_id
  * @property string|null $access_token
  * @property string|null $webhook_verify_token
  * @property string|null $app_secret
@@ -94,6 +96,8 @@ class WhatsAppSetting extends Model
     protected $fillable = [
         'api_version',
         'phone_number_id',
+        'business_account_id',
+        'meta_app_id',
         'access_token',
         'webhook_verify_token',
         'app_secret',
