@@ -3,7 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use Illuminate\Http\UploadedFile;
-use OpenSpout\Reader\Common\Creator\ReaderFactory;
+use Throwable;
 
 class WhatsAppMarketingCampaignImportService
 {
@@ -14,8 +14,31 @@ class WhatsAppMarketingCampaignImportService
      */
     public function read(UploadedFile $file, int $limit = self::MAX_ROWS): array
     {
-        $reader = ReaderFactory::createFromFile($file->getClientOriginalName() ?: $file->getRealPath());
-        $reader->open($file->getRealPath());
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if (in_array($extension, ['csv', 'txt'], true)) {
+            return $this->readCsv($file, $limit);
+        }
+
+        if ($extension === 'xlsx' && ! class_exists(\OpenSpout\Reader\Common\Creator\ReaderFactory::class)) {
+            return $this->readXlsx($file, $limit);
+        }
+
+        try {
+            $reader = \OpenSpout\Reader\Common\Creator\ReaderFactory::createFromFile($file->getClientOriginalName() ?: $file->getRealPath());
+            $reader->open($file->getRealPath());
+        } catch (Throwable $exception) {
+            if ($extension === 'xlsx') {
+                return $this->readXlsx($file, $limit);
+            }
+
+            return [
+                'columns' => $this->columns([]),
+                'rows' => [],
+                'errors' => ['No se pudo leer el archivo. Verifica que sea un Excel XLSX o CSV valido.'],
+                'skipped_header' => false,
+            ];
+        }
 
         $rows = [];
         $errors = [];
@@ -56,6 +79,254 @@ class WhatsAppMarketingCampaignImportService
         }
 
         $reader->close();
+
+        return [
+            'columns' => $this->columns($firstRow ?? []),
+            'rows' => $rows,
+            'errors' => $errors,
+            'skipped_header' => $skippedHeader,
+        ];
+    }
+
+    /**
+     * Minimal XLSX reader used when OpenSpout is not installed in the target environment.
+     *
+     * @return array{columns: array<int, array{key: string, label: string}>, rows: array<int, array{row_number: int, data: array<string, string>}>, errors: array<int, string>, skipped_header: bool}
+     */
+    private function readXlsx(UploadedFile $file, int $limit): array
+    {
+        if (! class_exists(\ZipArchive::class)) {
+            return [
+                'columns' => $this->columns([]),
+                'rows' => [],
+                'errors' => ['El servidor no tiene habilitado el lector ZIP necesario para archivos XLSX.'],
+                'skipped_header' => false,
+            ];
+        }
+
+        $zip = new \ZipArchive();
+
+        if ($zip->open($file->getRealPath()) !== true) {
+            return [
+                'columns' => $this->columns([]),
+                'rows' => [],
+                'errors' => ['No se pudo abrir el archivo XLSX.'],
+                'skipped_header' => false,
+            ];
+        }
+
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+
+        if ($sheetXml === false) {
+            $zip->close();
+
+            return [
+                'columns' => $this->columns([]),
+                'rows' => [],
+                'errors' => ['No se encontro la primera hoja del archivo XLSX.'],
+                'skipped_header' => false,
+            ];
+        }
+
+        $sharedStrings = $this->xlsxSharedStrings($zip);
+        $zip->close();
+
+        $xml = simplexml_load_string($sheetXml);
+
+        if (! $xml) {
+            return [
+                'columns' => $this->columns([]),
+                'rows' => [],
+                'errors' => ['No se pudo interpretar la primera hoja del XLSX.'],
+                'skipped_header' => false,
+            ];
+        }
+
+        $rows = [];
+        $errors = [];
+        $firstRow = null;
+        $skippedHeader = false;
+
+        foreach ($xml->sheetData->row ?? [] as $row) {
+            $rowNumber = (int) ((string) ($row['r'] ?? '0'));
+            $values = [];
+
+            foreach ($row->c as $cell) {
+                $reference = (string) ($cell['r'] ?? '');
+                $columnIndex = $this->cellColumnIndex($reference);
+
+                if ($columnIndex === null) {
+                    $columnIndex = count($values);
+                }
+
+                $values[$columnIndex] = $this->xlsxCellValue($cell, $sharedStrings);
+            }
+
+            if ($values === []) {
+                continue;
+            }
+
+            ksort($values);
+            $maxIndex = max(array_keys($values));
+            $values = array_replace(array_fill(0, $maxIndex + 1, ''), $values);
+            $values = $this->normalizeValues($values);
+
+            if ($this->isEmptyRow($values)) {
+                continue;
+            }
+
+            if ($firstRow === null) {
+                $firstRow = $values;
+
+                if ($this->looksLikeHeader($values)) {
+                    $skippedHeader = true;
+                    continue;
+                }
+            }
+
+            if (count($rows) >= $limit) {
+                $errors[] = "Maximo {$limit} destinatarios por campaña.";
+                break;
+            }
+
+            $rows[] = [
+                'row_number' => $rowNumber > 0 ? $rowNumber : count($rows) + 1,
+                'data' => $this->rowData($values),
+            ];
+        }
+
+        return [
+            'columns' => $this->columns($firstRow ?? []),
+            'rows' => $rows,
+            'errors' => $errors,
+            'skipped_header' => $skippedHeader,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function xlsxSharedStrings(\ZipArchive $zip): array
+    {
+        $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
+
+        if ($sharedStringsXml === false) {
+            return [];
+        }
+
+        $xml = simplexml_load_string($sharedStringsXml);
+
+        if (! $xml) {
+            return [];
+        }
+
+        $values = [];
+
+        foreach ($xml->si as $item) {
+            $text = '';
+
+            if (isset($item->t)) {
+                $text = (string) $item->t;
+            } elseif (isset($item->r)) {
+                foreach ($item->r as $run) {
+                    $text .= (string) ($run->t ?? '');
+                }
+            }
+
+            $values[] = $text;
+        }
+
+        return $values;
+    }
+
+    /**
+     * @param  \SimpleXMLElement  $cell
+     * @param  array<int, string>  $sharedStrings
+     */
+    private function xlsxCellValue(\SimpleXMLElement $cell, array $sharedStrings): string
+    {
+        $type = (string) ($cell['t'] ?? '');
+
+        if ($type === 's') {
+            $index = (int) ((string) ($cell->v ?? '0'));
+
+            return $sharedStrings[$index] ?? '';
+        }
+
+        if ($type === 'inlineStr') {
+            return (string) ($cell->is->t ?? '');
+        }
+
+        return (string) ($cell->v ?? '');
+    }
+
+    private function cellColumnIndex(string $reference): ?int
+    {
+        if (! preg_match('/^([A-Z]+)/i', $reference, $matches)) {
+            return null;
+        }
+
+        $letters = strtoupper($matches[1]);
+        $index = 0;
+
+        foreach (str_split($letters) as $letter) {
+            $index = ($index * 26) + (ord($letter) - 64);
+        }
+
+        return $index - 1;
+    }
+
+    /**
+     * @return array{columns: array<int, array{key: string, label: string}>, rows: array<int, array{row_number: int, data: array<string, string>}>, errors: array<int, string>, skipped_header: bool}
+     */
+    private function readCsv(UploadedFile $file, int $limit): array
+    {
+        $handle = fopen($file->getRealPath(), 'rb');
+
+        if ($handle === false) {
+            return [
+                'columns' => $this->columns([]),
+                'rows' => [],
+                'errors' => ['No se pudo abrir el archivo CSV.'],
+                'skipped_header' => false,
+            ];
+        }
+
+        $rows = [];
+        $errors = [];
+        $firstRow = null;
+        $rowNumber = 0;
+        $skippedHeader = false;
+
+        while (($values = fgetcsv($handle)) !== false) {
+            $rowNumber++;
+            $values = $this->normalizeValues($values);
+
+            if ($this->isEmptyRow($values)) {
+                continue;
+            }
+
+            if ($firstRow === null) {
+                $firstRow = $values;
+
+                if ($this->looksLikeHeader($values)) {
+                    $skippedHeader = true;
+                    continue;
+                }
+            }
+
+            if (count($rows) >= $limit) {
+                $errors[] = "Maximo {$limit} destinatarios por campaña.";
+                break;
+            }
+
+            $rows[] = [
+                'row_number' => $rowNumber,
+                'data' => $this->rowData($values),
+            ];
+        }
+
+        fclose($handle);
 
         return [
             'columns' => $this->columns($firstRow ?? []),
