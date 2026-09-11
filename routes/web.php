@@ -73,6 +73,7 @@ use App\Livewire\Specialties\SpecialtiesPage;
 use App\Livewire\Users\UsersPage;
 use App\Livewire\WhatsApp\WhatsAppConsolePage;
 use App\Livewire\WhatsApp\WhatsAppConsoleTemplatesPage;
+use App\Livewire\WhatsApp\WhatsAppMarketingCampaignsPage;
 
 // Livewire - Mobile
 use App\Livewire\Mobile\ContactPage;
@@ -216,6 +217,9 @@ Route::middleware([
         Route::get('/whatsapp/console', WhatsAppConsolePage::class)
             ->middleware('permission:view.admin.whatsapp_console')
             ->name('whatsapp.console');
+        Route::get('/whatsapp/marketing-campaigns', WhatsAppMarketingCampaignsPage::class)
+            ->middleware('permission:view.admin.whatsapp_marketing_campaigns')
+            ->name('whatsapp.marketing-campaigns');
         Route::get('/whatsapp/attachments/{attachment}/preview', [WhatsAppMediaAttachmentController::class, 'preview'])
             ->middleware('permission:view.admin.whatsapp_console')
             ->name('whatsapp.attachments.preview');

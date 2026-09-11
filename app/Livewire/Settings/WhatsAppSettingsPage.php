@@ -3,15 +3,26 @@
 namespace App\Livewire\Settings;
 
 use App\Models\WhatsAppSetting;
+use App\Models\WhatsAppMessageTemplate;
+use App\Models\WhatsAppConsoleTemplate;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
 use App\Services\WhatsApp\WhatsAppTemplateParameterResolver;
+use App\Services\WhatsApp\WhatsAppTemplateCreationService;
+use App\Services\WhatsApp\WhatsAppTemplateDefinition;
+use App\Services\WhatsApp\WhatsAppTemplateSyncService;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class WhatsAppSettingsPage extends Component
 {
+    use WithFileUploads;
+    use WithPagination;
+
     private const PARAMETER_SCOPE_MAP = [
         'systemUserActivationBodyParameters' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BODY,
         'systemUserActivationButtonParameters' => WhatsAppTemplateParameterResolver::SYSTEM_USER_ACTIVATION_BUTTON,
@@ -29,6 +40,8 @@ class WhatsAppSettingsPage extends Component
 
     public string $apiVersion = 'v22.0';
     public string $phoneNumberId = '';
+    public string $businessAccountId = '';
+    public string $metaAppId = '';
     public string $accessToken = '';
     public string $webhookVerifyToken = '';
     public string $appSecret = '';
@@ -74,10 +87,52 @@ class WhatsAppSettingsPage extends Component
     public ?string $lastTestMessageId = null;
     public ?string $lastTestResponse = null;
 
+    public string $newTemplateName = '';
+    public string $newTemplateLanguage = 'es_MX';
+    public string $newTemplateCategory = 'MARKETING';
+    public string $newTemplateHeaderType = 'NONE';
+    public string $newTemplateHeaderText = '';
+    public string $newTemplateHeaderExamples = '';
+    public mixed $newTemplateHeaderSample = null;
+    public string $newTemplateBody = '';
+    public string $newTemplateBodyExamples = '';
+    public string $newTemplateFooter = '';
+    public ?int $previewTemplateId = null;
+    public int $metaTemplatesPerPage = 10;
+    public string $metaTemplateSearch = '';
+
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.settings.whatsapp-settings-page');
+        $definition = app(WhatsAppTemplateDefinition::class);
+
+        return view('livewire.settings.whatsapp-settings-page', [
+            'metaTemplates' => WhatsAppMessageTemplate::query()
+                ->when(trim($this->metaTemplateSearch) !== '', function ($query): void {
+                    $search = '%'.str_replace(['%', '_'], ['\\%', '\\_'], trim($this->metaTemplateSearch)).'%';
+
+                    $query->where(function ($query) use ($search): void {
+                        $query->where('name', 'like', $search)
+                            ->orWhere('meta_id', 'like', $search)
+                            ->orWhere('language_code', 'like', $search)
+                            ->orWhere('status', 'like', $search)
+                            ->orWhere('category', 'like', $search);
+                    });
+                })
+                ->orderByDesc('last_synced_at')
+                ->orderBy('name')
+                ->paginate($this->metaTemplatesPerPage, ['*'], 'metaTemplatesPage')
+                ->through(function (WhatsAppMessageTemplate $template) use ($definition): array {
+                    $requirements = $definition->requirements($template);
+
+                    return [
+                        'model' => $template,
+                        'requirements' => $requirements,
+                        'header_media_type' => $definition->headerMediaType($template),
+                        'button_variables' => $this->countButtonVariables($template),
+                    ];
+                }),
+        ]);
     }
 
     public function mount(): void
@@ -95,6 +150,8 @@ class WhatsAppSettingsPage extends Component
 
         $this->apiVersion = $setting->api_version;
         $this->phoneNumberId = $setting->phone_number_id ?? '';
+        $this->businessAccountId = $setting->business_account_id ?? '';
+        $this->metaAppId = $setting->meta_app_id ?? '';
         $this->webhookVerifyToken = '';
         $this->webhookEnabled = (bool) ($setting->webhook_enabled ?? false);
         $this->webhookLastReceivedAt = $setting->webhook_last_received_at?->format('d/m/Y H:i:s');
@@ -154,6 +211,11 @@ class WhatsAppSettingsPage extends Component
         $this->hasStoredAppSecret = filled($setting->app_secret);
     }
 
+    public function updatedMetaTemplateSearch(): void
+    {
+        $this->resetPage('metaTemplatesPage');
+    }
+
     public function saveSettings(): void
     {
         $resolver = app(WhatsAppTemplateParameterResolver::class);
@@ -161,6 +223,8 @@ class WhatsAppSettingsPage extends Component
         $rules = [
             'apiVersion' => ['required', 'regex:/^v\d+\.\d+$/'],
             'phoneNumberId' => ['required', 'digits_between:8,30'],
+            'businessAccountId' => ['nullable', 'string', 'max:80'],
+            'metaAppId' => ['nullable', 'string', 'max:80'],
             'webhookVerifyToken' => ['nullable', 'string', 'max:255'],
             'appSecret' => ['nullable', 'string', 'min:10'],
             'webhookEnabled' => ['boolean'],
@@ -214,6 +278,8 @@ class WhatsAppSettingsPage extends Component
         Validator::make([
             'apiVersion' => $this->apiVersion,
             'phoneNumberId' => $this->phoneNumberId,
+            'businessAccountId' => $this->businessAccountId,
+            'metaAppId' => $this->metaAppId,
             'accessToken' => $this->accessToken,
             'webhookVerifyToken' => $this->webhookVerifyToken,
             'appSecret' => $this->appSecret,
@@ -254,6 +320,8 @@ class WhatsAppSettingsPage extends Component
 
         $setting->api_version = $this->apiVersion;
         $setting->phone_number_id = $this->phoneNumberId;
+        $setting->business_account_id = trim($this->businessAccountId) ?: null;
+        $setting->meta_app_id = trim($this->metaAppId) ?: null;
         $setting->webhook_enabled = $this->webhookEnabled;
         $setting->system_user_activation_template_name = $this->systemUserActivationTemplateName;
         $setting->system_user_activation_language_code = filled($this->systemUserActivationTemplateName)
@@ -310,6 +378,166 @@ class WhatsAppSettingsPage extends Component
             content: 'Configuracion de WhatsApp guardada correctamente.',
             duration: 4000
         );
+    }
+
+    public function syncMetaTemplates(WhatsAppTemplateSyncService $service): void
+    {
+        $result = $service->sync();
+        $this->resetPage('metaTemplatesPage');
+
+        $this->dispatch(
+            'notify',
+            type: $result['ok'] ? 'success' : 'error',
+            content: $result['message'],
+            duration: $result['ok'] ? 4000 : 7000
+        );
+    }
+
+    public function createMetaTemplate(WhatsAppTemplateCreationService $service): void
+    {
+        $data = Validator::make([
+            'newTemplateName' => $this->newTemplateName,
+            'newTemplateLanguage' => $this->newTemplateLanguage,
+            'newTemplateCategory' => $this->newTemplateCategory,
+            'newTemplateHeaderType' => $this->newTemplateHeaderType,
+            'newTemplateHeaderText' => $this->newTemplateHeaderText,
+            'newTemplateHeaderExamples' => $this->newTemplateHeaderExamples,
+            'newTemplateHeaderSample' => $this->newTemplateHeaderSample,
+            'newTemplateBody' => $this->newTemplateBody,
+            'newTemplateBodyExamples' => $this->newTemplateBodyExamples,
+            'newTemplateFooter' => $this->newTemplateFooter,
+        ], [
+            'newTemplateName' => ['required', 'string', 'max:512', 'regex:/^[a-z0-9_]+$/'],
+            'newTemplateLanguage' => ['required', 'regex:/^[a-z]{2}(?:_[A-Z]{2})$/'],
+            'newTemplateCategory' => ['required', Rule::in(['UTILITY', 'MARKETING'])],
+            'newTemplateHeaderType' => ['required', Rule::in(['NONE', 'TEXT', 'IMAGE', 'VIDEO', 'DOCUMENT'])],
+            'newTemplateHeaderText' => ['nullable', 'required_if:newTemplateHeaderType,TEXT', 'string', 'max:60'],
+            'newTemplateHeaderExamples' => ['nullable', 'string', 'max:512'],
+            'newTemplateHeaderSample' => ['nullable', 'required_if:newTemplateHeaderType,IMAGE,DOCUMENT', 'file', 'max:16384'],
+            'newTemplateBody' => ['required', 'string', 'max:1024'],
+            'newTemplateBodyExamples' => ['nullable', 'string', 'max:1024'],
+            'newTemplateFooter' => ['nullable', 'string', 'max:60'],
+        ], [
+            'newTemplateName.regex' => 'Usa solo minusculas, numeros y guion bajo.',
+            'newTemplateLanguage.regex' => 'Usa formato es_MX.',
+        ])->validate();
+
+        $this->validateTemplateVariableExamples($data);
+        $this->validateHeaderSampleType();
+
+        $result = $service->create([
+            'name' => $data['newTemplateName'],
+            'language' => $data['newTemplateLanguage'],
+            'category' => $data['newTemplateCategory'],
+            'header_type' => $data['newTemplateHeaderType'],
+            'header_text' => $data['newTemplateHeaderText'] ?: null,
+            'header_examples' => $data['newTemplateHeaderExamples'] ?: null,
+            'header_sample' => $data['newTemplateHeaderSample'] ?? null,
+            'body' => $data['newTemplateBody'],
+            'body_examples' => $data['newTemplateBodyExamples'] ?: null,
+            'footer' => $data['newTemplateFooter'] ?: null,
+        ]);
+
+        if ($result['ok']) {
+            $this->resetPage('metaTemplatesPage');
+            $this->reset([
+                'newTemplateName',
+                'newTemplateHeaderText',
+                'newTemplateHeaderExamples',
+                'newTemplateHeaderSample',
+                'newTemplateBody',
+                'newTemplateBodyExamples',
+                'newTemplateFooter',
+            ]);
+            $this->newTemplateLanguage = 'es_MX';
+            $this->newTemplateCategory = 'MARKETING';
+            $this->newTemplateHeaderType = 'NONE';
+            $this->dispatch('close-whatsapp-meta-template-modal');
+        }
+
+        $this->dispatch(
+            'notify',
+            type: $result['ok'] ? 'success' : 'error',
+            content: $result['message'],
+            duration: $result['ok'] ? 4000 : 8000
+        );
+    }
+
+    public function toggleMetaTemplate(int $templateId): void
+    {
+        $template = WhatsAppMessageTemplate::query()->findOrFail($templateId);
+        $template->update(['is_active' => ! $template->is_active]);
+        $this->resetPage('metaTemplatesPage');
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: $template->is_active ? 'Plantilla habilitada.' : 'Plantilla deshabilitada.',
+            duration: 4000
+        );
+    }
+
+    public function previewMetaTemplate(int $templateId): void
+    {
+        $this->previewTemplateId = $templateId;
+        $this->dispatch('open-whatsapp-meta-template-preview-modal');
+    }
+
+    public function createOperationalTemplateFromMeta(int $templateId, WhatsAppTemplateDefinition $definition): void
+    {
+        $template = WhatsAppMessageTemplate::query()->findOrFail($templateId);
+
+        if (! $template->isApproved()) {
+            $this->dispatch('notify', type: 'error', content: 'Solo puedes operar plantillas aprobadas por Meta.', duration: 6000);
+            return;
+        }
+
+        $requirements = $definition->requirements($template);
+        $buttonVariables = $this->countButtonVariables($template);
+        $bodyVariables = [];
+
+        for ($index = 1; $index <= $requirements['body_variables']; $index++) {
+            $bodyVariables[] = [
+                'label' => 'Parametro body '.$index,
+                'help_text' => '',
+                'source_type' => 'custom',
+                'system_key' => '',
+                'example_value' => '',
+                'required' => true,
+            ];
+        }
+
+        $buttonMappings = [];
+        for ($index = 1; $index <= $buttonVariables; $index++) {
+            $buttonMappings[] = [
+                'label' => 'Parametro boton '.$index,
+                'help_text' => '',
+                'source_type' => 'custom',
+                'system_key' => '',
+                'example_value' => '',
+                'required' => true,
+            ];
+        }
+
+        WhatsAppConsoleTemplate::query()->updateOrCreate(
+            [
+                'meta_template_name' => $template->name,
+                'language_code' => $template->language_code,
+            ],
+            [
+                'whatsapp_message_template_id' => $template->id,
+                'name' => $template->name,
+                'example_text' => $this->bodyText($template),
+                'header_media_type' => $definition->headerMediaType($template),
+                'body_variables' => $bodyVariables,
+                'button_variables' => $buttonMappings,
+                'is_active' => true,
+                'allow_console' => true,
+                'allow_marketing' => true,
+            ]
+        );
+
+        $this->dispatch('notify', type: 'success', content: 'Plantilla operativa creada/actualizada para consola y campañas.', duration: 5000);
     }
 
     public function sendTestMessage(WhatsAppCloudApiService $service): void
@@ -535,6 +763,183 @@ class WhatsAppSettingsPage extends Component
         }
 
         return $mappings;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function validateTemplateVariableExamples(array $data): void
+    {
+        foreach ([
+            ['newTemplateBody', 'newTemplateBodyExamples', $data['newTemplateBody'] ?? ''],
+            ['newTemplateHeaderText', 'newTemplateHeaderExamples', $data['newTemplateHeaderText'] ?? ''],
+        ] as [$textField, $examplesField, $text]) {
+            if ($textField === 'newTemplateHeaderText' && ($data['newTemplateHeaderType'] ?? 'NONE') !== 'TEXT') {
+                continue;
+            }
+
+            $variables = $this->templateVariables((string) $text);
+
+            if (! $this->hasValidVariableSyntax((string) $text)) {
+                throw ValidationException::withMessages([
+                    $textField => 'Cada variable debe escribirse como {{1}}, {{2}}, sin espacios ni ceros.',
+                ]);
+            }
+
+            if (! $this->hasSequentialVariables($variables)) {
+                throw ValidationException::withMessages([
+                    $textField => 'Las variables deben ser consecutivas, por ejemplo {{1}}, {{2}}.',
+                ]);
+            }
+
+            if ($variables !== [] && count($this->templateExamples($data[$examplesField] ?? null)) !== count($variables)) {
+                throw ValidationException::withMessages([
+                    $examplesField => 'Incluye un ejemplo por cada variable, separados con |.',
+                ]);
+            }
+        }
+    }
+
+    private function validateHeaderSampleType(): void
+    {
+        if ($this->newTemplateHeaderType === 'IMAGE' && $this->newTemplateHeaderSample) {
+            $mime = (string) $this->newTemplateHeaderSample->getMimeType();
+
+            if (! in_array($mime, ['image/jpeg', 'image/png'], true)) {
+                throw ValidationException::withMessages([
+                    'newTemplateHeaderSample' => 'Para imagen, carga un archivo JPEG o PNG.',
+                ]);
+            }
+        }
+
+        if ($this->newTemplateHeaderType === 'DOCUMENT' && $this->newTemplateHeaderSample) {
+            if ($this->newTemplateHeaderSample->getMimeType() !== 'application/pdf') {
+                throw ValidationException::withMessages([
+                    'newTemplateHeaderSample' => 'Para documento, carga un archivo PDF.',
+                ]);
+            }
+        }
+
+        if ($this->newTemplateHeaderType === 'VIDEO' && $this->newTemplateHeaderSample) {
+            $mime = (string) $this->newTemplateHeaderSample->getMimeType();
+
+            if (! in_array($mime, ['video/mp4', 'video/3gpp', 'video/quicktime'], true)) {
+                throw ValidationException::withMessages([
+                    'newTemplateHeaderSample' => 'Para video, carga un archivo MP4, 3GPP o MOV.',
+                ]);
+            }
+        }
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function templateVariables(string $text): array
+    {
+        preg_match_all('/{{\s*(\d+)\s*}}/', $text, $matches);
+
+        return collect($matches[1] ?? [])
+            ->map(fn (string $value): int => (int) $value)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    private function hasValidVariableSyntax(string $text): bool
+    {
+        return ! preg_match('/{{\s*0|\{\{\s*\D|{{[^}]*\s+[^}]*}}/', $text);
+    }
+
+    /**
+     * @param  array<int, int>  $variables
+     */
+    private function hasSequentialVariables(array $variables): bool
+    {
+        if ($variables === []) {
+            return true;
+        }
+
+        return $variables === range(1, count($variables));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function templateExamples(mixed $value): array
+    {
+        return collect(explode('|', (string) $value))
+            ->map(fn (string $example): string => trim($example))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function countButtonVariables(WhatsAppMessageTemplate $template): int
+    {
+        $count = 0;
+
+        foreach ($template->components ?? [] as $component) {
+            if (strtoupper((string) ($component['type'] ?? '')) !== 'BUTTONS') {
+                continue;
+            }
+
+            foreach ((array) ($component['buttons'] ?? []) as $button) {
+                if (strtoupper((string) ($button['type'] ?? '')) !== 'URL') {
+                    continue;
+                }
+
+                preg_match_all('/{{\s*(\d+)\s*}}/', (string) ($button['url'] ?? ''), $matches);
+                $count += count(array_unique($matches[1] ?? []));
+            }
+        }
+
+        return $count;
+    }
+
+    private function bodyText(WhatsAppMessageTemplate $template): string
+    {
+        foreach ($template->components ?? [] as $component) {
+            if (strtoupper((string) ($component['type'] ?? '')) === 'BODY') {
+                return (string) ($component['text'] ?? '');
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function metaTemplatePreviewData(): array
+    {
+        $template = $this->previewTemplateId
+            ? WhatsAppMessageTemplate::query()->find($this->previewTemplateId)
+            : null;
+
+        if (! $template) {
+            return [
+                'template' => null,
+                'header' => null,
+                'body' => null,
+                'footer' => null,
+                'buttons' => [],
+            ];
+        }
+
+        $components = collect($template->components ?? []);
+        $header = $components->first(fn (array $component): bool => strtoupper((string) ($component['type'] ?? '')) === 'HEADER');
+        $body = $components->first(fn (array $component): bool => strtoupper((string) ($component['type'] ?? '')) === 'BODY');
+        $footer = $components->first(fn (array $component): bool => strtoupper((string) ($component['type'] ?? '')) === 'FOOTER');
+        $buttons = $components->first(fn (array $component): bool => strtoupper((string) ($component['type'] ?? '')) === 'BUTTONS');
+
+        return [
+            'template' => $template,
+            'header' => is_array($header) ? $header : null,
+            'body' => is_array($body) ? $body : null,
+            'footer' => is_array($footer) ? $footer : null,
+            'buttons' => is_array($buttons) ? (array) ($buttons['buttons'] ?? []) : [],
+        ];
     }
 
     /**

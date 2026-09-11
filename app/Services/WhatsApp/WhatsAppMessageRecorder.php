@@ -3,6 +3,7 @@
 namespace App\Services\WhatsApp;
 
 use App\Models\WhatsAppConversation;
+use App\Models\WhatsAppMarketingCampaignRecipient;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppMessageAttachment;
 use Carbon\Carbon;
@@ -146,6 +147,7 @@ class WhatsAppMessageRecorder
             $message->setRelation('primaryAttachment', $attachment);
         }
 
+        $this->syncMarketingRecipientResponse($contact->normalized_phone, $messagePayload, $occurredAt ?? now());
         $this->touchConversation($conversation, $occurredAt ?? now(), inbound: true);
 
         return $message;
@@ -203,9 +205,107 @@ class WhatsAppMessageRecorder
             'payload' => $statusPayload,
         ]);
 
+        $this->syncMarketingRecipientStatus($metaMessageId, $status, $occurredAt, $message->error_message);
         $this->touchConversation($message->conversation, $occurredAt, outbound: true);
 
         return $message->refresh();
+    }
+
+    private function syncMarketingRecipientStatus(string $metaMessageId, string $status, Carbon $occurredAt, ?string $errorMessage = null): void
+    {
+        $recipient = WhatsAppMarketingCampaignRecipient::query()
+            ->where('wamid', $metaMessageId)
+            ->first();
+
+        if (! $recipient) {
+            return;
+        }
+
+        match ($status) {
+            'sent' => $recipient->forceFill([
+                'status' => WhatsAppMarketingCampaignRecipient::STATUS_SENT,
+                'sent_at' => $recipient->sent_at ?: $occurredAt,
+            ])->save(),
+            'delivered' => $recipient->forceFill([
+                'status' => WhatsAppMarketingCampaignRecipient::STATUS_DELIVERED,
+                'delivered_at' => $occurredAt,
+            ])->save(),
+            'read' => $recipient->forceFill([
+                'status' => WhatsAppMarketingCampaignRecipient::STATUS_READ,
+                'read_at' => $occurredAt,
+            ])->save(),
+            'failed' => $recipient->forceFill([
+                'status' => WhatsAppMarketingCampaignRecipient::STATUS_FAILED,
+                'failed_at' => $occurredAt,
+                'error_message' => $errorMessage,
+            ])->save(),
+            default => null,
+        };
+    }
+
+    /**
+     * Mark the first inbound reply after a campaign send, preferring Meta context when available.
+     *
+     * @param  array<string, mixed>  $messagePayload
+     */
+    private function syncMarketingRecipientResponse(string $phone, array $messagePayload, Carbon $occurredAt): void
+    {
+        if ($phone === '') {
+            return;
+        }
+
+        $recipient = null;
+        $contextMessageId = (string) data_get($messagePayload, 'context.id', '');
+
+        if ($contextMessageId !== '') {
+            $recipient = WhatsAppMarketingCampaignRecipient::query()
+                ->where('wamid', $contextMessageId)
+                ->whereNull('responded_at')
+                ->first();
+        }
+
+        if (! $recipient) {
+            $recipient = WhatsAppMarketingCampaignRecipient::query()
+                ->where('phone_normalized', $phone)
+                ->whereNull('responded_at')
+                ->whereNotNull('sent_at')
+                ->where('sent_at', '>=', now()->subDays(30))
+                ->whereIn('status', [
+                    WhatsAppMarketingCampaignRecipient::STATUS_SENT,
+                    WhatsAppMarketingCampaignRecipient::STATUS_DELIVERED,
+                    WhatsAppMarketingCampaignRecipient::STATUS_READ,
+                ])
+                ->orderByDesc('sent_at')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if (! $recipient) {
+            return;
+        }
+
+        $recipient->forceFill([
+            'response_type' => $this->marketingResponseType($messagePayload),
+            'response_text' => $this->extractInboundText($messagePayload),
+            'response_payload' => $messagePayload,
+            'responded_at' => $occurredAt,
+        ])->save();
+    }
+
+    /**
+     * @param  array<string, mixed>  $messagePayload
+     */
+    private function marketingResponseType(array $messagePayload): string
+    {
+        $type = (string) data_get($messagePayload, 'type', 'text');
+
+        return match ($type) {
+            'button' => 'button',
+            'interactive' => 'interactive',
+            'text' => 'text',
+            'image', 'document', 'audio', 'video', 'sticker' => 'media',
+            default => $type !== '' ? $type : 'unknown',
+        };
     }
 
     /**

@@ -51,6 +51,13 @@ return [
             'default_profiles' => ['Admin'],
             'route_names' => ['whatsapp.console'],
         ],
+        'view.admin.whatsapp_marketing_campaigns' => [
+            'name' => 'Ver campañas WhatsApp',
+            'group' => 'Administracion',
+            'description' => 'Permite crear y enviar campañas de mercadotecnia por WhatsApp.',
+            'default_profiles' => ['Admin'],
+            'route_names' => ['whatsapp.marketing-campaigns'],
+        ],
         'view.reports.commissions' => [
             'name' => 'Ver reporte de comisiones',
             'group' => 'Reportes',
@@ -236,6 +243,7 @@ return [
             ['route' => 'doctors', 'permission' => 'view.admin.doctors'],
             ['route' => 'users', 'permission' => 'view.admin.users'],
             ['route' => 'whatsapp.console', 'permission' => 'view.admin.whatsapp_console'],
+            ['route' => 'whatsapp.marketing-campaigns', 'permission' => 'view.admin.whatsapp_marketing_campaigns'],
             ['route' => 'reports.commissions', 'permission' => 'view.reports.commissions'],
             ['route' => 'reports.sales', 'permission' => 'view.reports.sales'],
             ['route' => 'offices', 'permission' => 'view.settings.offices'],

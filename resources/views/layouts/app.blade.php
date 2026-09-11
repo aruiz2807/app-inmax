@@ -32,6 +32,9 @@
                 'view.reports.commissions',
                 'view.reports.sales',
             ];
+            $marketingPermissions = [
+                'view.admin.whatsapp_marketing_campaigns',
+            ];
             $settingsPermissions = [
                 'view.settings.offices',
                 'view.settings.coupons',
@@ -52,6 +55,7 @@
             ];
             $showApiTokens = Laravel\Jetstream\Jetstream::hasApiFeatures() && $profile === 'Admin';
             $showReportsGroup = $user?->hasAnyPermission($reportPermissions) ?? false;
+            $showMarketingGroup = $user?->hasAnyPermission($marketingPermissions) ?? false;
             $showSettingsGroup = ($user?->hasAnyPermission($settingsPermissions) ?? false) || $showApiTokens;
             $showPharmacyInventoryGroup = $user?->hasAnyPermission($clerkPermissions) ?? false;
         @endphp
@@ -137,6 +141,23 @@
                                     x-on:click="closeSidebar()"
                                 />
                             @endpermission
+
+                            @if ($showMarketingGroup)
+                                <x-ui.navlist.group
+                                    label="Mercadotecnia"
+                                    :collapsable="true"
+                                >
+                                    @permission('view.admin.whatsapp_marketing_campaigns')
+                                        <x-ui.navlist.item
+                                            icon="megaphone"
+                                            label="Campañas WhatsApp"
+                                            href="{{ route('whatsapp.marketing-campaigns') }}"
+                                            :active="request()->routeIs('whatsapp.marketing-campaigns')"
+                                            x-on:click="closeSidebar()"
+                                        />
+                                    @endpermission
+                                </x-ui.navlist.group>
+                            @endif
 
                             @if ($showReportsGroup)
                                 <x-ui.navlist.group
