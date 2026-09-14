@@ -120,8 +120,7 @@
                                     x-on:click="closeSidebar()"
                                 />
                             @endpermission
-                        </x-ui.navlist.group>
-                    @endif
+                        @endif
 
                     @if ($showPharmacyInventoryGroup)
                         <x-ui.navlist.group
