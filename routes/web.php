@@ -84,6 +84,7 @@ use App\Livewire\Mobile\Doctor\DRHistoryNotePage;
 use App\Livewire\Mobile\Doctor\DRHistoryPage;
 use App\Livewire\Mobile\Doctor\DRHomePage;
 use App\Livewire\Mobile\Doctor\DRNotesPage;
+use App\Livewire\Mobile\Doctor\DRVirtualNotesPage;
 use App\Livewire\Mobile\Doctor\DRResultsPendingPage;
 use App\Livewire\Mobile\Doctor\DRProfilePage;
 use App\Livewire\Mobile\Doctor\DRRecordPage;
@@ -297,6 +298,10 @@ Route::middleware([
 
         Route::get('/notes/{appointment}', DRNotesPage::class)->name('doctor.notes');
         Route::get('/notes-confirmation', NotesConfirmationPage::class)->name('doctor.notes-confirmation');
+
+        Route::get('/virtual-notes', DRVirtualNotesPage::class)
+            ->middleware('permission:view.doctor.virtual_notes')
+            ->name('doctor.virtual-notes');
 
         Route::get('/noshow-confirmation', NoShowConfirmationPage::class)->name('doctor.noshow-confirmation');
         Route::get('/accept-confirmation', AcceptConfirmationPage::class)->name('doctor.accept-confirmation');

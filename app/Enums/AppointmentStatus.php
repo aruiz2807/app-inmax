@@ -11,6 +11,7 @@ enum AppointmentStatus: string
     case RESULTS_PENDING = 'ResultsPending';
     case COMPLETED = 'Completed';
     case NO_SHOW = 'No-show';
+    case VIRTUAL = 'Virtual';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum AppointmentStatus: string
             self::RESULTS_PENDING => 'Pendiente de resultados',
             self::COMPLETED => 'Atendida',
             self::NO_SHOW => 'No se presentó',
+            self::VIRTUAL => 'Virtual',
         };
     }
 
@@ -32,6 +34,7 @@ enum AppointmentStatus: string
             self::RESULTS_PENDING => 'yellow',
             self::COMPLETED, self::BOOKED => 'teal',
             self::REQUESTED => 'yellow',
+            self::VIRTUAL => 'blue',
             default => 'gray',
         };
     }
@@ -45,6 +48,7 @@ enum AppointmentStatus: string
             self::COMPLETED => 'shield-check',
             self::BOOKED => 'calendar',
             self::REQUESTED => 'clock',
+            self::VIRTUAL => 'video',
             default => 'information-circle',
         };
     }

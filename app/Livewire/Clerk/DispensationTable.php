@@ -136,9 +136,20 @@ final class DispensationTable extends PowerGridComponent
                 );
             })
             ->add('appointment_at_formatted', function ($row): string {
-                $date = data_get($row, 'appointment_note_date');
+                $noteDate = data_get($row, 'appointment_note_date');
 
-                return Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('d/m/Y H:i');
+                if (filled($noteDate)) {
+                    return Carbon::parse($noteDate)->format('d/m/Y H:i');
+                }
+
+                $appointmentDate = data_get($row, 'date');
+                $appointmentTime = data_get($row, 'time');
+
+                if (! $appointmentDate) {
+                    return '-';
+                }
+
+                return $appointmentDate->format('d/m/Y').($appointmentTime ? ' '.$appointmentTime->format('H:i') : '');
             })
             ->add('status_label', function ($row): string {
                 return match ((string) data_get($row, 'status_prescription')) {

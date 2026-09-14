@@ -226,6 +226,13 @@ return [
             'default_profiles' => ['Doctor'],
             'route_names' => ['doctor.edit_appointments'],
         ],
+        'view.doctor.virtual_notes' => [
+            'name' => 'Ver recetas virtuales',
+            'group' => 'Doctor',
+            'description' => 'Permite generar recetas virtuales sin consulta.',
+            'default_profiles' => ['Doctor'],
+            'route_names' => ['doctor.virtual-notes'],
+        ],
         'view.dispatcher.transports' => [
             'name' => 'Ver servicios de traslados',
             'group' => 'Operador de cabina',
