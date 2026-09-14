@@ -388,6 +388,16 @@
                         />
                     @endpermission
 
+                    @permission('view.doctor.virtual_notes')
+                        <x-ui.navlist.item
+                            icon="clipboard-document-list"
+                            :label="'Recetas'"
+                            href="{{ route('doctor.virtual-notes') }}"
+                            :active="request()->routeIs('doctor.virtual-notes')"
+                            x-on:click="closeSidebar()"
+                        />
+                    @endpermission
+
                     @permission('view.dispatcher.transports')
                         <x-ui.navlist.item
                             icon="truck"
