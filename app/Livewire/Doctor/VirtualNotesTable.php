@@ -143,10 +143,10 @@ final class VirtualNotesTable extends PowerGridComponent
     {
         return [
             Button::add('view')
-                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Ver</span></div>'))
+                ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="document-arrow-down" variant="outline" class="w-5 h-5"/><span>Receta</span></div>'))
                 ->id()
                 ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
-                ->dispatch('showVirtualNoteDetails', ['appointmentId' => $row->id]),
+                ->dispatch('downloadVirtualNote', ['appointmentId' => $row->id]),
         ];
     }
 }

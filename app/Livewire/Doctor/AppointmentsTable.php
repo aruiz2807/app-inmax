@@ -87,6 +87,7 @@ final class AppointmentsTable extends PowerGridComponent
                     $query->orWhereIn('appointments.office_id', $officeIds);
                 }
             })
+            ->where('appointments.status', '!=', AppointmentStatus::VIRTUAL->value)
             ->when($this->tab === 'upcoming', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::BOOKED->value))
             ->when($this->tab === 'past', fn (Builder $query) => $query->where('appointments.status', AppointmentStatus::COMPLETED->value))
             ->when($this->tab === 'cancelled', fn (Builder $query) => $query->whereIn('appointments.status', [

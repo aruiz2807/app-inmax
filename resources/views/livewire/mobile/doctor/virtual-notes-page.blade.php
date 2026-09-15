@@ -163,6 +163,26 @@
         <x-ui.error name="prescriptions" />
     </x-ui.card>
 
+    <x-ui.card size="full" class="mx-auto mt-2">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="clipboard-document-list" class="self-center" />
+            <x-ui.text class="text-base ml-2">Diagnostico</x-ui.text>
+        </x-ui.heading>
+
+        <x-ui.textarea wire:model="diagnosis" placeholder="Ingrese el diagnostico sobre el paciente" />
+        <x-ui.error name="diagnosis" />
+    </x-ui.card>
+
+    <x-ui.card size="full" class="mx-auto mt-2">
+        <x-ui.heading class="flex pb-2" level="h3" size="sm">
+            <x-ui.icon name="clipboard-document-list" class="self-center" />
+            <x-ui.text class="text-base ml-2">Notas y recomendaciones</x-ui.text>
+        </x-ui.heading>
+
+        <x-ui.textarea wire:model="notes" placeholder="Ingrese las recomendaciones para el paciente" />
+        <x-ui.error name="notes" />
+    </x-ui.card>
+
     <div class="flex justify-center mt-4">
         <x-ui.button class="w-40 mr-1" wire:click="save" variant="outline" color="blue" icon="clipboard">
             Guardar

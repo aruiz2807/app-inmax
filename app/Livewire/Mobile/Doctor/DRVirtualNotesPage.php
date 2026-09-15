@@ -4,10 +4,12 @@ namespace App\Livewire\Mobile\Doctor;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\AppointmentNote;
 use App\Models\AppointmentPrescription;
 use App\Models\Medication;
 use App\Models\Parameter;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +26,6 @@ class DRVirtualNotesPage extends Component
     // Desktop table tabs
     #[Url(as: 'tab')]
     public string $tab = 'pending';
-    public ?array $noteDetails = null;
 
     // Patient selection
     public string $patientSearch = '';
@@ -38,6 +39,8 @@ class DRVirtualNotesPage extends Component
     public $frequency = '';
     public $duration = '';
     public array $prescriptions = [];
+    public string $diagnosis = '';
+    public string $notes = '';
 
     public function render()
     {
@@ -52,7 +55,7 @@ class DRVirtualNotesPage extends Component
 
     public function resetVirtualForm(): void
     {
-        $this->reset(['selectedPatientId', 'patientSearch', 'prescriptions', 'medicationId', 'searchTerm', 'quantity', 'dose', 'frequency', 'duration']);
+        $this->reset(['selectedPatientId', 'patientSearch', 'prescriptions', 'medicationId', 'searchTerm', 'quantity', 'dose', 'frequency', 'duration', 'diagnosis', 'notes']);
         $this->resetErrorBag();
     }
 
@@ -118,31 +121,35 @@ class DRVirtualNotesPage extends Component
         return (clone $this->baseVirtualNotesQuery())->where('status_prescription', 'Cancelled')->count();
     }
 
-    #[On('showVirtualNoteDetails')]
-    public function showVirtualNoteDetails(int $appointmentId): void
+    #[On('downloadVirtualNote')]
+    public function downloadVirtualNote(int $appointmentId)
     {
-        $appointment = Appointment::with(['user.policy', 'prescriptions.medication'])
-            ->whereKey($appointmentId)
+        $note = AppointmentNote::with([
+            'appointment.doctor.user',
+            'appointment.user',
+            'appointment.prescriptions.medication',
+        ])
+            ->whereHas('appointment', function (Builder $query) use ($appointmentId) {
+                $query
+                    ->whereKey($appointmentId)
+                    ->where('doctor_id', $this->user->doctor->id)
+                    ->where('status', AppointmentStatus::VIRTUAL->value);
+            })
             ->first();
 
-        if (! $appointment) {
+        if (! $note) {
             return;
         }
 
-        $this->noteDetails = [
-            'patient_name' => $appointment->user?->name ?? 'Sin paciente',
-            'membership_number' => $appointment->user?->policy?->number ?? '-',
-            'date_label' => $appointment->date?->format('d/m/Y'),
-            'prescriptions' => $appointment->prescriptions->map(fn ($prescription) => [
-                'name' => $prescription->medication?->name ?? $prescription->description,
-                'quantity' => $prescription->quantity,
-                'dose' => $prescription->dose,
-                'frequency' => $prescription->frequency,
-                'duration' => $prescription->duration,
-            ])->all(),
-        ];
+        $pdf = Pdf::loadView('pdf.prescription', [
+            'note' => $note,
+            'contactEmail' => Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx',
+        ])->setPaper('letter', 'portrait');
 
-        $this->dispatch('open-virtual-note-details-modal');
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "prescription-{$note->id}.pdf"
+        );
     }
 
     #[Computed]
@@ -260,13 +267,16 @@ class DRVirtualNotesPage extends Component
         $this->validate([
             'selectedPatientId' => ['required', 'integer', 'exists:users,id'],
             'prescriptions' => ['required', 'array', 'min:1'],
+            'diagnosis' => ['required', 'string'],
+            'notes' => ['nullable', 'string'],
         ], [
             'selectedPatientId.required' => 'Selecciona un paciente.',
             'prescriptions.required' => 'Agrega al menos un medicamento.',
             'prescriptions.min' => 'Agrega al menos un medicamento.',
+            'diagnosis.required' => 'Ingresa el diagnostico.',
         ]);
 
-        DB::transaction(function () {
+        $note = DB::transaction(function () {
             $appointment = Appointment::create([
                 'user_id' => $this->selectedPatientId,
                 'doctor_id' => $this->user->doctor->id,
@@ -274,6 +284,12 @@ class DRVirtualNotesPage extends Component
                 'time' => now()->format('H:i:s'),
                 'status' => AppointmentStatus::VIRTUAL,
                 'status_prescription' => 'Pending',
+            ]);
+
+            $note = AppointmentNote::create([
+                'appointment_id' => $appointment->id,
+                'diagnosis' => $this->diagnosis,
+                'notes' => $this->notes,
             ]);
 
             foreach ($this->prescriptions as $prescription) {
@@ -287,9 +303,17 @@ class DRVirtualNotesPage extends Component
                     'duration' => $prescription['duration'],
                 ]);
             }
+
+            return $note;
         });
 
-        $this->reset(['selectedPatientId', 'patientSearch', 'prescriptions', 'medicationId', 'searchTerm', 'quantity', 'dose', 'frequency', 'duration']);
+        $note->load([
+            'appointment.doctor.user',
+            'appointment.user',
+            'appointment.prescriptions.medication',
+        ]);
+
+        $this->reset(['selectedPatientId', 'patientSearch', 'prescriptions', 'medicationId', 'searchTerm', 'quantity', 'dose', 'frequency', 'duration', 'diagnosis', 'notes']);
 
         $this->dispatch('notify',
             type: 'success',
@@ -300,10 +324,16 @@ class DRVirtualNotesPage extends Component
         if (! $this->isMobileDevice) {
             $this->dispatch('close-virtual-notes-modal');
             $this->dispatch('pg:eventRefresh-virtualNotesTable');
-
-            return;
         }
 
-        return $this->redirectRoute('doctor.home');
+        $pdf = Pdf::loadView('pdf.prescription', [
+            'note' => $note,
+            'contactEmail' => Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx',
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            "prescription-{$note->id}.pdf"
+        );
     }
 }

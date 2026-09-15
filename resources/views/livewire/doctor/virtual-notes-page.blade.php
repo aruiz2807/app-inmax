@@ -263,6 +263,26 @@
             </div>
         </div>
 
+        <x-ui.card size="full" class="xl:col-span-6">
+            <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                <x-ui.icon name="clipboard-document-list" class="self-center" />
+                <x-ui.text class="text-base ml-2">Diagnostico</x-ui.text>
+            </x-ui.heading>
+
+            <x-ui.textarea wire:model="diagnosis" placeholder="Ingrese el diagnostico sobre el paciente" />
+            <x-ui.error name="diagnosis" />
+        </x-ui.card>
+
+        <x-ui.card size="full" class="xl:col-span-6">
+            <x-ui.heading class="flex pb-2" level="h3" size="sm">
+                <x-ui.icon name="clipboard-document-list" class="self-center" />
+                <x-ui.text class="text-base ml-2">Notas y recomendaciones</x-ui.text>
+            </x-ui.heading>
+
+            <x-ui.textarea wire:model="notes" placeholder="Ingrese las recomendaciones para el paciente" />
+            <x-ui.error name="notes" />
+        </x-ui.card>
+
         <div class="w-full flex justify-end gap-3 pt-4">
             <x-ui.button x-on:click="$data.close();" icon="x-mark" variant="outline">
                 Cancelar
@@ -274,41 +294,4 @@
         </div>
     </x-ui.modal>
 
-    <x-ui.modal
-        id="virtual-note-details-modal"
-        animation="fade"
-        width="lg"
-        heading="Detalle de receta"
-        description="{{ $noteDetails['patient_name'] ?? '' }}"
-        x-on:close-virtual-note-details-modal.window="$data.close()"
-        x-on:open-virtual-note-details-modal.window="$data.open()"
-    >
-        @if($noteDetails)
-            <div class="space-y-3">
-                <div class="flex justify-between text-sm text-neutral-600">
-                    <span>Membresia: {{ $noteDetails['membership_number'] }}</span>
-                    <span>Fecha: {{ $noteDetails['date_label'] }}</span>
-                </div>
-
-                <div class="flex flex-col gap-2">
-                    @forelse($noteDetails['prescriptions'] as $prescription)
-                        <div class="bg-gray-50 p-2 rounded-lg shadow-sm border border-gray-100">
-                            <x-ui.text class="font-bold text-sm">{{ $prescription['name'] }}</x-ui.text>
-                            <x-ui.text class="text-xs text-gray-600">
-                                {{ $prescription['quantity'] }} - {{ $prescription['dose'] }} - {{ $prescription['frequency'] }} - {{ $prescription['duration'] }}
-                            </x-ui.text>
-                        </div>
-                    @empty
-                        <p class="text-sm text-neutral-500 italic">Sin medicamentos registrados.</p>
-                    @endforelse
-                </div>
-            </div>
-        @endif
-
-        <div class="w-full flex justify-end pt-4">
-            <x-ui.button x-on:click="$data.close();" icon="x-mark" variant="outline">
-                Cerrar
-            </x-ui.button>
-        </div>
-    </x-ui.modal>
 </div>
