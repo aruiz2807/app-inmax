@@ -208,6 +208,7 @@
           $officeAddr  = $appointment->office?->address;
           $officePhone = $appointment->office?->phone_number;
           $footerAddr  = $officeAddr ?: $appointment->doctor?->address;
+          $footerMapsUrl = $appointment->office?->maps_url ?: $appointment->doctor?->maps_url;
           $footerPhone = $officePhone ?? '';
         @endphp
         <table class="layout">
@@ -215,7 +216,7 @@
                 <td>
                     <strong>INMAX</strong><br>
                     @if($footerAddr)
-                        {{ $footerAddr }}
+                        <a href="{{ $footerMapsUrl }}" target="_blank">{{ $footerAddr }}</a>
                     @endif
                 </td>
                 <td style="text-align: right;">
