@@ -51,6 +51,7 @@ trait WithAppointmentServiceAdditions
         $this->newUnregisteredService = '';
 
         $this->dispatch('close-custom-service-modal');
+        $this->syncAddedServices();
     }
 
     public function removeUnregisteredService(int $index): void

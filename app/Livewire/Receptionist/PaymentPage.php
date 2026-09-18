@@ -40,6 +40,7 @@ class PaymentPage extends Component
     public null|int|string $selectedCouponId = null;
     public float $couponDiscountValue = 0;
     public bool $canManageServices = false;
+    public bool $canCapturePrices = false;
     public array $servicesToComplete = [];
     public array $servicePrices = [];
 
@@ -67,12 +68,16 @@ class PaymentPage extends Component
         $this->payment_reference = $this->appointment->payment_reference;
 
         $this->canManageServices = $this->appointment->status === AppointmentStatus::BOOKED;
+        $this->canCapturePrices = is_null($this->appointment->user_payment)
+            && in_array($this->appointment->status, [AppointmentStatus::COMPLETED, AppointmentStatus::RESULTS_PENDING], true);
 
-        if ($this->canManageServices) {
+        if ($this->canManageServices || $this->canCapturePrices) {
             foreach ($this->appointment->services as $service) {
                 $this->servicesToComplete[$service->id] = $service->status === AppointmentStatus::COMPLETED->value;
                 $this->servicePrices[$service->id] = $this->defaultServicePrice($service);
             }
+
+            $this->syncSubtotalWithServices();
         }
 
         $this->checkCouponAvailability();
@@ -141,7 +146,7 @@ class PaymentPage extends Component
      */
     private function syncSubtotalWithServices(): void
     {
-        if (! $this->canManageServices) {
+        if (! $this->canManageServices && ! $this->canCapturePrices) {
             return;
         }
 
@@ -214,7 +219,7 @@ class PaymentPage extends Component
 
     public function save(): void
     {
-        if ($this->canManageServices && ! collect($this->servicesToComplete)->contains(true)) {
+        if (($this->canManageServices || $this->canCapturePrices) && ! collect($this->servicesToComplete)->contains(true)) {
             $this->addError('servicesToComplete', 'Debe marcar al menos un servicio como realizado.');
             return;
         }
@@ -231,7 +236,7 @@ class PaymentPage extends Component
 
     public function confirmPayment()
     {
-        if ($this->canManageServices && ! collect($this->servicesToComplete)->contains(true)) {
+        if (($this->canManageServices || $this->canCapturePrices) && ! collect($this->servicesToComplete)->contains(true)) {
             $this->addError('servicesToComplete', 'Debe marcar al menos un servicio como realizado.');
             return;
         }
@@ -246,7 +251,7 @@ class PaymentPage extends Component
             return;
         }
 
-        if ($this->canManageServices) {
+        if ($this->canManageServices || $this->canCapturePrices) {
             $this->persistServicesCompletion();
         }
 
@@ -276,8 +281,8 @@ class PaymentPage extends Component
             'payment_attachment_name' => $attachmentName,
         ];
 
-        // Una cita Booked pasa a Completed al cerrar su cuenta
-        if ($this->canManageServices) {
+        // Una cita Booked pasa a Completed al cerrar su cuenta; una atendida pendiente de liquidar queda Completed
+        if ($this->canManageServices || $this->canCapturePrices) {
             $updateData['status'] = AppointmentStatus::COMPLETED;
         }
 
@@ -494,7 +499,7 @@ class PaymentPage extends Component
 
     private function isServiceCompleted(AppointmentService $service): bool
     {
-        if ($this->canManageServices) {
+        if ($this->canManageServices || $this->canCapturePrices) {
             return (bool) ($this->servicesToComplete[$service->id] ?? false);
         }
 
@@ -527,7 +532,7 @@ class PaymentPage extends Component
      */
     private function persistServiceFinancials(float $totalSubtotal): void
     {
-        if (! $this->canManageServices) {
+        if (! $this->canManageServices && ! $this->canCapturePrices) {
             return;
         }
 

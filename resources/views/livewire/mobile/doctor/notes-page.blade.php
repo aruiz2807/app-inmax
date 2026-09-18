@@ -73,7 +73,7 @@
                 </div>
             </div>
 
-            @if(!empty($form->services[$service->id]))
+            @if(! $hasReceptionistAssigned && !empty($form->services[$service->id]))
                 <div class="grid grid-cols-12 items-center gap-2 pb-2">
                     <div class="col-span-8">
                         <x-ui.label class="text-sm">Precio del servicio</x-ui.label>

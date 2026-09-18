@@ -46,10 +46,10 @@
     <x-ui.card size="full" class="mx-auto mt-2">
         <x-ui.heading class="flex pb-2" level="h3" size="sm">
             <x-ui.icon name="clipboard-document-list" class="self-center" />
-            <x-ui.text class="text-base ml-2">{{ $canManageServices ? 'Servicios' : 'Servicios completados' }}</x-ui.text>
+            <x-ui.text class="text-base ml-2">{{ $canManageServices || $canCapturePrices ? 'Servicios' : 'Servicios completados' }}</x-ui.text>
         </x-ui.heading>
 
-        @if($canManageServices)
+        @if($canManageServices || $canCapturePrices)
             @if($appointment->services->isEmpty())
                 <x-ui.text class="text-sm text-neutral-500">Esta cita no tiene servicios registrados.</x-ui.text>
             @else
@@ -108,7 +108,9 @@
                     @endif
                     <x-ui.error name="servicesToComplete" />
 
-                    @include('livewire.appointments.partials.add-services')
+                    @if($canManageServices)
+                        @include('livewire.appointments.partials.add-services')
+                    @endif
                 </div>
             @endif
         @else
@@ -147,7 +149,7 @@
 
             <x-ui.field>
                 <x-ui.label>Monto total de la cuenta</x-ui.label>
-                @if($canManageServices)
+                @if($canManageServices || $canCapturePrices)
                     <x-ui.alerts variant="info" icon="currency-dollar">
                         <x-ui.alerts.heading>${{ $subtotal }}</x-ui.alerts.heading>
                     </x-ui.alerts>
