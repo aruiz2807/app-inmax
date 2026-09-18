@@ -86,6 +86,10 @@
                         </x-ui.text>
 
                         <x-ui.text class="text-sm opacity-50">
+                            Envío: {{ $preregistration->created_at?->format('d/m/Y H:i') }}
+                        </x-ui.text>
+
+                        <x-ui.text class="text-sm opacity-50">
                             Vigencia: {{ $preregistration->expires_at?->format('d/m/Y H:i') }}
                         </x-ui.text>
 
@@ -97,14 +101,38 @@
                     @if ($preregistration->canBeManaged())
                         <x-ui.separator class="mt-2 mb-2"/>
 
-                        <div class="flex justify-center">
-                            <x-ui.button class="w-40 mr-1" wire:click="editPreregistration({{ $preregistration->id }})" variant="outline" color="teal" icon="pencil-square">
+                        <div class="flex flex-wrap justify-center gap-2 w-full">
+
+                            <x-ui.button
+                                class="w-full sm:w-40"
+                                wire:click="resend({{ $preregistration->id }})"
+                                variant="outline"
+                                color="blue"
+                                icon="arrow-path"
+                            >
+                                Reenviar registro
+                            </x-ui.button>
+
+                            <x-ui.button
+                                class="w-full sm:w-40"
+                                wire:click="editPreregistration({{ $preregistration->id }})"
+                                variant="outline"
+                                color="teal"
+                                icon="pencil-square"
+                            >
                                 Editar
                             </x-ui.button>
 
-                            <x-ui.button class="w-40 ml-1" wire:click="promptPreregistrationCancellation({{ $preregistration->id }})" variant="outline" color="red" icon="x-circle">
+                            <x-ui.button
+                                class="w-full sm:w-40"
+                                wire:click="promptPreregistrationCancellation({{ $preregistration->id }})"
+                                variant="outline"
+                                color="red"
+                                icon="x-circle"
+                            >
                                 Cancelar
                             </x-ui.button>
+
                         </div>
                     @endif
                 </div>

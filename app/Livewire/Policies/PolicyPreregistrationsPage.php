@@ -58,6 +58,7 @@ class PolicyPreregistrationsPage extends Component
     public string $preregistrationToCancelPhone = '';
 
     public string $filterPreregistrationPhone = '';
+    public string $filterPreregistrationSalesUser = '';
 
     public string $filterPreregistrationPlan = '';
 
@@ -335,6 +336,86 @@ class PolicyPreregistrationsPage extends Component
         $this->dispatch('open-preregistration-modal');
     }
 
+    public function resend(int $preregistrationId)
+    {
+        $service = app(PolicyPreregistrationService::class);
+        $preregistration = $this->resolveManagedPreregistration($preregistrationId);
+
+        $salesUser = $this->resolveSalesUser($preregistration->sales_user_id);
+        $planId = $preregistration->plan_id;
+        $parentPolicyId = filled($preregistration->parent_policy_id)
+            ? (int) $preregistration->parent_policy_id
+            : null;
+        $collectiveData = [];
+
+        try {
+            $result = $service->updateInvitation(
+                $preregistration,
+                $salesUser,
+                $preregistration->phone,
+                $planId,
+                $parentPolicyId,
+                $preregistration->preregistration_type,
+                $collectiveData,
+                allowDuplicatePhone: $this->preregistrationAllowDuplicatePhone,
+            );
+        } catch (InvalidArgumentException $exception) {
+            $field = match (true) {
+                str_contains($exception->getMessage(), 'teléfono') => 'preregistrationPhone',
+                str_contains($exception->getMessage(), 'lugares disponibles') => 'preregistrationParentPolicy',
+                str_contains($exception->getMessage(), 'colectiva') => 'preregistrationParentPolicy',
+                str_contains($exception->getMessage(), 'principal') => 'preregistrationParentPolicy',
+                str_contains($exception->getMessage(), 'tipo de persona') => 'preregistrationCompanyType',
+                str_contains($exception->getMessage(), 'razon social') => 'preregistrationCompanyLegalName',
+                str_contains($exception->getMessage(), 'RFC') => 'preregistrationCompanyRfc',
+                str_contains($exception->getMessage(), 'cantidad de miembros') => 'preregistrationMembers',
+                str_contains($exception->getMessage(), 'nombre del colectivo') => 'preregistrationCompanyName',
+                str_contains($exception->getMessage(), 'cobertura') => 'preregistrationPlan',
+                default => 'preregistrationPhone',
+            };
+
+            throw ValidationException::withMessages([
+                $field => $exception->getMessage(),
+            ]);
+        }
+
+        $this->lastPreregistrationUrl = $result['url'];
+        $this->lastPreregistrationPhone = $preregistration->phone;
+        $this->lastPreregistrationReference = ($preregistration->company_name ?? null)
+            ?: $result['preregistration']->company_name
+            ?: $result['preregistration']->plan?->name
+            ?: $result['preregistration']->type_label;
+        $this->lastPreregistrationExpiresAt = $result['expires_at']->format('d/m/Y H:i');
+
+        $isEditing = isset($preregistration);
+        $content = match (true) {
+            ($result['whatsapp']['ok'] ?? false) => $isEditing
+                ? 'Preregistro actualizado y enlace reenviado por WhatsApp.'
+                : 'Preregistro creado y enlace enviado por WhatsApp.',
+            ($result['whatsapp']['attempted'] ?? false) => $isEditing
+                ? 'Preregistro actualizado. No se pudo enviar WhatsApp, enlace disponible para prueba.'
+                : 'Preregistro creado. No se pudo enviar WhatsApp, enlace disponible para prueba.',
+            default => $isEditing
+                ? 'Preregistro actualizado. Falta configurar WhatsApp, enlace disponible para prueba.'
+                : 'Preregistro creado. Falta configurar WhatsApp, enlace disponible para prueba.',
+        };
+
+        $preregistration->created_at = now();
+        $preregistration->save();
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            content: $content,
+            duration: 4000
+        );
+
+        $this->dispatch('close-preregistration-modal');
+        $this->resetPreregistrationForm();
+        $this->resetPage();
+
+    }
+
     public function promptPreregistrationCancellation(int $preregistrationId): void
     {
         $preregistration = $this->resolveManagedPreregistration($preregistrationId);
@@ -425,6 +506,7 @@ class PolicyPreregistrationsPage extends Component
     public function clearPreregistrationFilters(): void
     {
         $this->filterPreregistrationPhone = '';
+        $this->filterPreregistrationSalesUser = '';
         $this->filterPreregistrationPlan = '';
         $this->filterPreregistrationType = '';
         $this->filterPreregistrationStatus = '';
@@ -433,6 +515,11 @@ class PolicyPreregistrationsPage extends Component
     }
 
     public function updatingFilterPreregistrationPhone(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterPreregistrationSalesUser(): void
     {
         $this->resetPage();
     }
@@ -632,6 +719,9 @@ class PolicyPreregistrationsPage extends Component
             })
             ->when(filled($this->filterPreregistrationPhone), function (Builder $query) {
                 $query->where('phone', 'like', '%'.trim($this->filterPreregistrationPhone).'%');
+            })
+            ->when(filled($this->filterPreregistrationSalesUser), function (Builder $query) {
+                $query->where('sales_user_id', $this->filterPreregistrationSalesUser);
             })
             ->when(filled($this->filterPreregistrationPlan), function (Builder $query) {
                 $query->where('plan_id', $this->filterPreregistrationPlan);

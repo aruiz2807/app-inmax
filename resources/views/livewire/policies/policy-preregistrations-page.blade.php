@@ -49,7 +49,19 @@
                 Preregistros
             </x-ui.heading>
 
-            <div class="pt-4 grid gap-2 md:grid-cols-5">
+            <div class="pt-4 grid gap-2 md:grid-cols-6">
+                <x-ui.field>
+                    <x-ui.label>Filtro vendedor</x-ui.label>
+                    <x-ui.select wire:model.live="filterPreregistrationSalesUser" placeholder="Todos">
+                        <x-ui.select.option value="">Todos</x-ui.select.option>
+                        @foreach($preregistrationSalesAgents as $salesAgent)
+                            <x-ui.select.option value="{{ $salesAgent->id }}">
+                                {{ $salesAgent->name }}
+                            </x-ui.select.option>
+                        @endforeach
+                    </x-ui.select>
+                </x-ui.field>
+
                 <x-ui.field>
                     <x-ui.label>Filtro teléfono</x-ui.label>
                     <x-ui.input wire:model.live.debounce.400ms="filterPreregistrationPhone" placeholder="Buscar teléfono..." />
@@ -114,6 +126,7 @@
                             <th class="text-left px-3 py-2 font-semibold">Membresía padre</th>
                             <th class="text-left px-3 py-2 font-semibold">Promotor</th>
                             <th class="text-left px-3 py-2 font-semibold">Estatus</th>
+                            <th class="text-left px-3 py-2 font-semibold">Envío</th>
                             <th class="text-left px-3 py-2 font-semibold">Vigencia</th>
                             <th class="text-left px-3 py-2 font-semibold">Membresía creada</th>
                             <th class="text-left px-3 py-2 font-semibold">Opciones</th>
@@ -132,11 +145,22 @@
                                         {{ $preregistration->status_label }}
                                     </span>
                                 </td>
+                                <td class="px-3 py-2">{{ $preregistration->created_at?->format('d/m/Y H:i') }}</td>
                                 <td class="px-3 py-2">{{ $preregistration->expires_at?->format('d/m/Y H:i') }}</td>
                                 <td class="px-3 py-2">{{ $preregistration->policy?->number ?: '-' }}</td>
                                 <td class="px-3 py-2">
                                     <div class="flex flex-wrap gap-2">
                                         @if ($preregistration->canBeManaged())
+
+                                            <x-ui.button
+                                                type="button"
+                                                icon="arrow-path"
+                                                variant="outline"
+                                                wire:click="resend({{ $preregistration->id }})"
+                                            >
+                                                Reenviar registro
+                                            </x-ui.button>
+
                                             <x-ui.button
                                                 type="button"
                                                 icon="document-text"
