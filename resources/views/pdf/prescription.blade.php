@@ -249,14 +249,15 @@
       $officeAddr  = $appt->office?->address;
       $officePhone = $appt->office?->phone_number;
       $footerAddr  = $officeAddr ?: $appt->doctor?->address;
+      $footerMapsUrl = $appt->office?->maps_url ?: $appt->doctor?->maps_url;
       $footerPhone = $officePhone ?? '';
     @endphp
     <table class="layout">
       <tr>
         <td>
-          <strong>INMAX</strong><br>
+          <strong>Ubicación</strong><br>
           @if($footerAddr)
-            {{ $footerAddr }}
+            <a href="{{ $footerMapsUrl }}" target="_blank">{{ $footerAddr }}</a>
           @endif
         </td>
         <td style="text-align: right;">
