@@ -350,9 +350,14 @@ class DRSchedulePage extends Component
         $slots = [];
 
         if ($startHour >= 7 && $startHour <= 22) {
-            for ($hour = $startHour; $hour <= $endHour; $hour++) {
-                $slots[] = Carbon::createFromTime($hour)->format('h:00 A');
-            }        
+            $startTime = Carbon::createFromTime($startHour, 0);
+            $endTime = Carbon::createFromTime($endHour, 0);
+
+            while ($startTime <= $endTime) {
+                $slots[] = $startTime->format('h:i A');
+
+                $startTime->addMinutes(30);
+            }
         }
 
         if($isMedicoGeneral && $this->selectedOffice)
