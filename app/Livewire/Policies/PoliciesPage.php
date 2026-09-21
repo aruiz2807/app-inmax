@@ -173,8 +173,8 @@ class PoliciesPage extends Component
 
         if(!$this->reactivation)
         {
-            $start = Carbon::now()->addDays(5);
-            $end = Carbon::now()->addDays(5)->addYear();
+            $start = Carbon::now();
+            $end = Carbon::now()->addYear();
             $path = null;
             $originalName = null;
 

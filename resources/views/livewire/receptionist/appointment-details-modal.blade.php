@@ -21,15 +21,9 @@
             <div>
                 <p class="font-semibold text-sm mb-2">Servicios aplicados</p>
 
-                @php
-                    $completedServices = $selectedAppointment->services->filter(fn ($service) => $service->status === 'Completed');
-                @endphp
-
-                @if($completedServices->isEmpty())
-                    <p class="text-sm text-neutral-500">No hay servicios completados en esta consulta.</p>
-                @else
+                
                     <div class="flex flex-col w-full gap-2">
-                        @foreach($completedServices as $service)
+                        @foreach($selectedAppointment->services as $service)
                             <div class="flex p-2 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                                 <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
 
@@ -44,7 +38,7 @@
                             </div>
                         @endforeach
                     </div>
-                @endif
+                
             </div>
 
             @php

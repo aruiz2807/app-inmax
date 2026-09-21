@@ -3,6 +3,7 @@
 namespace App\Livewire\Receptionist;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\DoctorType;
 use App\Livewire\Concerns\WithAppointmentServiceAdditions;
 use App\Models\Appointment;
 use App\Models\AppointmentNote;
@@ -41,6 +42,7 @@ class PaymentPage extends Component
     public float $couponDiscountValue = 0;
     public bool $canManageServices = false;
     public bool $canCapturePrices = false;
+    public bool $requiresResultsConfirmation = false;
     public array $servicesToComplete = [];
     public array $servicePrices = [];
 
@@ -70,6 +72,10 @@ class PaymentPage extends Component
         $this->canManageServices = $this->appointment->status === AppointmentStatus::BOOKED;
         $this->canCapturePrices = is_null($this->appointment->user_payment)
             && in_array($this->appointment->status, [AppointmentStatus::COMPLETED, AppointmentStatus::RESULTS_PENDING], true);
+
+        // Los proveedores generan estudios cuyos resultados pueden subirse despues; los doctores no.
+        $this->requiresResultsConfirmation = ($this->canManageServices || $this->canCapturePrices)
+            && $this->appointment->doctor?->type === DoctorType::Provider;
 
         if ($this->canManageServices || $this->canCapturePrices) {
             foreach ($this->appointment->services as $service) {
@@ -234,10 +240,17 @@ class PaymentPage extends Component
         $this->dispatch('open-payment-modal');
     }
 
-    public function confirmPayment()
+    public function confirmPayment(?bool $willUploadResultsLater = null)
     {
-        if (($this->canManageServices || $this->canCapturePrices) && ! collect($this->servicesToComplete)->contains(true)) {
+        $isClosingAccount = $this->canManageServices || $this->canCapturePrices;
+
+        if ($isClosingAccount && ! collect($this->servicesToComplete)->contains(true)) {
             $this->addError('servicesToComplete', 'Debe marcar al menos un servicio como realizado.');
+            return;
+        }
+
+        // Si el proveedor debe confirmar la carga de resultados, no se procede hasta obtener la respuesta.
+        if ($isClosingAccount && $this->requiresResultsConfirmation && $willUploadResultsLater === null) {
             return;
         }
 
@@ -251,7 +264,7 @@ class PaymentPage extends Component
             return;
         }
 
-        if ($this->canManageServices || $this->canCapturePrices) {
+        if ($isClosingAccount) {
             $this->persistServicesCompletion();
         }
 
@@ -281,9 +294,12 @@ class PaymentPage extends Component
             'payment_attachment_name' => $attachmentName,
         ];
 
-        // Una cita Booked pasa a Completed al cerrar su cuenta; una atendida pendiente de liquidar queda Completed
-        if ($this->canManageServices || $this->canCapturePrices) {
-            $updateData['status'] = AppointmentStatus::COMPLETED;
+        // Una cita Booked pasa a Completed al cerrar su cuenta; una atendida pendiente de liquidar queda Completed,
+        // salvo que el proveedor indique que subira los resultados despues, en cuyo caso queda ResultsPending.
+        if ($isClosingAccount) {
+            $updateData['status'] = ($this->requiresResultsConfirmation && $willUploadResultsLater === true)
+                ? AppointmentStatus::RESULTS_PENDING
+                : AppointmentStatus::COMPLETED;
         }
 
         $this->appointment->update($updateData);

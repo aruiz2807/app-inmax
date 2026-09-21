@@ -282,20 +282,39 @@
     <x-ui.modal
         id="payment-modal"
         animation="fade"
-        width="md"
+        width="lg"
         heading="Confirmar pago"
-        description="Desea guardar el cierre de cuenta de esta consulta?"
+        :description="$requiresResultsConfirmation
+            ? '¿Ya se subieron todos los resultados de los estudios realizados? Si aún faltan, puedes indicar que se subirán después.'
+            : '¿Desea guardar el cierre de cuenta de esta consulta?'"
         x-on:open-payment-modal.window="$data.open()"
         x-on:close-payment-modal.window="$data.close()"
     >
-        <div class="flex justify-end gap-3 pt-4">
-            <x-ui.button x-on:click="$data.close()" icon="x-mark" variant="outline">
-                Cancelar
-            </x-ui.button>
+        @if($requiresResultsConfirmation)
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" color="amber" icon="clock" wire:click="confirmPayment(true)">
+                    Subir el resto despues
+                </x-ui.button>
 
-            <x-ui.button color="teal" icon="check" wire:click="confirmPayment">
-                Confirmar
-            </x-ui.button>
-        </div>
+                <x-ui.button class="w-full md:w-auto" color="teal" icon="check" wire:click="confirmPayment(false)">
+                    Ya incluidos, finalizar
+                </x-ui.button>
+            </div>
+            <div class="flex flex-col md:flex-row md:justify-end gap-2 md:gap-3 pt-4">
+                <x-ui.button class="w-full md:w-auto" x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+            </div>
+        @else
+            <div class="flex justify-end gap-3 pt-4">
+                <x-ui.button x-on:click="$data.close()" icon="x-mark" variant="outline">
+                    Cancelar
+                </x-ui.button>
+
+                <x-ui.button color="teal" icon="check" wire:click="confirmPayment">
+                    Confirmar
+                </x-ui.button>
+            </div>
+        @endif
     </x-ui.modal>
 </div>
