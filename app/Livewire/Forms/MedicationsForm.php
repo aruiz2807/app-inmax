@@ -11,6 +11,9 @@ class MedicationsForm extends Form
     #[Validate('required|string|max:6')]
     public $code = '';
 
+    #[Validate('required|string|max:50')]
+    public $ean_code = '';
+
     #[Validate('required|string|max:100')]
     public $name = '';
 
@@ -57,6 +60,7 @@ class MedicationsForm extends Form
     public function set(Medication $medication)
     {
         $this->code = $medication->code;
+        $this->ean_code = $medication->ean_code;
         $this->name = $medication->name;
         $this->trade_name = $medication->trade_name;
         $this->active_substance = $medication->active_substance;

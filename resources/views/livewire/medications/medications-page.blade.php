@@ -117,6 +117,12 @@
                     </x-ui.field>
 
                     <x-ui.field required>
+                        <x-ui.label>Código EAN</x-ui.label>
+                        <x-ui.input wire:model="form.ean_code" name="ean_code" placeholder="1234567890123" maxlength="50" />
+                        <x-ui.error name="form.ean_code" />
+                    </x-ui.field>
+
+                    <x-ui.field required>
                         <x-ui.label>Nombre</x-ui.label>
                         <x-ui.input wire:model="form.name" name="name" placeholder="Paracetamol" />
                         <x-ui.error name="form.name" />
