@@ -4,6 +4,8 @@ namespace App\Livewire\Plans;
 
 use App\Models\PlanCoverage;
 use App\Models\Service;
+use App\Models\Policy;
+use App\Models\PolicyService;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -48,11 +50,28 @@ class PlanCoverageModal extends Component
             'service_id' => $this->serviceId,
         ]);
 
+        $currPolicies = Policy::where([
+            ['plan_id', $this->planId], 
+            ['status', 'Active']
+        ])->get();
+        foreach ($currPolicies as $policy) {
+            PolicyService::create([
+                'policy_id' => $policy->id,
+                'service_id' => $this->serviceId,
+                'included'  => 1
+            ]);
+        }
+
         $this->loadCoverageAndServices();
     }
 
     public function updateCoverage()
     {
+        $policyIds = Policy::where([
+            ['plan_id', $this->planId],
+            ['status', 'Active']
+        ])->pluck('id');
+
         foreach ($this->coverage as $included)
         {
             if ($included->service->type === 'Amount')
@@ -65,6 +84,10 @@ class PlanCoverageModal extends Component
             }
 
             $included->save();
+
+            PolicyService::whereIn('policy_id', $policyIds)
+                ->where('service_id', $included->service_id)
+                ->update(['included' => $included->amount ?? $included->events]);
         }
 
         // Show success toast
@@ -80,7 +103,9 @@ class PlanCoverageModal extends Component
 
     public function delete($coverageId)
     {
+        $pCoverage = PlanCoverage::whereKey($coverageId)->first();
         PlanCoverage::whereKey($coverageId)->delete();
+        PolicyService::where('service_id', $pCoverage->service_id)->delete();
 
         $this->loadCoverageAndServices();
     }
