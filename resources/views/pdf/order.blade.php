@@ -160,7 +160,7 @@
                     <div class="meta-sub">{{ $appointment->requester->doctor?->specialty->name }}</div>
                     <div class="meta-sub">Cédula: {{ $appointment->requester->doctor?->license }}</div>
                     <div class="meta-sub">{{ $appointment->requester->doctor?->university }}</div>
-                    <div class="meta-sub">{{ $appointment->requester->doctor?->address }}</div>
+                    <!--<div class="meta-sub">{{ $appointment->requester->doctor?->address }}</div>-->
                     <div class="meta-sub">Tel. {{ $appointment->requester->doctor?->user->phone }}</div>
                 </td>
                 <td style="width: 40%; border-right: 1px solid #E5E9F2; padding-left: 15px;">
@@ -179,7 +179,11 @@
 
     <div class="section">
         <div class="eyebrow">Para</div>
-        <div class="target-box">{{ $appointment->doctor->user->name }}</div>
+        <div class="target-box">
+            {{ $appointment->doctor->user->name }}
+            <div class="meta-sub"> <a href="{{ $appointment->office?->maps_url ?: $appointment->doctor?->maps_url }}" target="_blank">{{ $appointment->office?->address ?: $appointment->doctor?->address }}</a></div>
+        </div>
+        
     </div>
 
     <div class="section">
@@ -214,10 +218,10 @@
         <table class="layout">
             <tr>
                 <td>
-                    <strong>INMAX</strong><br>
+                    <!--<strong>INMAX</strong><br>
                     @if($footerAddr)
                         <a href="{{ $footerMapsUrl }}" target="_blank">{{ $footerAddr }}</a>
-                    @endif
+                    @endif-->
                 </td>
                 <td style="text-align: right;">
                     <strong>Contacto</strong><br>
