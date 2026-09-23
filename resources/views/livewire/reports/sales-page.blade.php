@@ -173,6 +173,18 @@
                         <x-ui.label class="opacity-50 text-xs uppercase tracking-wider">Referencia de Pago</x-ui.label>
                         <x-ui.text class="font-semibold">{{ $selectedPolicy->payment_reference ?? 'N/A' }}</x-ui.text>
                     </div>
+
+                    <div>
+                        <x-ui.label class="opacity-50 text-xs uppercase tracking-wider">Requirió factura</x-ui.label>
+                        <x-ui.text class="font-semibold">{{ $selectedPolicy->payment_requires_invoice ? 'Sí' : 'No' }}</x-ui.text>
+                    </div>
+
+                    @if($selectedPolicy->payment_requires_invoice)
+                    <div>
+                        <x-ui.label class="opacity-50 text-xs uppercase tracking-wider">Correo</x-ui.label>
+                        <x-ui.text class="font-semibold">{{ $selectedPolicy->user?->email ?? 'N/A' }}</x-ui.text>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="mt-10 flex justify-end">
