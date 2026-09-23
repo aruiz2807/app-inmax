@@ -51,6 +51,33 @@
             </div>
         </x-ui.card>
     @else
+        <x-ui.card size="full" class="mt-12">
+            <x-ui.heading size="sm" class="mb-4">Resumen General</x-ui.heading>
+            
+            <div class="flex flex-wrap justify-center gap-6 lg:justify-between text-center py-4">
+                <div class="flex-1 min-w-35 px-2">
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Subtotal Total</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['subtotal'], 2) }}</x-ui.text>
+                </div>
+                <div class="flex-1 min-w-35 px-2">
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Descuentos</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold text-red-300 wrap-break-word">-${{ number_format($totals['coupon_discount'], 2) }}</x-ui.text>
+                </div>
+                <div class="flex-1 min-w-35 px-2">
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Pago Usuarios</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['user_payment'], 2) }}</x-ui.text>
+                </div>
+                <div class="flex-1 min-w-35 px-2">
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Comisiones</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold text-teal-300 wrap-break-word">${{ number_format($totals['commission'], 2) }}</x-ui.text>
+                </div>
+                <div class="flex-1 min-w-35 px-2">
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Ganancias Socios</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['total'], 2) }}</x-ui.text>
+                </div>
+            </div>
+        </x-ui.card> <br>
+
         @foreach($groupedAppointments as $doctorName => $appointments)
             <div class="mb-8">
                 <div class="flex items-center gap-2 mb-4">
@@ -59,6 +86,14 @@
                         {{ $doctorName }} 
                         <span class="ml-2 text-xs font-normal text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
                             {{ $appointments->count() }} {{ $appointments->count() === 1 ? 'cita' : 'citas' }}
+                        </span>
+                        <br>
+                        <span class="ml-2 text-xs font-normal text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
+                            Descuento:  {{ $appointments[0]->doctor->discount }}%
+                        </span>
+
+                        <span class="ml-2 text-xs font-normal text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
+                            Comisión INMAX:  {{ $appointments[0]->doctor->commission }}%
                         </span>
                     </x-ui.heading>
                 </div>
@@ -73,7 +108,7 @@
                                 <th class="px-4 py-3 font-semibold text-right">Cupón</th>
                                 <th class="px-4 py-3 font-semibold text-right">Pago Usuario</th>
                                 <th class="px-4 py-3 font-semibold text-right">Comisión</th>
-                                <th class="px-4 py-3 font-semibold text-right">Total</th>
+                                <th class="px-4 py-3 font-semibold text-right">Ganancia S.</th>
                                 <th class="px-4 py-3 font-semibold text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -142,32 +177,6 @@
             </div>
         @endforeach
 
-        <x-ui.card size="full" class="mt-12">
-            <x-ui.heading size="sm" class="mb-4">Resumen General</x-ui.heading>
-            
-            <div class="flex flex-wrap justify-center gap-6 lg:justify-between text-center py-4">
-                <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Subtotal Total</x-ui.text>
-                    <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['subtotal'], 2) }}</x-ui.text>
-                </div>
-                <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Descuentos</x-ui.text>
-                    <x-ui.text class="text-xl md:text-2xl font-bold text-red-300 wrap-break-word">-${{ number_format($totals['coupon_discount'], 2) }}</x-ui.text>
-                </div>
-                <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Pago Usuarios</x-ui.text>
-                    <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['user_payment'], 2) }}</x-ui.text>
-                </div>
-                <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Comisiones</x-ui.text>
-                    <x-ui.text class="text-xl md:text-2xl font-bold text-teal-300 wrap-break-word">${{ number_format($totals['commission'], 2) }}</x-ui.text>
-                </div>
-                <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Gran Total</x-ui.text>
-                    <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['total'], 2) }}</x-ui.text>
-                </div>
-            </div>
-        </x-ui.card>
     @endif
 
     <x-ui.modal
