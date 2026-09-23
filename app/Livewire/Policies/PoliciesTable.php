@@ -288,10 +288,6 @@ final class PoliciesTable extends PowerGridComponent
                     ->when(fn($model) => true)
                     ->hide(),
 
-                Rule::button('activate')
-                    ->when(fn($model) => true)
-                    ->hide(),
-
                 Rule::button('inactive')
                     ->when(fn($model) => true)
                     ->hide(),

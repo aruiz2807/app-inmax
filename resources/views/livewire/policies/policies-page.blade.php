@@ -16,7 +16,7 @@
                 </x-ui.modal.trigger>
                 @endif
             </x-ui.heading>
-            <p>Resgistre y administre las membresías de los clientes</p>
+            <p>Registre y administre las membresías de los clientes</p>
         </x-ui.card>
     </div>
 
