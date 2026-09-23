@@ -38,7 +38,8 @@ final class DispensationTable extends PowerGridComponent
                 ->includeViewOnTop('livewire.clerk.dispensation-date-presets'),
             PowerGrid::footer()
                 ->showPerPage()
-                ->showRecordCount(),
+                ->showRecordCount()
+                ->pageName('page_' . $this->tab),
         ];
     }
 

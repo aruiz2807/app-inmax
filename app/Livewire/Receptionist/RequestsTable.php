@@ -43,7 +43,8 @@ final class RequestsTable extends PowerGridComponent
                 ->includeViewOnTop('livewire.receptionist.requests-date-presets'),
             PowerGrid::footer()
                 ->showPerPage()
-                ->showRecordCount(),
+                ->showRecordCount()
+                ->pageName('page_' . $this->tab),
         ];
     }
 

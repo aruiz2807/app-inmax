@@ -30,7 +30,8 @@ final class AppointmentsTable extends PowerGridComponent
                 ->showToggleColumns(),
             PowerGrid::footer()
                 ->showPerPage()
-                ->showRecordCount(),
+                ->showRecordCount()
+                ->pageName('page_' . $this->tab),
         ];
     }
 

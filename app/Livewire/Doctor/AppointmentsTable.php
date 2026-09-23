@@ -46,7 +46,8 @@ final class AppointmentsTable extends PowerGridComponent
                 ->includeViewOnTop('livewire.doctor.appointments-date-presets'),
             PowerGrid::footer()
                 ->showPerPage()
-                ->showRecordCount(),
+                ->showRecordCount()
+                ->pageName('page_' . $this->tab),
         ];
     }
 
