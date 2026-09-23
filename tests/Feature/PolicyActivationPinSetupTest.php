@@ -48,6 +48,7 @@ class PolicyActivationPinSetupTest extends TestCase
 
         $component = Livewire::test(PoliciesPage::class)
             ->set('policyId', $policy->id)
+            ->set('requires_invoice', ['1'])
             ->call('confirmActivation')
             ->assertHasNoErrors()
             ->assertSet('lastPinSetupName', $member->name)
@@ -58,6 +59,7 @@ class PolicyActivationPinSetupTest extends TestCase
         $this->assertSame('Active', $policy->status);
         $this->assertNotNull($policy->start_date);
         $this->assertNotNull($policy->end_date);
+        $this->assertTrue($policy->payment_requires_invoice);
         $this->assertSame(1, UserPinSetupToken::query()->where('user_id', $member->id)->count());
         $this->assertNotEmpty($component->get('lastPinSetupUrl'));
         $this->assertStringContainsString('/pin/setup/', (string) $component->get('lastPinSetupUrl'));

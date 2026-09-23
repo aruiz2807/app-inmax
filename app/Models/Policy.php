@@ -82,6 +82,7 @@ class Policy extends Model
         'insurance',
         'payment_method',
         'payment_reference',
+        'payment_requires_invoice',
         'payment_file_path',
         'payment_file_name',
         'status',
@@ -96,6 +97,7 @@ class Policy extends Model
         'insurance' => 'array',
         'start_date' => 'date',
         'end_date' => 'date',
+        'payment_requires_invoice' => 'boolean',
     ];
 
     /**

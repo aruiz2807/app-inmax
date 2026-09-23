@@ -33,6 +33,7 @@ class PoliciesPage extends Component
 
     public $payment_method = null;
     public $payment_reference = null;
+    public $requires_invoice = false;
     public $payment_attachment = null;
     public $reactivation = false;
 
@@ -122,6 +123,7 @@ class PoliciesPage extends Component
         $this->policy_user_name = $policy->user->name;
         $this->payment_method = $policy->payment_method;
         $this->payment_reference = $policy->payment_reference;
+        $this->requires_invoice = $policy->payment_requires_invoice ? ['1'] : [];
 
         if($policy->payment_method){
             $this->reactivation = true;
@@ -185,6 +187,10 @@ class PoliciesPage extends Component
                 $originalName = $file->getClientOriginalName();
             }
 
+            $requiresInvoice = is_array($this->requires_invoice)
+                ? in_array('1', $this->requires_invoice, true)
+                : filter_var($this->requires_invoice, FILTER_VALIDATE_BOOLEAN);
+
             $policy->update([
                 'status' => 'Active',
                 'start_date' => $start,
@@ -193,6 +199,7 @@ class PoliciesPage extends Component
                 'payment_reference' => $this->payment_reference,
                 'payment_file_path' => $path,
                 'payment_file_name' => $originalName,
+                'payment_requires_invoice' => $requiresInvoice,
             ]);
 
             $purpose = $policy->user->pin_set_at
@@ -230,6 +237,7 @@ class PoliciesPage extends Component
         $this->payment_method = null;
         $this->payment_reference = null;
         $this->payment_attachment = null;
+        $this->requires_invoice = null;
 
         $this->dispatch('close-activation-modal');
         $this->dispatch('pg:eventRefresh-policiesTable');
@@ -329,5 +337,6 @@ class PoliciesPage extends Component
         $this->policyId = null;
         $this->policyType = null;
         $this->newMember = false;
+        $this->requires_invoice = null;
     }
 }

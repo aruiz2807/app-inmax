@@ -38,10 +38,18 @@
             <x-ui.error name="form.name" />
         </x-ui.field>
 
+       <x-ui.field>
+            <x-ui.label>¿Requiere factura?</x-ui.label>
+            <x-ui.checkbox.group wire:model="requires_invoice" name="requires_invoice" variant="pills">
+                <x-ui.checkbox label="Si" value="1" />
+            </x-ui.checkbox.group>
+            <x-ui.error name="requires_invoice" />
+        </x-ui.field>
+
         <x-ui.field>
             <x-ui.label>Comprobante</x-ui.label>
             <input type="file" wire:model="payment_attachment" placeholder="Seleccione un archivo para adjuntar" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"/>
-            <x-ui.error name="payment_atachment" />
+            <x-ui.error name="payment_attachment" />
             <div wire:loading wire:target="payment_attachment">
                 Subiendo archivo...
             </div>
