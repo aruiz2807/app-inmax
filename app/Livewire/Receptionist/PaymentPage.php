@@ -266,6 +266,7 @@ class PaymentPage extends Component
 
         if ($isClosingAccount) {
             $this->persistServicesCompletion();
+            $this->redeemPolicyServices();
         }
 
         $this->calculateTotals();
@@ -416,17 +417,20 @@ class PaymentPage extends Component
         $this->checkCouponAvailability();
 
         $subtotal = $this->parseMoney($this->subtotal);
+        // Services marked as "incluido" are covered by the policy, so the patient owes nothing for them.
+        $coveredAmount = $this->calculateCoveredServicesAmount();
+        $payableSubtotal = max(0, $subtotal - $coveredAmount);
         $doctor = $this->appointment->doctor;
 
         if (! $doctor) {
             $this->couponDiscountValue = 0;
-            $this->user_payment = $this->formatMoney($subtotal);
+            $this->user_payment = $this->formatMoney($payableSubtotal);
             $this->commision = '0.00';
             $this->total = $this->formatMoney($subtotal);
             return;
         }
 
-        $memberDiscount = round($subtotal * ($doctor->discount / 100), 2);
+        $memberDiscount = round($payableSubtotal * ($doctor->discount / 100), 2);
         $doctorCommission = $doctor->commission / 100;
         $this->couponDiscountValue = 0;
         $selectedBenefit = null;
@@ -459,8 +463,8 @@ class PaymentPage extends Component
             $effectiveSubtotal = 0;
         } else {
             $effectiveSubtotal = $selectedBenefit
-                ? max(0, $subtotal - $this->couponDiscountValue)
-                : max(0, $subtotal - $memberDiscount);
+                ? max(0, $payableSubtotal - $this->couponDiscountValue)
+                : max(0, $payableSubtotal - $memberDiscount);
         }
 
         $commission = $effectiveSubtotal * $doctorCommission;
@@ -504,6 +508,20 @@ class PaymentPage extends Component
         return (float) str_replace(',', '', (string) ($value ?? 0));
     }
 
+    /**
+     * Sum the captured price of completed services covered by the policy (patient owes nothing for these).
+     */
+    private function calculateCoveredServicesAmount(): float
+    {
+        return $this->appointment->services->reduce(function ($carry, $service) {
+            if (! $this->isServiceCompleted($service) || ! $service->covered) {
+                return $carry;
+            }
+
+            return $carry + $this->parseMoney($this->servicePrices[$service->id] ?? 0);
+        }, 0.0);
+    }
+
     private function allCompletedServicesCovered(): bool
     {
         $completedServices = $this->appointment->services
@@ -543,6 +561,39 @@ class PaymentPage extends Component
     }
 
     /**
+     * Consume the policy's included-service benefits for every completed service (mirrors DRNotesPage::redeem()).
+     */
+    private function redeemPolicyServices(): void
+    {
+        $policy = $this->appointment->user->policy;
+
+        if (! $policy) {
+            return;
+        }
+
+        $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
+
+        foreach ($this->appointment->services as $service) {
+            if (! $this->isServiceCompleted($service) || ! $service->service_id) {
+                continue;
+            }
+
+            $benefit = PolicyService::where('policy_id', $policyId)
+                ->where('service_id', $service->service_id)
+                ->orderByRaw('used < included DESC') // Prioritize ones with remaining space
+                ->first();
+
+            if ($benefit) {
+                if ($benefit->used < $benefit->included) {
+                    $benefit->increment('used');
+                } else {
+                    $benefit->increment('extra');
+                }
+            }
+        }
+    }
+
+    /**
      * Distribute the appointment-level financial breakdown across every completed service,
      * proportionally to the price captured for each one.
      */
@@ -565,7 +616,15 @@ class PaymentPage extends Component
         $serviceCouponCoverage = $serviceCoupon
             ? round($serviceCouponPrice * ((float) $serviceCoupon->inmax_coverage_percent / 100), 2)
             : 0;
-        $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice);
+        $coveredAmount = $this->appointment->services->reduce(function ($carry, $service) use ($serviceCouponId) {
+            if (! $this->isServiceCompleted($service) || ! $service->covered || (int) $service->service_id === (int) $serviceCouponId) {
+                return $carry;
+            }
+
+            return $carry + $this->parseMoney($this->servicePrices[$service->id] ?? 0);
+        }, 0.0);
+        $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice - $coveredAmount);
+        $totalAmountForShare = $totalAmount - ($serviceCouponId ? $serviceCouponCoverage : 0) - $coveredAmount;
 
         foreach ($this->appointment->services as $service) {
             if (! $this->isServiceCompleted($service)) {
@@ -586,6 +645,18 @@ class PaymentPage extends Component
                 continue;
             }
 
+            if ($service->covered) {
+                $service->update([
+                    'subtotal' => $price,
+                    'coupon_discount' => 0,
+                    'user_payment' => 0,
+                    'commission' => 0,
+                    'total' => $price,
+                ]);
+
+                continue;
+            }
+
             $share = $remainingSubtotal > 0 ? $price / $remainingSubtotal : 0;
 
             $service->update([
@@ -593,7 +664,7 @@ class PaymentPage extends Component
                 'coupon_discount' => $serviceCouponId ? 0 : round($totalCoupon * $share, 2),
                 'user_payment' => round($totalUserPayment * $share, 2),
                 'commission' => round(($serviceCouponId ? $totalCommission - $serviceCouponCoverage : $totalCommission) * $share, 2),
-                'total' => round(($serviceCouponId ? $totalAmount - $serviceCouponCoverage : $totalAmount) * $share, 2),
+                'total' => round($totalAmountForShare * $share, 2),
             ]);
         }
     }

@@ -385,6 +385,22 @@ class DRNotesPage extends Component
             : $this->getServicePrice($serviceId);
     }
 
+    /**
+     * Sum the captured price of completed services covered by the policy (patient owes nothing for these).
+     */
+    private function calculateCoveredServicesAmount(): float
+    {
+        return $this->services->reduce(function ($carry, $service) {
+            if (empty($this->form->services[$service->id]) || ! $service->covered) {
+                return $carry;
+            }
+
+            $price = (float) str_replace(',', '', (string) ($this->form->servicePrices[$service->id] ?? 0));
+
+            return $carry + $price;
+        }, 0.0);
+    }
+
     public function updatedSelectedCouponId($value)
     {
         $this->calculateTotals();
@@ -416,13 +432,16 @@ class DRNotesPage extends Component
         $this->checkCouponAvailability();
 
         $subtotal = floatval(str_replace(',', '', $this->subtotal));
-        
+        // Services marked as "incluido" are covered by the policy, so the patient owes nothing for them.
+        $coveredAmount = $this->calculateCoveredServicesAmount();
+        $payableSubtotal = max(0, $subtotal - $coveredAmount);
+
         $doctor = $this->appointment->doctor ?: $this->user->doctor;
         $doc_discount = $doctor->discount / 100;
         $doc_commision = $doctor->commission / 100;
 
         // By default, the patient discount is calculated based on the doctor's profile discount
-        $memberDiscount = round($subtotal * $doc_discount, 2);
+        $memberDiscount = round($payableSubtotal * $doc_discount, 2);
         
         $this->couponDiscountValue = $this->isEditing
             ? (float) ($this->appointment->coupon_discount ?? 0)
@@ -456,9 +475,9 @@ class DRNotesPage extends Component
         if ($isMGIncluded) {
             $effectiveSubtotal = 0;
         } elseif ($selectedBenefit) {
-            $effectiveSubtotal = max(0, $subtotal - $this->couponDiscountValue);
+            $effectiveSubtotal = max(0, $payableSubtotal - $this->couponDiscountValue);
         } else {
-            $effectiveSubtotal = max(0, $subtotal - $memberDiscount);
+            $effectiveSubtotal = max(0, $payableSubtotal - $memberDiscount);
         }
 
         $this->user_payment = number_format($effectiveSubtotal, 2);
@@ -524,7 +543,15 @@ class DRNotesPage extends Component
         $serviceCouponCoverage = $serviceCoupon
             ? round($serviceCouponPrice * ((float) $serviceCoupon->inmax_coverage_percent / 100), 2)
             : 0;
-        $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice);
+        $coveredAmount = $this->services->reduce(function ($carry, $service) use ($serviceCouponId) {
+            if (empty($this->form->services[$service->id]) || ! $service->covered || (int) $service->service_id === (int) $serviceCouponId) {
+                return $carry;
+            }
+
+            return $carry + (float) str_replace(',', '', (string) ($this->form->servicePrices[$service->id] ?? 0));
+        }, 0.0);
+        $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice - $coveredAmount);
+        $totalAmountForShare = $totalAmount - ($serviceCouponId ? $serviceCouponCoverage : 0) - $coveredAmount;
 
         foreach ($this->services as $service) {
             if (empty($this->form->services[$service->id])) {
@@ -545,6 +572,18 @@ class DRNotesPage extends Component
                 continue;
             }
 
+            if ($service->covered) {
+                $service->update([
+                    'subtotal' => $price,
+                    'coupon_discount' => 0,
+                    'user_payment' => 0,
+                    'commission' => 0,
+                    'total' => $price,
+                ]);
+
+                continue;
+            }
+
             $share = $remainingSubtotal > 0 ? $price / $remainingSubtotal : 0;
 
             $service->update([
@@ -552,7 +591,7 @@ class DRNotesPage extends Component
                 'coupon_discount' => $serviceCouponId ? 0 : round($totalCoupon * $share, 2),
                 'user_payment' => round($totalUserPayment * $share, 2),
                 'commission' => round(($serviceCouponId ? $totalCommission - $serviceCouponCoverage : $totalCommission) * $share, 2),
-                'total' => round(($serviceCouponId ? $totalAmount - $serviceCouponCoverage : $totalAmount) * $share, 2),
+                'total' => round($totalAmountForShare * $share, 2),
             ]);
         }
     }
@@ -648,7 +687,7 @@ class DRNotesPage extends Component
                 ->where('service_id', $serviceId)
                 ->orderByRaw('used < included DESC') // Prioritize ones with remaining space
                 ->first();
-
+            //dd($benefit);
             if($benefit)
             {
                 if($benefit->used < $benefit->included)
