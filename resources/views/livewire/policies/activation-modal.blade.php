@@ -42,6 +42,7 @@
             <x-ui.label>¿Requiere factura?</x-ui.label>
             <x-ui.checkbox.group wire:model="requires_invoice" name="requires_invoice" variant="pills">
                 <x-ui.checkbox label="Si" value="1" />
+                <x-ui.checkbox label="No" value="0" />
             </x-ui.checkbox.group>
             <x-ui.error name="requires_invoice" />
         </x-ui.field>
