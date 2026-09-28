@@ -165,6 +165,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('id')
             ->add('date_formatted', fn (Appointment $appointment) => $appointment->date?->format('d/m/Y'))
             ->add('time_formatted', fn (Appointment $appointment) => $appointment->time?->format('H:i'))
+            ->add('created_at_formatted', fn ($model) => $model->created_at?->format('d/m/Y H:i A'))
             ->add('patient_name', fn (Appointment $appointment) => e($appointment->user?->name ?? 'N/A'))
             ->add('membership_number', fn (Appointment $appointment) => e($appointment->user?->policy?->number ?? '-'))
             ->add('doctor_name', fn (Appointment $appointment) => e($appointment->doctor?->user?->name ?? $appointment->office?->name ?? 'N/A'))
@@ -191,6 +192,10 @@ final class AppointmentsTable extends PowerGridComponent
     {
         return [
             Column::make('ID', 'id'),
+            
+            Column::make('Fecha creación', 'created_at_formatted', 'created_at')
+                ->sortable()
+                ->searchable(),
 
             Column::make('Fecha', 'date_formatted', 'date')
                 ->sortable(),

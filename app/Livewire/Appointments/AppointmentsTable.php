@@ -84,6 +84,7 @@ final class AppointmentsTable extends PowerGridComponent
             ->add('date_formatted', fn ($model) => $model->date?->format('d/m/Y'))
             ->add('time')
             ->add('time_formatted', fn ($model) => $model->time?->format('H:i A'))
+            ->add('created_at_formatted', fn ($model) => $model->created_at?->format('d/m/Y H:i A'))
             ->add('status_badge', fn ($model) => Blade::render('<x-status-badge status="' . ($model->status?->value ?? '') . '" />'))
             ->add('created_at');
     }
@@ -112,6 +113,10 @@ final class AppointmentsTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Hora', 'time_formatted', 'time')
+                ->sortable()
+                ->searchable(),
+
+            Column::make('Fecha creación', 'created_at_formatted', 'created_at')
                 ->sortable()
                 ->searchable(),
 
