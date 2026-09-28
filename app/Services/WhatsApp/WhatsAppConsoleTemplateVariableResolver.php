@@ -101,7 +101,7 @@ class WhatsAppConsoleTemplateVariableResolver
             'contact_phone' => $contact?->phone ?? $contact?->normalized_phone,
             'whatsapp_id' => $contact?->wa_id,
             'user_name' => $user?->name,
-            'user_phone' => $user?->phone,
+            'user_phone' => $user?->clean_phone,
             'user_email' => $user?->contact_email ?? $user?->email,
             'policy_number' => $policy?->number,
             'policy_type' => $policy?->type,

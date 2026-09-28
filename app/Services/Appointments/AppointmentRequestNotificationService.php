@@ -55,7 +55,7 @@ class AppointmentRequestNotificationService
         }
 
         $destinations = $this->destinationResolver->resolve(
-            phone: (string) $doctorUser->phone,
+            phone: $doctorUser->clean_phone,
             countryCode: (string) ($doctorUser->phone_country_code ?? '52')
         );
 
