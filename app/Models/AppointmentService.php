@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $appointment_id
  * @property int|null $service_id
+ * @property int|null $coupon_id
  * @property string|null $unregistered_service
  * @property int $covered
  * @property string|null $attachment_path
@@ -50,6 +51,7 @@ class AppointmentService extends Model
     protected $fillable = [
         'appointment_id',
         'service_id',
+        'coupon_id',
         'unregistered_service',
         'covered',
         'status',
@@ -76,6 +78,11 @@ class AppointmentService extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     /**

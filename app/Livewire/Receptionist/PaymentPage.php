@@ -272,7 +272,12 @@ class PaymentPage extends Component
         $this->calculateTotals();
 
         if ($this->selectedCouponId && (float) $this->appointment->coupon_discount <= 0) {
-            PolicyService::whereKey($this->selectedCouponId)->increment('used');
+            $selectedBenefit = PolicyService::with('coupon')->find($this->selectedCouponId);
+
+            if ($selectedBenefit) {
+                $selectedBenefit->increment('used');
+                $this->storeRedeemedCoupon($selectedBenefit->coupon_id, $selectedBenefit->coupon?->service_id);
+            }
         }
 
         $attachmentPath = $this->appointment->payment_attachment_path;
@@ -324,6 +329,25 @@ class PaymentPage extends Component
         );
 
         $this->reset('payment_attachment');
+    }
+
+    private function storeRedeemedCoupon(?int $couponId, ?int $serviceId): void
+    {
+        if (! $couponId) {
+            return;
+        }
+
+        $completedServices = $this->appointment->services->filter(
+            fn ($service) => $this->isServiceCompleted($service)
+        );
+
+        if ($serviceId) {
+            $completedServices = $completedServices->where('service_id', $serviceId);
+        }
+
+        foreach ($completedServices as $service) {
+            $service->update(['coupon_id' => $couponId]);
+        }
     }
 
     private function validatePaymentFields(): void
@@ -584,6 +608,8 @@ class PaymentPage extends Component
                 ->first();
 
             if ($benefit) {
+                $service->update(['coupon_id' => $benefit->coupon_id]);
+
                 if ($benefit->used < $benefit->included) {
                     $benefit->increment('used');
                 } else {

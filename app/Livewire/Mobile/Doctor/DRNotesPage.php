@@ -660,7 +660,7 @@ class DRNotesPage extends Component
         $policy = $this->appointment->user->policy;
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
         $doctorId = $this->user->doctor->id;
-        $hasMissingAttachments = ! empty($this->missingAttachmentServiceNames);
+            $hasMissingAttachments = !empty($this->missingAttachmentServiceNames);
 
         if ($hasMissingAttachments && $willUploadResultsLater === null && $this->canFinalizeWithoutAttachments()) {
             $willUploadResultsLater = false;
@@ -690,6 +690,8 @@ class DRNotesPage extends Component
             //dd($benefit);
             if($benefit)
             {
+                $service->update(['coupon_id' => $benefit->coupon_id]);
+
                 if($benefit->used < $benefit->included)
                 {
                     $benefit->increment('used');
@@ -703,7 +705,12 @@ class DRNotesPage extends Component
 
         // Redeem coupon if used
         if ($this->selectedCouponId) {
-            PolicyService::where('id', $this->selectedCouponId)->increment('used');
+            $selectedBenefit = PolicyService::with('coupon')->find($this->selectedCouponId);
+
+            if ($selectedBenefit) {
+                $selectedBenefit->increment('used');
+                $this->storeRedeemedCoupon($selectedBenefit->coupon_id, $selectedBenefit->coupon?->service_id);
+            }
         }
 
         $this->subtotal = str_replace(',', '', $this->subtotal);
@@ -733,6 +740,23 @@ class DRNotesPage extends Component
 
         if ($updateData['status'] === AppointmentStatus::COMPLETED) {
             app(AppointmentCompletedNotificationService::class)->send($this->appointment->fresh(['user', 'doctor.user', 'note']));
+        }
+    }
+
+    private function storeRedeemedCoupon(?int $couponId, ?int $serviceId): void
+    {
+        if (! $couponId) {
+            return;
+        }
+
+        $completedServices = $this->services->filter(fn ($service) => ! empty($this->form->services[$service->id]));
+
+        if ($serviceId) {
+            $completedServices = $completedServices->where('service_id', $serviceId);
+        }
+
+        foreach ($completedServices as $service) {
+            $service->update(['coupon_id' => $couponId]);
         }
     }
 
