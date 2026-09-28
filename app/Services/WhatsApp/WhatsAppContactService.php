@@ -51,23 +51,46 @@ class WhatsAppContactService
     /**
      * Normalize a phone number to a canonical searchable value.
      */
-    public function canonicalPhone(string $phone): string
+    public function canonicalPhone(string $phone, ?string $countryCode = '52'): string
     {
         $digits = $this->digits($phone);
+        $normalizedCountryCode = $this->digits((string) $countryCode) ?: '52';
 
         if ($digits === '') {
             return '';
         }
 
-        if (str_starts_with($digits, '521') && strlen($digits) === 13) {
+        if ($normalizedCountryCode === '52' && str_starts_with($digits, '521') && strlen($digits) === 13) {
             return '52'.substr($digits, 3);
         }
 
         if (strlen($digits) === 10) {
-            return '52'.$digits;
+            return $normalizedCountryCode.$digits;
+        }
+
+        if (str_starts_with($digits, $normalizedCountryCode) && strlen($digits) === strlen($normalizedCountryCode) + 10) {
+            return $digits;
         }
 
         return $digits;
+    }
+
+    /**
+     * Resolve the canonical destination for a console contact.
+     */
+    public function destinationPhone(WhatsAppContact $contact): string
+    {
+        if (filled($contact->wa_id)) {
+            return $this->digits((string) $contact->wa_id);
+        }
+
+        $user = $contact->user;
+        $phone = $user?->clean_phone ?: $contact->phone ?: $contact->normalized_phone;
+
+        return $this->canonicalPhone(
+            (string) $phone,
+            (string) ($user?->phone_country_code ?? '52')
+        );
     }
 
     /**
@@ -104,6 +127,8 @@ class WhatsAppContactService
      */
     private function digits(string $value): string
     {
-        return preg_replace('/\D+/', '', $value) ?? '';
+        $basePhone = explode('-', $value)[0];
+
+        return preg_replace('/\D+/', '', $basePhone) ?? '';
     }
 }

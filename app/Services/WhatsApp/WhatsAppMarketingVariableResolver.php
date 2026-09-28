@@ -44,7 +44,7 @@ class WhatsAppMarketingVariableResolver
             'contact_name' => $recipient->customer_name ?: $contact?->name ?: $user?->name,
             'contact_phone' => $recipient->phone_normalized ?: $recipient->phone_raw,
             'user_name' => $user?->name,
-            'user_phone' => $user?->phone,
+            'user_phone' => $user?->clean_phone,
             'user_email' => $user?->contact_email ?? $user?->email,
             'policy_number' => $policy?->number,
             'policy_type' => $policy?->type,

@@ -8,6 +8,7 @@ use App\Models\WhatsAppConsoleTemplate;
 use App\Models\WhatsAppMessage;
 use App\Models\WhatsAppSetting;
 use App\Services\WhatsApp\WhatsAppCloudApiService;
+use App\Services\WhatsApp\WhatsAppContactService;
 use App\Services\WhatsApp\WhatsAppConsoleTemplateVariableResolver;
 use App\Services\WhatsApp\WhatsAppConversationWindowService;
 use Illuminate\Database\Eloquent\Builder;
@@ -193,7 +194,7 @@ class WhatsAppConsolePage extends Component
         }
 
         $conversation = WhatsAppConversation::query()
-            ->with('contact')
+            ->with('contact.user')
             ->find($this->selectedConversationId);
 
         if (! $conversation || ! $conversation->contact) {
@@ -209,7 +210,10 @@ class WhatsAppConsolePage extends Component
         // Triggered by wire:poll to keep the console in sync with webhook traffic.
     }
 
-    public function sendReply(WhatsAppCloudApiService $service): void
+    public function sendReply(
+        WhatsAppCloudApiService $service,
+        WhatsAppContactService $contactService
+    ): void
     {
         $sendingAttachment = $this->replyAttachment !== null;
 
@@ -263,9 +267,7 @@ class WhatsAppConsolePage extends Component
             return;
         }
 
-        $phone = $conversation->contact->wa_id
-            ?: $conversation->contact->phone
-            ?: $conversation->contact->normalized_phone;
+        $phone = $contactService->destinationPhone($conversation->contact);
 
         if (! filled($phone)) {
             $this->dispatch(
@@ -365,7 +367,8 @@ class WhatsAppConsolePage extends Component
 
     public function sendConsoleTemplate(
         WhatsAppCloudApiService $service,
-        WhatsAppConsoleTemplateVariableResolver $resolver
+        WhatsAppConsoleTemplateVariableResolver $resolver,
+        WhatsAppContactService $contactService
     ): void {
         Validator::make([
             'selectedTemplateId' => $this->selectedTemplateId,
@@ -431,9 +434,7 @@ class WhatsAppConsolePage extends Component
 
         $this->validateTemplateHeaderAttachment($template);
 
-        $phone = $conversation->contact->wa_id
-            ?: $conversation->contact->phone
-            ?: $conversation->contact->normalized_phone;
+        $phone = $contactService->destinationPhone($conversation->contact);
 
         if (! filled($phone)) {
             $this->dispatch(
