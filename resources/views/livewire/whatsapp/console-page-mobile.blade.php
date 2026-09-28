@@ -1,92 +1,51 @@
-<div wire:poll.15s="refreshConsole" class="space-y-3">
+<div wire:poll.15s="refreshConsole" class="-mx-6 flex h-[calc(100dvh-7rem)] min-h-0 w-auto flex-col overflow-hidden">
     <x-slot name="header">
         {{ __('app.whatsapp_console') }}
     </x-slot>
 
     @if (! $selectedConversation)
-        <div class="grid grid-cols-2 gap-3">
-            <x-ui.card size="full">
-                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Conversaciones</p>
-                <p class="pt-2 text-2xl font-semibold text-slate-900">{{ $summary['total_conversations'] }}</p>
-            </x-ui.card>
+        <div class="flex min-h-0 flex-1 flex-col gap-2">
+            <div class="flex shrink-0 items-center justify-between px-1 text-xs text-slate-500">
+                <span>{{ $summary['total_conversations'] }} conversaciones</span>
+                <span>{{ $summary['unread_messages'] }} no leídos</span>
+            </div>
 
-            <x-ui.card size="full">
-                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">No leídos</p>
-                <p class="pt-2 text-2xl font-semibold text-teal-700">{{ $summary['unread_messages'] }}</p>
-            </x-ui.card>
-
-            <x-ui.card size="full">
-                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Prospectos</p>
-                <p class="pt-2 text-2xl font-semibold text-amber-600">{{ $summary['prospect_conversations'] }}</p>
-            </x-ui.card>
-
-            <x-ui.card size="full">
-                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Webhook Meta</p>
-                <div class="pt-2">
-                    <x-ui.badge :color="($webhookSettings?->webhook_last_status ?? null) === 'ok' ? 'emerald' : (($webhookSettings?->webhook_last_status ?? null) === 'invalid_signature' ? 'rose' : 'blue')" size="sm" pill>
-                        {{ strtoupper($webhookSettings?->webhook_last_status ?? 'sin_estado') }}
-                    </x-ui.badge>
-                </div>
-                <p class="pt-2 text-xs text-slate-500">
-                    {{ $webhookSettings?->webhook_last_received_at?->format('d/m/Y H:i') ?? 'Sin eventos todavía' }}
-                </p>
-            </x-ui.card>
-        </div>
-
-        <x-ui.card size="full">
-            <div class="space-y-3">
-                <div>
-                    <x-ui.heading level="h3" size="sm">Conversaciones</x-ui.heading>
-                    <p class="mt-1 text-sm text-slate-500">{{ $conversations->count() }} visibles</p>
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Buscar conversación
-                    </label>
+            <div class="shrink-0 rounded-2xl border border-slate-200 bg-white p-3">
+                <div class="space-y-2">
                     <input wire:model.live.debounce.300ms="search" type="text"
+                        aria-label="Buscar conversación"
                         placeholder="Buscar por nombre o teléfono..."
                         class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15" />
-                </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Estatus</label>
-                        <select wire:model.live="statusFilter"
+                    <div class="grid grid-cols-2 gap-2">
+                        <select wire:model.live="statusFilter" aria-label="Estatus"
                             class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15">
                             <option value="all">Todos</option>
                             <option value="open">Abiertos</option>
                             <option value="archived">Archivados</option>
                         </select>
-                    </div>
 
-                    <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Contacto</label>
-                        <select wire:model.live="linkedFilter"
+                        <select wire:model.live="linkedFilter" aria-label="Tipo de contacto"
                             class="w-full rounded-box border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15">
                             <option value="all">Todos</option>
                             <option value="prospects">Prospectos</option>
                             <option value="users">Usuarios vinculados</option>
                         </select>
                     </div>
+
+                    <label class="flex items-center justify-between gap-3 px-1 text-sm text-slate-600">
+                        <span class="font-medium text-slate-900">Solo no leídos</span>
+                        <x-ui.switch
+                            wire:key="mobile-unread-only-switch-{{ $unreadOnly ? '1' : '0' }}"
+                            wire:model.live="unreadOnly"
+                            :checked="$unreadOnly"
+                            color="teal"
+                        />
+                    </label>
                 </div>
-
-                <label class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    <span>
-                        <span class="block font-medium text-slate-900">Solo no leídos</span>
-                        <span class="block text-xs text-slate-500">Oculta conversaciones ya revisadas.</span>
-                    </span>
-                    <x-ui.switch
-                        wire:key="mobile-unread-only-switch-{{ $unreadOnly ? '1' : '0' }}"
-                        wire:model.live="unreadOnly"
-                        :checked="$unreadOnly"
-                        color="teal"
-                    />
-                </label>
             </div>
-        </x-ui.card>
 
-        <x-ui.card size="full">
+            <div class="min-h-0 w-full flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/70 p-2">
             @forelse ($conversations as $conversation)
                 @php
                     $contact = $conversation->contact;
@@ -98,7 +57,7 @@
                     wire:keydown.enter="selectConversation({{ $conversation->id }})"
                     wire:keydown.space.prevent="selectConversation({{ $conversation->id }})"
                     role="button" tabindex="0"
-                    class="mb-3 cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-200">
+                    class="mb-2 w-full cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-200">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <p class="truncate text-sm font-semibold text-slate-900">
@@ -144,9 +103,10 @@
                     No hay conversaciones registradas con los filtros actuales.
                 </div>
             @endforelse
-        </x-ui.card>
+            </div>
+        </div>
     @else
-        <div class="flex h-[calc(100dvh-7rem)] min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div class="border-b border-slate-200 p-2">
                 <x-ui.button type="button" icon="arrow-left" variant="outline" color="teal" wire:click="showConversationList">
                     Volver a conversaciones
