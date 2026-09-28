@@ -38,6 +38,7 @@ class WhatsAppConsolePage extends Component
     public string $linkedFilter = 'all';
 
     public bool $unreadOnly = false;
+    public bool $isMobileDevice = false;
     public string $replyMessage = '';
     public $replyAttachment = null;
     public ?int $selectedTemplateId = null;
@@ -47,9 +48,35 @@ class WhatsAppConsolePage extends Component
     public array $templateBodyValues = [];
     public array $templateButtonValues = [];
 
+    public function mount(): void
+    {
+        $this->isMobileDevice = $this->detectMobileDevice();
+    }
+
+    protected function detectMobileDevice(): bool
+    {
+        $forcedDevice = request()->query('device');
+
+        if ($forcedDevice === 'mobile') {
+            return true;
+        }
+
+        if ($forcedDevice === 'desktop') {
+            return false;
+        }
+
+        $userAgent = strtolower((string) request()->userAgent());
+
+        return preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', $userAgent) === 1;
+    }
+
     #[Layout('layouts.app')]
     public function render()
     {
+        $view = $this->isMobileDevice
+            ? 'livewire.whatsapp.console-page-mobile'
+            : 'livewire.whatsapp.console-page';
+
         $this->statusFilter = in_array($this->statusFilter, self::STATUS_FILTERS, true)
             ? $this->statusFilter
             : 'all';
@@ -105,7 +132,7 @@ class WhatsAppConsolePage extends Component
             ? WhatsAppConsoleTemplate::query()->where('is_active', true)->find($this->selectedTemplateId)
             : null;
 
-        return view('livewire.whatsapp.console-page', [
+        return view($view, [
             'conversations' => $conversations,
             'selectedConversation' => $selectedConversation,
             'selectedMessages' => $selectedConversation?->messages()->with('primaryAttachment')->latest()->take(100)->get()->reverse()->values() ?? collect(),
@@ -142,6 +169,12 @@ class WhatsAppConsolePage extends Component
         }
 
         $this->markConversationAsRead($conversation);
+    }
+
+    public function showConversationList(): void
+    {
+        $this->selectedConversationId = null;
+        $this->resetConversationState();
     }
 
     public function archiveSelectedConversation(): void

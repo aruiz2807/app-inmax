@@ -35,6 +35,27 @@ class WhatsAppConsolePageTest extends TestCase
         $response->assertSee('Conversaciones');
     }
 
+    public function test_console_selects_mobile_or_desktop_view_from_device_detection(): void
+    {
+        $admin = User::factory()->create([
+            'profile' => 'Admin',
+            'pin' => '1234',
+            'pin_set_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::withQueryParams(['device' => 'mobile'])
+            ->test(WhatsAppConsolePage::class)
+            ->assertSet('isMobileDevice', true)
+            ->assertViewIs('livewire.whatsapp.console-page-mobile');
+
+        Livewire::withQueryParams(['device' => 'desktop'])
+            ->test(WhatsAppConsolePage::class)
+            ->assertSet('isMobileDevice', false)
+            ->assertViewIs('livewire.whatsapp.console-page');
+    }
+
     public function test_console_does_not_select_a_conversation_by_default(): void
     {
         $admin = User::factory()->create([

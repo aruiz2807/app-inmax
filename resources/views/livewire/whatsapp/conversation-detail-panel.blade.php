@@ -3,8 +3,8 @@
         $contact = $selectedConversation->contact;
     @endphp
 
-    <div class="border-b border-slate-200 bg-white px-5 py-5">
-        <div class="flex flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
+    <div class="border-b border-slate-200 bg-white {{ $isMobileDevice ? 'px-3 py-2' : 'px-5 py-5' }}">
+        <div class="{{ $isMobileDevice ? 'flex flex-row flex-wrap items-center justify-between gap-2' : 'flex flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between' }}">
             <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
                     <x-ui.heading level="h3" size="sm">
@@ -22,15 +22,15 @@
                     @endif
                 </div>
 
-                <p class="mt-2 text-sm text-slate-500">
+                <p class="{{ $isMobileDevice ? 'mt-1' : 'mt-2' }} text-sm text-slate-500">
                     {{ $contact->phone ?? $contact->normalized_phone }}
                 </p>
 
-                @if ($contact->user)
+                @if ($contact->user && ! $isMobileDevice)
                     <p class="mt-1 text-xs text-slate-400">
                         Vinculado al usuario #{{ $contact->user->id }} ({{ $contact->user->profile }})
                     </p>
-                @else
+                @elseif (! $contact->user && ! $isMobileDevice)
                     <p class="mt-1 text-xs text-slate-400">
                         Prospecto sin usuario vinculado.
                     </p>
@@ -38,7 +38,7 @@
 
             </div>
 
-            <div class="flex flex-wrap items-end gap-3">
+            <div class="flex flex-wrap items-end {{ $isMobileDevice ? 'gap-2' : 'gap-3' }}">
                 <div>
                     <x-ui.button
                         type="button"
@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3">
+        <div class="{{ $isMobileDevice ? 'mt-2 px-3 py-2' : 'mt-4 px-4 py-3' }} rounded-2xl border border-slate-200 bg-slate-50/90">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                 <span class="font-medium text-slate-700">Ventana WhatsApp</span>
 
@@ -87,17 +87,21 @@
                     <x-ui.badge color="emerald" size="sm" pill>
                         Activa
                     </x-ui.badge>
-                    <span>
-                        Texto libre disponible hasta {{ $freeFormWindowExpiresAt?->format('d/m/Y H:i') }}
-                    </span>
+                    @unless ($isMobileDevice)
+                        <span>
+                            Texto libre disponible hasta {{ $freeFormWindowExpiresAt?->format('d/m/Y H:i') }}
+                        </span>
+                    @endunless
                 @else
                     <x-ui.badge color="amber" size="sm" pill>
                         Usar plantilla
                     </x-ui.badge>
-                    <span>La respuesta libre esta fuera de la ventana de 24 horas.</span>
+                    @unless ($isMobileDevice)
+                        <span>La respuesta libre esta fuera de la ventana de 24 horas.</span>
+                    @endunless
                 @endif
 
-                @if ($selectedConversation->archived_at)
+                @if ($selectedConversation->archived_at && ! $isMobileDevice)
                     <span class="hidden h-1 w-1 rounded-full bg-slate-300 lg:block"></span>
                     <span>Archivado el {{ $selectedConversation->archived_at->format('d/m/Y H:i') }}</span>
                 @endif
@@ -110,7 +114,7 @@
         x-data="{ scrollToBottom() { const el = this.$refs.messageScroller; if (el) { el.scrollTop = el.scrollHeight; } } }"
         x-init="$nextTick(() => scrollToBottom())"
         x-ref="messageScroller"
-        class="min-h-0 flex-1 overflow-y-auto bg-slate-50/80 px-4 py-5"
+        class="min-h-0 flex-1 overflow-y-auto bg-slate-50/80 {{ $isMobileDevice ? 'px-3 py-3' : 'px-4 py-5' }}"
     >
         <div class="mx-auto max-w-4xl space-y-3">
             @forelse ($selectedMessages as $message)
@@ -181,13 +185,13 @@
         </div>
     </div>
 
-    <form wire:submit="sendReply" class="border-t border-slate-200 bg-white px-5 py-4">
-        <div class="grid gap-3">
+    <form wire:submit="sendReply" class="border-t border-slate-200 bg-white {{ $isMobileDevice ? 'px-3 py-2' : 'px-5 py-4' }}">
+        <div class="grid {{ $isMobileDevice ? 'gap-2' : 'gap-3' }}">
             <div>
                 <x-ui.label>{{ $replyAttachment ? 'Caption / mensaje del archivo' : 'Responder por WhatsApp' }}</x-ui.label>
                 <textarea
                     wire:model.live="replyMessage"
-                    rows="4"
+                    rows="{{ $isMobileDevice ? 1 : 4 }}"
                     @disabled(! $canSendFreeFormMessage)
                     placeholder="{{ $replyAttachment ? 'Escribe un caption opcional para imagen, video o documento...' : 'Escribe aquí la respuesta para el cliente...' }}"
                     class="w-full rounded-box border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors focus:border-black/15 focus:outline-none focus:ring-2 focus:ring-neutral-900/15 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-50 dark:focus:border-white/20 dark:focus:ring-neutral-100/15"
@@ -195,7 +199,7 @@
                 <x-ui.error name="replyMessage" />
             </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 {{ $isMobileDevice ? 'p-2' : 'p-4' }}">
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div class="min-w-0">
                         <x-ui.label>Adjuntar archivo</x-ui.label>
@@ -207,9 +211,11 @@
                             class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
                         />
                         <x-ui.error name="replyAttachment" />
-                        <p class="mt-2 text-xs text-slate-500">
-                            Soporta imagen, audio, video y documentos. Si adjuntas archivo, el texto superior se usa como caption cuando Meta lo permite.
-                        </p>
+                        @if (! $isMobileDevice)
+                            <p class="mt-2 text-xs text-slate-500">
+                                Soporta imagen, audio, video y documentos. Si adjuntas archivo, el texto superior se usa como caption cuando Meta lo permite.
+                            </p>
+                        @endif
                     </div>
 
                     @if ($replyAttachment)
@@ -227,12 +233,14 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div class="flex flex-col {{ $isMobileDevice ? 'gap-2' : 'gap-3' }} sm:flex-row sm:items-end sm:justify-between">
                 <p class="text-xs text-slate-500">
                     @if ($canSendFreeFormMessage)
-                        {{ $replyAttachment ? 'Audio no usa caption en WhatsApp. Documentos PDF, imagen y video quedaran disponibles tambien para descarga en la consola.' : 'Meta solo permite texto libre dentro de la ventana activa de conversación.' }}
+                        @if (! $isMobileDevice)
+                            {{ $replyAttachment ? 'Audio no usa caption en WhatsApp. Documentos PDF, imagen y video quedaran disponibles tambien para descarga en la consola.' : 'Meta solo permite texto libre dentro de la ventana activa de conversación.' }}
+                        @endif
                     @else
-                        La ventana vencio; envia una plantilla aprobada para volver a contactar al cliente.
+                        {{ $isMobileDevice ? 'Ventana vencida; usa una plantilla para responder.' : 'La ventana vencio; envia una plantilla aprobada para volver a contactar al cliente.' }}
                     @endif
                 </p>
 
