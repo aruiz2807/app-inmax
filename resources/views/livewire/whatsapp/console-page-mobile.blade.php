@@ -1,4 +1,4 @@
-<div wire:poll.15s="refreshConsole" class="flex h-[calc(100dvh-7rem)] min-h-0 w-full min-w-0 flex-col overflow-hidden">
+<div wire:poll.15s="refreshConsole" class="flex h-[calc(100dvh-4rem)] min-h-0 w-full min-w-0 flex-col overflow-hidden">
     <x-slot name="header">
         {{ __('app.whatsapp_console') }}
     </x-slot>

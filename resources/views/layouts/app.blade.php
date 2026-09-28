@@ -50,6 +50,10 @@
         $showMarketingGroup = $user?->hasAnyPermission($marketingPermissions) ?? false;
         $showSettingsGroup = ($user?->hasAnyPermission($settingsPermissions) ?? false) || $showApiTokens;
         $showPharmacyInventoryGroup = $user?->hasAnyPermission($clerkPermissions) ?? false;
+        $forcedDevice = request()->query('device');
+        $isMobileWhatsAppConsole = request()->routeIs('whatsapp.console')
+            && ($forcedDevice === 'mobile'
+                || ($forcedDevice !== 'desktop' && preg_match('/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i', strtolower((string) request()->userAgent())) === 1));
     @endphp
 
     <x-ui.layout variant="sidebar-main" collapsable>
@@ -323,7 +327,7 @@
                 </div>
             </x-ui.layout.header>
 
-            <div class="p-6">
+            <div class="{{ $isMobileWhatsAppConsole ? 'p-0' : 'p-6' }}">
                 {{ $slot }}
             </div>
         </x-ui.layout.main>

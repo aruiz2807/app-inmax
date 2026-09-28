@@ -1,4 +1,4 @@
-<div class="flex h-full min-h-0 w-full flex-col overflow-hidden">
+<div class="{{ $isMobileDevice ? 'flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden' : 'flex h-full min-h-0 w-full flex-col overflow-hidden' }}">
     @php
         $contact = $selectedConversation->contact;
     @endphp
@@ -79,7 +79,8 @@
             </div>
         </div>
 
-        <div class="{{ $isMobileDevice ? 'mt-2 px-3 py-2' : 'mt-4 px-4 py-3' }} rounded-2xl border border-slate-200 bg-slate-50/90">
+        @unless ($isMobileDevice)
+        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                 <span class="font-medium text-slate-700">Ventana WhatsApp</span>
 
@@ -107,6 +108,7 @@
                 @endif
             </div>
         </div>
+        @endunless
     </div>
 
     <div
@@ -114,9 +116,9 @@
         x-data="{ scrollToBottom() { const el = this.$refs.messageScroller; if (el) { el.scrollTop = el.scrollHeight; } } }"
         x-init="$nextTick(() => scrollToBottom())"
         x-ref="messageScroller"
-        class="min-h-0 flex-1 overflow-y-auto bg-slate-50/80 {{ $isMobileDevice ? 'px-3 py-3' : 'px-4 py-5' }}"
+        class="min-h-0 w-full min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/80 {{ $isMobileDevice ? 'px-2 py-2' : 'px-4 py-5' }}"
     >
-        <div class="mx-auto max-w-4xl space-y-3">
+        <div class="{{ $isMobileDevice ? 'w-full max-w-none' : 'mx-auto max-w-4xl' }} space-y-3">
             @forelse ($selectedMessages as $message)
                 @php
                     $isOutbound = $message->direction === \App\Models\WhatsAppMessage::DIRECTION_OUTBOUND;
@@ -127,8 +129,8 @@
                     $attachment = $message->primaryAttachment;
                 @endphp
 
-                <div class="flex {{ $alignment }}" wire:key="conversation-message-{{ $message->id }}">
-                    <div class="{{ $bubbleClasses }} max-w-3xl rounded-3xl border px-4 py-3 shadow-sm">
+                <div class="flex w-full min-w-0 {{ $alignment }}" wire:key="conversation-message-{{ $message->id }}">
+                    <div class="{{ $bubbleClasses }} min-w-0 {{ $isMobileDevice ? 'max-w-full' : 'max-w-3xl' }} break-words rounded-3xl border px-4 py-3 shadow-sm">
                         <div class="flex items-center justify-between gap-4">
                             <span class="text-[11px] font-semibold uppercase tracking-wide {{ $isOutbound ? 'text-teal-100' : 'text-slate-500' }}">
                                 {{ $isOutbound ? 'Enviado' : 'Recibido' }}
@@ -147,7 +149,7 @@
                         @endif
 
                         @if ($message->body_text)
-                            <div class="pt-2 text-sm leading-6">
+                            <div class="break-words pt-2 text-sm leading-6">
                                 {{ $message->body_text }}
                             </div>
                         @endif
@@ -170,7 +172,7 @@
                             @endif
 
                             @if ($message->meta_message_id)
-                                <span class="text-[11px] {{ $isOutbound ? 'text-teal-100' : 'text-slate-400' }}">
+                                <span class="break-all text-[11px] {{ $isOutbound ? 'text-teal-100' : 'text-slate-400' }}">
                                     ID: {{ $message->meta_message_id }}
                                 </span>
                             @endif
