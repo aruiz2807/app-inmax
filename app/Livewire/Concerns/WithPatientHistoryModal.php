@@ -45,6 +45,7 @@ trait WithPatientHistoryModal
                 'doctor.specialty',
                 'office',
             ])
+            ->where('appointments.status', '!=', AppointmentStatus::VIRTUAL->value)
             ->find($appointmentId);
 
         if (! $selectedAppointment) {
@@ -269,6 +270,7 @@ trait WithPatientHistoryModal
                 'services.service',
             ])
             ->where('user_id', $this->historyPatient->id)
+            ->where('appointments.status', '!=', AppointmentStatus::VIRTUAL->value)
             ->orderByDesc('date')
             ->orderByDesc('time')
             ->get();

@@ -54,7 +54,8 @@ final class AppointmentsTable extends PowerGridComponent
                 AppointmentStatus::CANCELLED->value,
                 AppointmentStatus::NO_SHOW->value,
                 AppointmentStatus::REJECTED->value,
-            ]));
+            ]))
+            ->where('appointments.status', '!=', AppointmentStatus::VIRTUAL->value);
     }
 
     public function relationSearch(): array
