@@ -438,7 +438,9 @@ class WhatsAppCloudApiService
      */
     private function normalizePhone(string $phone): string
     {
-        return preg_replace('/\D+/', '', $phone) ?? '';
+        $basePhone = explode('-', $phone)[0];
+
+        return preg_replace('/\D+/', '', $basePhone) ?? '';
     }
 
     /**

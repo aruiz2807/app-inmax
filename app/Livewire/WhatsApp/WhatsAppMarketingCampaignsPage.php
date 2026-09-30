@@ -242,7 +242,7 @@ class WhatsAppMarketingCampaignsPage extends Component
                 $phoneRaw = trim((string) ($rowData['B'] ?? ''));
                 $normalizedPhone = $contactService->canonicalPhone($phoneRaw);
 
-                if ($normalizedPhone === '' || strlen($normalizedPhone) < 8 || isset($seenPhones[$normalizedPhone])) {
+                if ($normalizedPhone === '' || strlen($normalizedPhone) !== 12 || isset($seenPhones[$normalizedPhone])) {
                     $invalidCount++;
                     continue;
                 }
