@@ -17,21 +17,20 @@ class PoliciesByMonthChart extends Component
             $months->push(Carbon::now()->subMonths($i)->format('Y-m'));
         }
 
-        // Get policies grouped by month
-        $policies = Policy::query()
-            ->where('created_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
-            ->get()
-            ->groupBy(fn($policy) => $policy->created_at->format('Y-m'));
+        $startDate = Carbon::now()->subMonths(5)->startOfMonth();
 
-        // Build the ColumnChartModel
+        $policies = Policy::query()
+            ->where('status', 'Active')
+            ->whereBetween('start_date', [$startDate, Carbon::today()])
+            ->get()
+            ->groupBy(fn($policy) => $policy->start_date->format('Y-m'));
+
         $columnChartModel = (new ColumnChartModel())
-            // ->setTitle('Pólizas Creadas (Últimos 6 Meses)')
             ->setAnimated(true)
             ->setLegendVisibility(false)
             ->setDataLabelsEnabled(true)
             ->setColumnWidth(30);
 
-        // Add columns
         foreach ($months as $month) {
             $count = $policies->get($month)?->count() ?? 0;
             $monthLabel = Carbon::parse($month . '-01')->translatedFormat('M Y');

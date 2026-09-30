@@ -11,21 +11,19 @@ class PoliciesBySellerChart extends Component
 {
     public function render()
     {
-        // Define the start date (6 months ago)
-        $startDate = Carbon::now()->subMonths(6)->startOfDay();
+        $startDate = Carbon::now()->subMonths(5)->startOfMonth();
 
-        // Get policies grouped by sales_user_id for the last 6 months
         $policiesBySeller = Policy::query()
             ->selectRaw('sales_user_id, count(*) as total_policies')
             ->whereNotNull('sales_user_id')
-            ->where('created_at', '>=', $startDate)
+            ->where('status', 'Active')
+            ->whereBetween('start_date', [$startDate, Carbon::today()])
             ->groupBy('sales_user_id')
-            ->having('total_policies', '>', 0) // Only include sellers with at least one policy
-            ->with('sales_user') // Eager load the sales user to get their name
+            ->having('total_policies', '>', 0)
+            ->with('sales_user')
             ->get();
 
         $pieChartModel = (new PieChartModel())
-            //->setTitle('Pólizas por Vendedor (Últimos 6 Meses)')
             ->setAnimated(true)
             ->setLegendVisibility(true)
             ->setDataLabelsEnabled(true);

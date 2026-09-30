@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Parameter;
 use App\Enums\AppointmentStatus;
+use App\Services\Reports\CommissionSummary;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Illuminate\Support\Carbon;
@@ -85,36 +86,7 @@ class CommissionsPage extends Component
             return $appointment->doctor->user->name;
         });
 
-        // We need to calculate totals considering the visual inversion for MG doctors
-        $subtotal = 0;
-        $coupon_discount = 0;
-        $user_payment = 0;
-        $commission = 0;
-        $total = 0;
-
-        foreach ($appointments as $app) {
-            $subtotal += $app->subtotal;
-            $coupon_discount += $app->coupon_discount;
-            $user_payment += $app->user_payment;
-
-            if ($app->doctor->specialty_id === $mgSpecialtyId) {
-                // For MG doctors, commission shows inverted total, and total shows 0
-                $commission += -$app->total;
-                $total += 0;
-            } else {
-                $commission += $app->commission;
-                $total += $app->total;
-            }
-        }
-
-        $totals = [
-            'subtotal' => $subtotal,
-            'coupon_discount' => $coupon_discount,
-            'user_payment' => $user_payment,
-            'commission' => $commission,
-            'total' => $total,
-            'mg_specialty_id' => $mgSpecialtyId,
-        ];
+        $totals = CommissionSummary::calculate($appointments, $mgSpecialtyId);
 
         return view('livewire.reports.commissions-page', [
             'groupedAppointments' => $groupedAppointments,
