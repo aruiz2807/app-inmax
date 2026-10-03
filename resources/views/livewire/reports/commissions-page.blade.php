@@ -72,7 +72,7 @@
                     <x-ui.text class="text-xl md:text-2xl font-bold text-teal-300 wrap-break-word">${{ number_format($totals['commission'], 2) }}</x-ui.text>
                 </div>
                 <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Gran total</x-ui.text>
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total G. Socios</x-ui.text>
                     <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['total'], 2) }}</x-ui.text>
                 </div>
             </div>
