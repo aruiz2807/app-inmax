@@ -22,7 +22,7 @@
         </div>
     </x-ui.card>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
+    @if (! $selectedCampaign)
         <x-ui.card size="full">
             <div class="overflow-x-auto rounded-xl border border-slate-200">
                 <div class="min-w-[74rem]">
@@ -30,7 +30,7 @@
                         <span>Campaña</span>
                         <span>Plantilla</span>
                         <span>Estado</span>
-                        <span>Validos</span>
+                        <span>Destinatarios</span>
                         <span>Enviados</span>
                         <span>Fallidos</span>
                         <span class="text-right">Acciones</span>
@@ -68,11 +68,11 @@
                                 </div>
 
                                 <div class="text-slate-600">
-                                    {{ $campaign->sent_count }}
+                                    {{ $campaign->sent_recipients_count + $campaign->delivered_recipients_count + $campaign->read_recipients_count }}
                                 </div>
 
                                 <div class="text-slate-600">
-                                    {{ $campaign->failed_count }}
+                                    {{ $campaign->failed_recipients_count }}
                                 </div>
 
                                 <div class="flex justify-end gap-2">
@@ -96,9 +96,8 @@
                 </div>
             </div>
         </x-ui.card>
-
+    @else
         <x-ui.card size="full">
-            @if ($selectedCampaign)
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <x-ui.heading level="h3" size="sm">
@@ -109,35 +108,87 @@
                         </p>
                     </div>
 
-                    <x-ui.button type="button" size="sm" variant="outline" icon="x-mark" wire:click="closeCampaignDetail" />
+                    <x-ui.button type="button" size="sm" variant="outline" icon="arrow-left" wire:click="closeCampaignDetail">
+                        Regresar a campañas
+                    </x-ui.button>
                 </div>
 
-                <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <div class="rounded-xl bg-slate-50 p-3">
-                        <p class="text-xs text-slate-500">Destinatarios validos</p>
-                        <p class="text-lg font-semibold text-slate-900">{{ $selectedCampaign->valid_recipients }}</p>
+                @php
+                    $processedRecipients = $selectedCampaign->sent_recipients_count
+                        + $selectedCampaign->delivered_recipients_count
+                        + $selectedCampaign->read_recipients_count
+                        + $selectedCampaign->failed_recipients_count;
+                    $statusRecipients = $selectedCampaign->pending_recipients_count
+                        + $selectedCampaign->queued_recipients_count
+                        + $processedRecipients;
+                @endphp
+
+                <div class="mt-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Destinatarios</p>
+                    <div class="mt-2 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <p class="text-xs text-slate-500">Total cargados</p>
+                            <p class="text-lg font-semibold text-slate-900">{{ $selectedCampaign->total_recipients }}</p>
+                        </div>
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <p class="text-xs text-slate-500">Válidos</p>
+                            <p class="text-lg font-semibold text-slate-900">{{ $selectedCampaign->valid_recipients }}</p>
+                        </div>
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <p class="text-xs text-slate-500">Inválidos/duplicados</p>
+                            <p class="text-lg font-semibold text-slate-900">{{ $selectedCampaign->invalid_recipients }}</p>
+                        </div>
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <p class="text-xs text-slate-500">Con estado</p>
+                            <p class="text-lg font-semibold text-slate-900">{{ $statusRecipients }} / {{ $selectedCampaign->valid_recipients }}</p>
+                        </div>
                     </div>
-                    <div class="rounded-xl bg-slate-50 p-3">
-                        <p class="text-xs text-slate-500">Invalidos/duplicados</p>
-                        <p class="text-lg font-semibold text-slate-900">{{ $selectedCampaign->invalid_recipients }}</p>
+                </div>
+
+                <div class="mt-5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Estado del envío</p>
+                    <p class="mt-1 text-xs text-slate-500">Estos seis estados suman los destinatarios válidos.</p>
+                    <div class="mt-2 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <p class="text-xs text-slate-500">Pendientes</p>
+                            <p class="text-lg font-semibold text-slate-900">{{ $selectedCampaign->pending_recipients_count }}</p>
+                        </div>
+                        <div class="rounded-xl bg-amber-50 p-3">
+                            <p class="text-xs text-amber-700">En cola</p>
+                            <p class="text-lg font-semibold text-amber-900">{{ $selectedCampaign->queued_recipients_count }}</p>
+                        </div>
+                        <div class="rounded-xl bg-blue-50 p-3">
+                            <p class="text-xs text-blue-700">Enviados</p>
+                            <p class="text-lg font-semibold text-blue-900">{{ $selectedCampaign->sent_recipients_count }}</p>
+                        </div>
+                        <div class="rounded-xl bg-emerald-50 p-3">
+                            <p class="text-xs text-emerald-700">Entregados</p>
+                            <p class="text-lg font-semibold text-emerald-900">{{ $selectedCampaign->delivered_recipients_count }}</p>
+                        </div>
+                        <div class="rounded-xl bg-cyan-50 p-3">
+                            <p class="text-xs text-cyan-700">Leídos</p>
+                            <p class="text-lg font-semibold text-cyan-900">{{ $selectedCampaign->read_recipients_count }}</p>
+                        </div>
+                        <div class="rounded-xl bg-red-50 p-3">
+                            <p class="text-xs text-red-700">Fallidos</p>
+                            <p class="text-lg font-semibold text-red-900">{{ $selectedCampaign->failed_recipients_count }}</p>
+                        </div>
                     </div>
-                    <div class="rounded-xl bg-emerald-50 p-3">
-                        <p class="text-xs text-emerald-700">Enviados</p>
-                        <p class="text-lg font-semibold text-emerald-900">{{ $selectedCampaign->sent_count }}</p>
-                    </div>
-                    <div class="rounded-xl bg-red-50 p-3">
-                        <p class="text-xs text-red-700">Fallidos</p>
-                        <p class="text-lg font-semibold text-red-900">{{ $selectedCampaign->failed_count }}</p>
-                    </div>
-                    <div class="rounded-xl bg-cyan-50 p-3">
-                        <p class="text-xs text-cyan-700">Respondieron</p>
-                        <p class="text-lg font-semibold text-cyan-900">{{ $selectedCampaign->responded_recipients_count }}</p>
-                    </div>
-                    <div class="rounded-xl bg-indigo-50 p-3">
-                        <p class="text-xs text-indigo-700">Botones / directas</p>
-                        <p class="text-lg font-semibold text-indigo-900">
-                            {{ $selectedCampaign->button_responses_count }} / {{ $selectedCampaign->direct_responses_count }}
-                        </p>
+                </div>
+
+                <div class="mt-5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Interacciones</p>
+                    <div class="mt-2 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-xl bg-cyan-50 p-3">
+                            <p class="text-xs text-cyan-700">Respondieron</p>
+                            <p class="text-lg font-semibold text-cyan-900">{{ $selectedCampaign->responded_recipients_count }}</p>
+                        </div>
+                        <div class="rounded-xl bg-indigo-50 p-3">
+                            <p class="text-xs text-indigo-700">Botones / directas</p>
+                            <p class="text-lg font-semibold text-indigo-900">
+                                {{ $selectedCampaign->button_responses_count }} / {{ $selectedCampaign->direct_responses_count }}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -208,17 +259,8 @@
                         @endforelse
                     </div>
                 </div>
-            @else
-                <div class="flex h-full min-h-[24rem] items-center justify-center text-center">
-                    <div>
-                        <x-ui.icon name="megaphone" class="mx-auto h-10 w-10 text-slate-300" />
-                        <p class="mt-3 text-sm font-medium text-slate-900">Selecciona una campaña</p>
-                        <p class="mt-1 text-xs text-slate-500">Aqui veras destinatarios, errores y acciones de envio.</p>
-                    </div>
-                </div>
-            @endif
         </x-ui.card>
-    </div>
+    @endif
 
     <x-ui.modal id="whatsapp-marketing-campaign-modal" animation="fade" width="6xl"
         heading="Nueva campaña WhatsApp"

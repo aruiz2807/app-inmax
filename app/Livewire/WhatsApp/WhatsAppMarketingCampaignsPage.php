@@ -74,7 +74,7 @@ class WhatsAppMarketingCampaignsPage extends Component
     {
         $campaigns = WhatsAppMarketingCampaign::query()
             ->with('template', 'createdBy')
-            ->withCount('recipients')
+            ->withCount($this->recipientCounts())
             ->orderByDesc('id')
             ->limit(30)
             ->get();
@@ -83,7 +83,7 @@ class WhatsAppMarketingCampaignsPage extends Component
             ? WhatsAppMarketingCampaign::query()
                 ->with('template', 'createdBy')
                 ->withCount([
-                    'recipients',
+                    ...$this->recipientCounts(),
                     'recipients as responded_recipients_count' => fn ($query) => $query->whereNotNull('responded_at'),
                     'recipients as button_responses_count' => fn ($query) => $query->whereIn('response_type', ['button', 'interactive']),
                     'recipients as direct_responses_count' => fn ($query) => $query
@@ -337,6 +337,24 @@ class WhatsAppMarketingCampaignsPage extends Component
         return $this->templateId
             ? WhatsAppConsoleTemplate::query()->find($this->templateId)
             : null;
+    }
+
+    /**
+     * Keep campaign totals current as Meta advances recipients from sent to delivered or read.
+     *
+     * @return array<int|string, mixed>
+     */
+    private function recipientCounts(): array
+    {
+        return [
+            'recipients',
+            'recipients as pending_recipients_count' => fn ($query) => $query->where('status', WhatsAppMarketingCampaignRecipient::STATUS_PENDING),
+            'recipients as queued_recipients_count' => fn ($query) => $query->where('status', WhatsAppMarketingCampaignRecipient::STATUS_QUEUED),
+            'recipients as sent_recipients_count' => fn ($query) => $query->where('status', WhatsAppMarketingCampaignRecipient::STATUS_SENT),
+            'recipients as delivered_recipients_count' => fn ($query) => $query->where('status', WhatsAppMarketingCampaignRecipient::STATUS_DELIVERED),
+            'recipients as read_recipients_count' => fn ($query) => $query->where('status', WhatsAppMarketingCampaignRecipient::STATUS_READ),
+            'recipients as failed_recipients_count' => fn ($query) => $query->where('status', WhatsAppMarketingCampaignRecipient::STATUS_FAILED),
+        ];
     }
 
     private function initializeMappings(bool $keepExisting = false): void
