@@ -88,7 +88,19 @@ class SchedulePage extends Component
         $inmaxOffices = [1,2];
         $discardedDays = [];
         if (in_array($this->selectedOffice, $inmaxOffices)) {
-            $discardedDays = ['2026-07-09', '2026-07-10', '2026-07-11'];
+            $discardedDays = [
+                '2026-10-12', 
+                '2026-12-25', 
+                '2027-01-01', 
+                '2027-02-01', 
+                '2027-03-15', 
+                '2027-05-01', 
+                '2027-09-16', 
+                '2027-10-12', 
+                '2027-11-15', 
+                '2027-12-25', 
+                '2028-01-01'
+            ];
         }
         
         if($this->user->policy->start_date->isBefore(today()))
