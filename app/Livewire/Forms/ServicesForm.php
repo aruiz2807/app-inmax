@@ -17,7 +17,7 @@ class ServicesForm extends Form
     #[Validate('required')]
     public $price = 0;
     
-    public $cost = null;
+    public $cost = 0;
 
     /**
     * Store the service in the DB.
@@ -52,8 +52,8 @@ class ServicesForm extends Form
         $service->update([
             'name' => $this->name,
             'type' => $this->type,
-            'price' => $this->price,
-            'cost' => $this->cost,
+            'price' =>  empty($this->price) ? 0 : $this->price,
+            'cost' =>  empty($this->cost) ? 0 : $this->cost,
         ]);
     }
 }
