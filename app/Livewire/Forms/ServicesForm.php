@@ -52,8 +52,8 @@ class ServicesForm extends Form
         $service->update([
             'name' => $this->name,
             'type' => $this->type,
-            'price' => $this->price,
-            'cost' => $this->cost,
+            'price' =>  empty($this->price) ? 0 : $this->price,
+            'cost' =>  empty($this->cost) ? 0 : $this->cost,
         ]);
     }
 }
