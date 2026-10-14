@@ -17,7 +17,7 @@ class ServicesForm extends Form
     #[Validate('required')]
     public $price = 0;
     
-    public $cost = null;
+    public $cost = 0;
 
     /**
     * Store the service in the DB.

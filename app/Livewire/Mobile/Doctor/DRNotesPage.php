@@ -682,6 +682,11 @@ class DRNotesPage extends Component
 
             $serviceId = $service->service_id;
 
+            // Custom services have no catalog service_id and must not redeem universal benefits.
+            if (! $serviceId) {
+                continue;
+            }
+
             // Search for a benefit that covers this service
             $benefit = PolicyService::where('policy_id', $policyId)
                 ->where('service_id', $serviceId)
