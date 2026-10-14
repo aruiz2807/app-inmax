@@ -29,7 +29,7 @@ class PoliciesByMonthChart extends Component
         $planNames = $policies->keys()->sort()->values();
         $colors = [
             '#3B82F6',
-            '#10B981',
+            '#FDB32F',
             '#F59E0B',
             '#EF4444',
             '#8B5CF6',
