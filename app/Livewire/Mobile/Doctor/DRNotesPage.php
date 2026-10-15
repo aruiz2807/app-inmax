@@ -212,23 +212,22 @@ class DRNotesPage extends Component
             });
 
             // Check limits
-            $q->where(function ($q2) use ($subtotal) {
+            /*$q->where(function ($q2) use ($subtotal) {
                 $q2->where('limit_min', '<=', 0)
                    ->orWhere('limit_min', '<=', $subtotal);
             })->where(function ($q2) use ($subtotal) {
                 $q2->where('limit_max', '<=', 0)
                    ->orWhere('limit_max', '>', $subtotal);
-            });
+            });*/
         };
-
+        
         // Search for all available coupons for this doctor and the services in the appointment
-        $this->availableCoupons = PolicyService::with(['coupon'])
+        $this->availableCoupons = PolicyService::with('coupon')
             ->where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
-            ->whereNotNull('coupon_id')
             ->whereHas('coupon', $couponCheck)
-            ->get();
-
+        ->get();
+        
         if ($this->availableCoupons->isNotEmpty()) {
             $this->hasCouponAvailable = true;
             // Check if selected coupon is still available, if not, reset it

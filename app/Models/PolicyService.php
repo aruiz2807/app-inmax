@@ -109,27 +109,33 @@ class PolicyService extends Model
      * Whether a service is covered for a policy, either as a direct benefit
      * or through an unused "Service" type coupon linked to that service.
      */
-    public static function coversService(int $policyId, int $serviceId, ?int $doctorId = null): bool
+    public static function coversService(int $policyId, int $serviceId, ?int $doctorId = null)
     {
         $directlyCovered = static::where('policy_id', $policyId)
             ->where('service_id', $serviceId)
             ->whereColumn('used', '<', 'included')
-            ->exists();
+        ->exists();
 
         if ($directlyCovered) {
-            return true;
+            return 'by service';
         }
 
-        return static::where('policy_id', $policyId)
+        $couponCovered = static::where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
             ->whereHas('coupon', function ($query) use ($serviceId, $doctorId) {
-                $query->where('type', 'Service')->where('service_id', $serviceId);
+                $query->where('service_id', $serviceId);
 
-                if ($doctorId) {
+                 if ($doctorId) {
                     $query->whereHas('doctors', fn ($q) => $q->where('doctor_id', $doctorId));
                 }
             })
-            ->exists();
+        ->exists();
+
+        if ($couponCovered) {
+            return 'by coupon';
+        }
+
+        return false;
     }
 
     /**

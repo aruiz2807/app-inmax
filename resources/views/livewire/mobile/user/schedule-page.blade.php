@@ -26,6 +26,8 @@
                 </div>
                 @if($isIncluded)
                 <x-ui.badge class="ml-8" icon="check-circle" variant="outline" color="green" pill>Cubierta</x-ui.badge>
+                @elseif($hasCoupon)
+                <x-ui.badge class="ml-8" icon="ticket" variant="outline" color="blue" pill>Cupón</x-ui.badge>
                 @else
                 <x-ui.badge class="ml-8" icon="exclamation-triangle" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
                 @endif

@@ -209,7 +209,7 @@ class DRSchedulePage extends Component
                 'appointment_id' => $appointment->id,
                 'service_id' => $service['id'] ?? null,
                 'unregistered_service' => $service['unregistered_service'] ?? null,
-                'covered' => $service['included'],
+                'covered' => 0,
             ]);
         }
 
@@ -275,12 +275,25 @@ class DRSchedulePage extends Component
                     ->where('service_id', $service->id)
                     ->whereColumn('used', '<', 'included')
                     ->exists();
+                    
+                $hasCoupon = PolicyService::query()
+                    ->where('policy_id', $policyId)
+                    ->whereHas('coupon', function ($query) use ($service) {
+                        $query->where('service_id', $service->id);
+                    })
+                    ->whereColumn('used', '<', 'included')
+                ->exists();
+
+                $coveredMode = $isCovered ? 'by service' : false;
+                if ($hasCoupon) {
+                    $coveredMode = 'by coupon';
+                }
 
                 return [
                     'id' => $service->id,
                     'unregistered_service' => null,
                     'name' => $service->name,
-                    'included' => $isCovered,
+                    'included' => $coveredMode,
                 ];
             });
         }
@@ -294,7 +307,7 @@ class DRSchedulePage extends Component
                 'index' => $index,
             ]);
         }
-
+        
         return $data->toArray();
     }
 

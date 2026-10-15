@@ -22,6 +22,7 @@ class SchedulePage extends Component
     public $selectedTime;
     public $availableOffices = [];
     public $isIncluded;
+    public $hasCoupon;
     public $user;
     public $offices;
     public ?int $mgServiceId = null;
@@ -55,11 +56,22 @@ class SchedulePage extends Component
         }
 
         $this->isIncluded = false;
+        $this->hasCoupon = false;
 
         if ($this->mgServiceId) {
             $this->isIncluded = PolicyService::query()
                 ->where('policy_id', $policy_id)
                 ->where('service_id', $this->mgServiceId)  
+                ->whereColumn('used', '<', 'included')
+                ->exists();
+        }
+
+        if ($this->mgServiceId) {
+            $this->hasCoupon = PolicyService::query()
+                ->where('policy_id', $policy_id)
+                ->whereHas('coupon', function ($query) {
+                    $query->where('service_id', $this->mgServiceId);
+                })
                 ->whereColumn('used', '<', 'included')
                 ->exists();
         }
@@ -181,7 +193,7 @@ class SchedulePage extends Component
             })
             ->values()
             ->toArray();
-        }
+    }
 
     public function schedule()
     {
@@ -219,13 +231,11 @@ class SchedulePage extends Component
                 'status' => \App\Enums\AppointmentStatus::BOOKED,
             ]);
 
-            if ($this->mgServiceId) {
-                AppointmentService::create([
-                    'appointment_id' => $appointment->id,
-                    'service_id' => $this->mgServiceId,
-                    'covered' => $this->isIncluded,
-                ]);
-            }
+            AppointmentService::create([
+                'appointment_id' => $appointment->id,
+                'service_id' => $this->mgServiceId,
+                'covered' => 0,
+            ]);
 
             session()->flash('appointment_confirmation_id', $appointment->id);
 

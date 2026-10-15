@@ -206,6 +206,13 @@ class CheckoutModal extends Component
                 ->where('service_id', $param->value)
                 ->first();
 
+            if (!$policyService) {
+                $policyService = PolicyService::where('policy_id', $policyId)
+                ->where('service_id', null)
+                ->where('coupon_id', '<>', null)
+                ->first();
+            }
+
             if ($policyService && ($policyService->included - $policyService->used) > 0) 
             {
                 $this->hasCouponAvailable = true;

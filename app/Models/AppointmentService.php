@@ -90,7 +90,21 @@ class AppointmentService extends Model
      */
     protected function getCoveredIconAttribute()
     {
-        return $this->isEffectivelyCovered() ? 'shield-check' : 'shield-exclamation';
+        $icon = '';
+
+        switch ($this->isEffectivelyCovered()) {
+            case 'by service':
+                $icon = 'shield-check';
+                break;
+            case 'by coupon':
+                $icon = 'ticket';
+                break;
+            case false:
+                $icon = 'shield-exclamation';
+                break;
+        }
+
+        return $icon;
     }
 
     /**
@@ -98,7 +112,21 @@ class AppointmentService extends Model
      */
     protected function getCoveredColorAttribute()
     {
-        return $this->isEffectivelyCovered() ? 'green' : 'yellow';
+        $color = '';
+
+        switch ($this->isEffectivelyCovered()) {
+            case 'by service':
+                $color = 'green';
+                break;
+            case 'by coupon':
+                $color = 'blue';
+                break;
+            case false:
+                $color = 'yellow';
+                break;
+        }
+
+        return $color;
     }
 
     /**
@@ -106,13 +134,27 @@ class AppointmentService extends Model
      */
     protected function getCoveredTextAttribute()
     {
-        return $this->isEffectivelyCovered() ? 'Incluido' : 'Adicional';
+        $text = '';
+
+        switch ($this->isEffectivelyCovered()) {
+            case 'by service':
+                $text = 'Incluido';
+                break;
+            case 'by coupon':
+                $text = 'Cupón';
+                break;
+            case false:
+                $text = 'Adicional';
+                break;
+        }
+
+        return $text;
     }
 
     /**
      * Whether the service is covered, either stored as such or via an unused "Service" coupon on the patient's policy.
      */
-    public function isEffectivelyCovered(): bool
+    public function isEffectivelyCovered()
     {
         if ($this->covered) {
             return true;

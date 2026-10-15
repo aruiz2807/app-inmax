@@ -120,19 +120,35 @@
                                             <x-ui.button wire:click="removeUnregisteredService({{ $service['index'] }})" size="xs" variant="ghost" color="red" icon="trash" />
                                         @endif
                                     </div>
-                                    @if($service['included'])
-                                        <x-ui.text class="text-sm opacity-50">Servicio incluido</x-ui.text>
-                                    @elseif($service['unregistered_service'])
+                                    @if($service['unregistered_service'])
                                         <x-ui.text class="text-sm opacity-50">Servicio externo / no registrado</x-ui.text>
                                     @else
-                                        <x-ui.text class="text-sm opacity-50">Servicio adicional</x-ui.text>
+                                        @switch($service['included'])
+                                            @case('by service')
+                                                <x-ui.text class="text-sm opacity-50">Servicio incluido</x-ui.text>
+                                                @break
+                                            @case('by coupon')
+                                                <x-ui.text class="text-sm opacity-50">Servicio con cupón disponible</x-ui.text>
+                                                @break
+                                            @case(false)
+                                                <x-ui.text class="text-sm opacity-50">Servicio adicional {{$service['included']}}</x-ui.text>
+                                                @break
+                                            @default
+                                        @endswitch
                                     @endif
                                 </div>
-                                @if($service['included'])
-                                    <x-ui.badge class="ml-8" icon="check-circle" variant="outline" color="green" pill>Cubierta</x-ui.badge>
-                                @else
-                                    <x-ui.badge class="ml-8" icon="exclamation-triangle" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
-                                @endif
+                                @switch($service['included'])
+                                    @case('by service')
+                                        <x-ui.badge class="ml-8" icon="check-circle" variant="outline" color="green" pill>Cubierta</x-ui.badge>
+                                        @break
+                                    @case('by coupon')
+                                        <x-ui.badge class="ml-8" icon="ticket" variant="outline" color="blue" pill>Cupón</x-ui.badge>
+                                        @break
+                                    @case(false)
+                                        <x-ui.badge class="ml-8" icon="exclamation-triangle" variant="outline" color="yellow" pill>Adicional</x-ui.badge>
+                                        @break
+                                    @default
+                                @endswitch
                             </div>
                         @endforeach
                     </div>
