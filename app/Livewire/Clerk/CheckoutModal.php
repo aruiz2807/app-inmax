@@ -210,6 +210,7 @@ class CheckoutModal extends Component
                 $policyService = PolicyService::where('policy_id', $policyId)
                 ->where('service_id', null)
                 ->where('coupon_id', '<>', null)
+                ->whereColumn('included', '>', 'used')
                 ->first();
             }
 
