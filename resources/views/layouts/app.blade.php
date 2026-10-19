@@ -291,7 +291,7 @@
                                 aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu">
                                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                     <img class="size-7 rounded-full object-cover"
-                                        src="{{ Auth::user()->profile_photo_url }}"
+                                        src="{{ Auth::user()->profile_photo_url ?? 'default-profile-photo-url.jpg' }}"
                                         alt="{{ Auth::user()->name }}" />
                                 @else
                                     <x-ui.icon name="user-circle" variant="mini" class="inline-flex" />
