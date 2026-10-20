@@ -292,7 +292,7 @@
                                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                     <img class="size-7 rounded-full object-cover"
                                         src="{{ Auth::user()->profile_photo_url ?? 'default-profile-photo-url.jpg' }}"
-                                        alt="{{ Auth::user()->name }}" />
+                                        alt="{{ Auth::user()->name ?? 'User' }}" />
                                 @else
                                     <x-ui.icon name="user-circle" variant="mini" class="inline-flex" />
                                 @endif
