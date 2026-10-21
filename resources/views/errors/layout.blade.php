@@ -6,7 +6,6 @@
 
         <title>@yield('title')</title>
 
-        <!-- Styles -->
         <style>
             html, body {
                 background-color: #fff;
@@ -39,6 +38,23 @@
                 font-size: 36px;
                 padding: 20px;
             }
+
+            .action {
+                margin-top: 1rem;
+            }
+
+            .action a,
+            .action button {
+                display: inline-block;
+                padding: 0.75rem 1.25rem;
+                border-radius: 0.5rem;
+                background: #f59e0b;
+                color: #fff;
+                text-decoration: none;
+                font-weight: 600;
+                border: 0;
+                cursor: pointer;
+            }
         </style>
     </head>
     <body>
@@ -49,6 +65,8 @@
                     <span> — </span>
                     @yield('message')
                 </div>
+
+                @yield('extra')
             </main>
         </div>
     </body>
