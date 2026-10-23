@@ -104,8 +104,14 @@ class PlanCoverageModal extends Component
     public function delete($coverageId)
     {
         $pCoverage = PlanCoverage::whereKey($coverageId)->first();
-        PlanCoverage::whereKey($coverageId)->delete();
-        PolicyService::where('service_id', $pCoverage->service_id)->delete();
+        if ($pCoverage) {
+            PlanCoverage::whereKey($coverageId)->delete();
+            PolicyService::where('service_id', $pCoverage->service_id)
+                ->whereHas('policy', function ($query) use ($pCoverage) {
+                    $query->where('plan_id', $pCoverage->plan_id);
+                })
+            ->delete();
+        }
 
         $this->loadCoverageAndServices();
     }

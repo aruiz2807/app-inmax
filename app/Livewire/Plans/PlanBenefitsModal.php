@@ -102,8 +102,14 @@ class PlanBenefitsModal extends Component
     public function delete($benefitId)
     {
         $pBenefit = PlanBenefit::whereKey($benefitId)->first();
-        PlanBenefit::whereKey($benefitId)->delete();
-        PolicyService::where('coupon_id', $pBenefit->coupon_id)->delete();
+        if($pBenefit){
+            PlanBenefit::whereKey($benefitId)->delete();
+            PolicyService::where('coupon_id', $pBenefit->coupon_id)
+                ->whereHas('policy', function ($query) use ($pBenefit) {
+                    $query->where('plan_id', $pBenefit->plan_id);
+                })
+            ->delete();
+        }
 
         $this->loadBenefitsAvailable();
     }
