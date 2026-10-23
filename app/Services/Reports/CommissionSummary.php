@@ -19,12 +19,9 @@ class CommissionSummary
             $couponDiscount += $appointment->coupon_discount;
             $userPayment += $appointment->user_payment;
 
-            if ($appointment->doctor->specialty_id === $mgSpecialtyId) {
-                $commission += -$appointment->total;
-            } else {
-                $commission += $appointment->commission;
-                $total += $appointment->total;
-            }
+            $commission += $appointment->commission;
+            $total += $appointment->total;
+            
         }
 
         return [

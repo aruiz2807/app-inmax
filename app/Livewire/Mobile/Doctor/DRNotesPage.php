@@ -439,14 +439,12 @@ class DRNotesPage extends Component
         $doc_discount = $doctor->discount / 100;
         $doc_commision = $doctor->commission / 100;
 
-        // By default, the patient discount is calculated based on the doctor's profile discount
-        $memberDiscount = round($payableSubtotal * $doc_discount, 2);
-        
         $this->couponDiscountValue = $this->isEditing
             ? (float) ($this->appointment->coupon_discount ?? 0)
             : 0;
         $selectedBenefit = null;
         $couponInmaxCoverage = 0;
+        $couponServiceAmount = 0;
         
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
@@ -469,12 +467,24 @@ class DRNotesPage extends Component
             }
         }
 
+        $memberDiscountBase = $payableSubtotal;
+        if ($selectedBenefit && $selectedBenefit->coupon->type === 'Service') {
+            $couponService = $this->services
+                ->firstWhere('service_id', $selectedBenefit->coupon->service_id);
+
+            if (! $couponService || ! $couponService->covered) {
+                $memberDiscountBase = max(0, $payableSubtotal - $couponServiceAmount);
+            }
+        }
+
+        $memberDiscount = round($memberDiscountBase * $doc_discount, 2);
+
         // Determine effective subtotal (what the user pays)
         // If it's an included MG consultation, it's 100% covered (user pays 0)
         if ($isMGIncluded) {
             $effectiveSubtotal = 0;
         } elseif ($selectedBenefit) {
-            $effectiveSubtotal = max(0, $payableSubtotal - $this->couponDiscountValue);
+            $effectiveSubtotal = max(0, $payableSubtotal - $this->couponDiscountValue - $memberDiscount);
         } else {
             $effectiveSubtotal = max(0, $payableSubtotal - $memberDiscount);
         }
@@ -497,7 +507,7 @@ class DRNotesPage extends Component
                 $remainingCommission = $effectiveSubtotal * $doc_commision;
                 $inmaxCommission = round($couponServiceAmount * $couponInmaxCoverage, 2);
 
-                $this->commision = number_format($remainingCommission + $inmaxCommission, 2);
+                $this->commision = number_format($remainingCommission - $inmaxCommission, 2);
                 $this->total = number_format(
                     max(0, $effectiveSubtotal - $remainingCommission) + $inmaxCommission,
                     2
@@ -550,7 +560,7 @@ class DRNotesPage extends Component
             return $carry + (float) str_replace(',', '', (string) ($this->form->servicePrices[$service->id] ?? 0));
         }, 0.0);
         $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice - $coveredAmount);
-        $totalAmountForShare = $totalAmount - ($serviceCouponId ? $serviceCouponCoverage : 0) - $coveredAmount;
+        $totalAmountForShare = $totalAmount - $serviceCouponCoverage - $coveredAmount;
 
         foreach ($this->services as $service) {
             if (empty($this->form->services[$service->id])) {
@@ -564,7 +574,7 @@ class DRNotesPage extends Component
                     'subtotal' => $price,
                     'coupon_discount' => $price,
                     'user_payment' => 0,
-                    'commission' => $serviceCouponCoverage,
+                    'commission' => -$serviceCouponCoverage,
                     'total' => $serviceCouponCoverage,
                 ]);
 
@@ -589,7 +599,7 @@ class DRNotesPage extends Component
                 'subtotal' => $price,
                 'coupon_discount' => $serviceCouponId ? 0 : round($totalCoupon * $share, 2),
                 'user_payment' => round($totalUserPayment * $share, 2),
-                'commission' => round(($serviceCouponId ? $totalCommission - $serviceCouponCoverage : $totalCommission) * $share, 2),
+                'commission' => round(($serviceCouponId ? $totalCommission + $serviceCouponCoverage : $totalCommission) * $share, 2),
                 'total' => round($totalAmountForShare * $share, 2),
             ]);
         }

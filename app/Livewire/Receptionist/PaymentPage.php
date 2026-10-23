@@ -454,11 +454,11 @@ class PaymentPage extends Component
             return;
         }
 
-        $memberDiscount = round($payableSubtotal * ($doctor->discount / 100), 2);
         $doctorCommission = $doctor->commission / 100;
         $this->couponDiscountValue = 0;
         $selectedBenefit = null;
         $couponInmaxCoverage = 0;
+        $couponServiceAmount = 0;
 
         if ($this->selectedCouponId && $this->availableCoupons->isNotEmpty()) {
             $selectedBenefit = $this->availableCoupons->firstWhere('id', $this->selectedCouponId);
@@ -483,11 +483,23 @@ class PaymentPage extends Component
             }
         }
 
+        $memberDiscountBase = $payableSubtotal;
+        if ($selectedBenefit && $selectedBenefit->coupon->type === 'Service') {
+            $couponService = $this->appointment->services
+                ->firstWhere('service_id', $selectedBenefit->coupon->service_id);
+
+            if (! $couponService || ! $couponService->covered) {
+                $memberDiscountBase = max(0, $payableSubtotal - $couponServiceAmount);
+            }
+        }
+
+        $memberDiscount = round($memberDiscountBase * ($doctor->discount / 100), 2);
+
         if ($isMGIncluded) {
             $effectiveSubtotal = 0;
         } else {
             $effectiveSubtotal = $selectedBenefit
-                ? max(0, $payableSubtotal - $this->couponDiscountValue)
+                ? max(0, $payableSubtotal - $this->couponDiscountValue - $memberDiscount)
                 : max(0, $payableSubtotal - $memberDiscount);
         }
 
@@ -507,7 +519,7 @@ class PaymentPage extends Component
                 $remainingCommission = $effectiveSubtotal * $doctorCommission;
                 $inmaxCommission = round($couponServiceAmount * $couponInmaxCoverage, 2);
 
-                $this->commision = $this->formatMoney($remainingCommission + $inmaxCommission);
+                $this->commision = $this->formatMoney($remainingCommission - $inmaxCommission);
                 $this->total = $this->formatMoney(
                     max(0, $effectiveSubtotal - $remainingCommission) + $inmaxCommission
                 );
@@ -650,7 +662,7 @@ class PaymentPage extends Component
             return $carry + $this->parseMoney($this->servicePrices[$service->id] ?? 0);
         }, 0.0);
         $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponPrice - $coveredAmount);
-        $totalAmountForShare = $totalAmount - ($serviceCouponId ? $serviceCouponCoverage : 0) - $coveredAmount;
+        $totalAmountForShare = $totalAmount - $serviceCouponCoverage - $coveredAmount;
 
         foreach ($this->appointment->services as $service) {
             if (! $this->isServiceCompleted($service)) {
@@ -664,7 +676,7 @@ class PaymentPage extends Component
                     'subtotal' => $price,
                     'coupon_discount' => $price,
                     'user_payment' => 0,
-                    'commission' => $serviceCouponCoverage,
+                    'commission' => -$serviceCouponCoverage,
                     'total' => $serviceCouponCoverage,
                 ]);
 
@@ -689,7 +701,7 @@ class PaymentPage extends Component
                 'subtotal' => $price,
                 'coupon_discount' => $serviceCouponId ? 0 : round($totalCoupon * $share, 2),
                 'user_payment' => round($totalUserPayment * $share, 2),
-                'commission' => round(($serviceCouponId ? $totalCommission - $serviceCouponCoverage : $totalCommission) * $share, 2),
+                'commission' => round(($serviceCouponId ? $totalCommission + $serviceCouponCoverage : $totalCommission) * $share, 2),
                 'total' => round($totalAmountForShare * $share, 2),
             ]);
         }

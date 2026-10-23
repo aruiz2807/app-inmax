@@ -405,6 +405,7 @@
                                                             placeholder="Seleccione un archivo para adjuntar"
                                                             class="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                                         />
+                                                        <x-ui.text class="text-xs text-neutral-500">PDF, JPG o PNG; máximo 100 MB.</x-ui.text>
                                                     @endif
 
                                                     @if($canManageResultsUpload)

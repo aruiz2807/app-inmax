@@ -68,7 +68,7 @@
                     <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['user_payment'], 2) }}</x-ui.text>
                 </div>
                 <div class="flex-1 min-w-35 px-2">
-                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Comisiones</x-ui.text>
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Comisiones INMAX</x-ui.text>
                     <x-ui.text class="text-xl md:text-2xl font-bold text-teal-300 wrap-break-word">${{ number_format($totals['commission'], 2) }}</x-ui.text>
                 </div>
                 <div class="flex-1 min-w-35 px-2">
@@ -107,7 +107,7 @@
                                 <th class="px-4 py-3 font-semibold text-right">Subtotal</th>
                                 <th class="px-4 py-3 font-semibold text-right">Cupón</th>
                                 <th class="px-4 py-3 font-semibold text-right">Pago Usuario</th>
-                                <th class="px-4 py-3 font-semibold text-right">Comisión</th>
+                                <th class="px-4 py-3 font-semibold text-right">Comisión INMAX</th>
                                 <th class="px-4 py-3 font-semibold text-right">Ganancia S.</th>
                                 <th class="px-4 py-3 font-semibold text-center">Acciones</th>
                             </tr>
@@ -130,21 +130,12 @@
                                     <td class="px-4 py-3 text-right">
                                         ${{ number_format($appointment->user_payment, 2) }}
                                     </td>
-                                    @if($appointment->doctor->specialty_id === $totals['mg_specialty_id'])
-                                        <td class="px-4 py-3 text-right font-medium text-teal-600">
-                                            -${{ number_format($appointment->total, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right font-bold">
-                                            ${{ number_format($appointment->commission, 2) }}
-                                        </td>
-                                    @else
-                                        <td class="px-4 py-3 text-right font-medium text-teal-600">
-                                            ${{ number_format($appointment->commission, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right font-bold">
-                                            ${{ number_format($appointment->total, 2) }}
-                                        </td>
-                                    @endif
+                                    <td class="px-4 py-3 text-right font-medium text-teal-600">
+                                        ${{ number_format($appointment->commission, 2) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-bold">
+                                        ${{ number_format($appointment->total, 2) }}
+                                    </td>
                                     <td class="px-4 py-3 text-center">
                                         <x-ui.button
                                             variant="ghost"
@@ -159,9 +150,8 @@
                         <tfoot class="bg-neutral-50/50 dark:bg-neutral-950/30 font-bold border-t border-neutral-200 dark:border-neutral-800">
                             <tr>
                                 @php
-                                    $isMgDoctor = $appointments->first()->doctor->specialty_id === $totals['mg_specialty_id'];
-                                    $subCommission = $isMgDoctor ? -$appointments->sum('total') : $appointments->sum('commission');
-                                    $subTotal = $isMgDoctor ? $appointments->sum('commission') : $appointments->sum('total');
+                                    $subCommission = $appointments->sum('commission');
+                                    $subTotal = $appointments->sum('total');
                                 @endphp
                                 <td colspan="2" class="px-4 py-3 text-right">Subtotal Médico</td>
                                 <td class="px-4 py-3 text-right">${{ number_format($appointments->sum('subtotal'), 2) }}</td>

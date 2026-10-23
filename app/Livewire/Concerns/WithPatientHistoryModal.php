@@ -162,11 +162,11 @@ trait WithPatientHistoryModal
     {
         $this->validate([
             "historyServiceAttachments.$appointmentId" => ['required', 'array'],
-            "historyServiceAttachments.$appointmentId.*" => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+            "historyServiceAttachments.$appointmentId.*" => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:102400'],
             "historyResultsComments.$appointmentId" => ['nullable', 'string', 'max:2000'],
         ], [
             "historyServiceAttachments.$appointmentId.*.mimes" => 'El archivo debe ser PDF, JPG o PNG.',
-            "historyServiceAttachments.$appointmentId.*.max" => 'El archivo no debe superar 2MB.',
+            "historyServiceAttachments.$appointmentId.*.max" => 'El archivo no debe superar 100MB.',
             "historyResultsComments.$appointmentId.max" => 'El enlace no debe superar 2000 caracteres.',
         ]);
 
