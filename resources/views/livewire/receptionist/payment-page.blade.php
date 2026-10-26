@@ -167,28 +167,26 @@
             @if($hasCouponAvailable)
             <div class="mt-4 mb-4">
                 <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
+                <p class="mb-2 text-xs text-gray-500">Puedes combinar cupones de distintos servicios; solo uno por servicio. Los cupones generales son exclusivos.</p>
                 
                 <div class="space-y-2">
-                    <!-- Option to not use any coupon -->
-                    <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponId) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
-                        <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="" class="text-teal-600 focus:ring-teal-500">
+                    <button type="button" wire:click="$set('selectedCouponIds', [])" class="w-full text-left flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 {{ empty($selectedCouponIds) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}">
                         <span class="text-sm text-gray-700">No aplicar cupón</span>
-                    </label>
+                    </button>
 
-                    <!-- Available coupons list -->
                     @foreach($availableCoupons as $benefit)
-                        <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors hover:bg-teal-50/30 {{ $selectedCouponId == $benefit->id ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
+                        <label class="flex items-start gap-3 p-3 rounded-lg border transition-colors {{ $this->canSelectCoupon($benefit->id) ? 'cursor-pointer hover:bg-teal-50/30' : 'cursor-not-allowed opacity-50' }} {{ in_array($benefit->id, $selectedCouponIds) ? 'border-teal-500 bg-teal-50' : 'border-teal-100 bg-white' }}">
                             <div class="pt-1">
-                                <input type="radio" wire:model.live="selectedCouponId" name="selectedCouponId" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500">
+                                <input type="checkbox" wire:model.live="selectedCouponIds" value="{{ $benefit->id }}" class="text-teal-600 focus:ring-teal-500" @disabled(! $this->canSelectCoupon($benefit->id))>
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center gap-2">
-                                    <x-ui.icon name="ticket" class="w-4 h-4 {{ $selectedCouponId == $benefit->id ? 'text-teal-600' : 'text-teal-400' }}" />
-                                    <p class="font-bold {{ $selectedCouponId == $benefit->id ? 'text-teal-900' : 'text-gray-900' }}">
+                                    <x-ui.icon name="ticket" class="w-4 h-4 {{ in_array($benefit->id, $selectedCouponIds) ? 'text-teal-600' : 'text-teal-400' }}" />
+                                    <p class="font-bold {{ in_array($benefit->id, $selectedCouponIds) ? 'text-teal-900' : 'text-gray-900' }}">
                                         {{ $benefit->coupon->name }}
                                     </p>
                                 </div>
-                                <p class="text-xs mt-1 {{ $selectedCouponId == $benefit->id ? 'text-teal-700' : 'text-gray-500' }}">
+                                <p class="text-xs mt-1 {{ in_array($benefit->id, $selectedCouponIds) ? 'text-teal-700' : 'text-gray-500' }}">
                                     @if($benefit->coupon->type === 'Amount')
                                         Descuento de ${{ number_format($benefit->coupon->value, 2) }}
                                     @elseif($benefit->coupon->type === 'Percentage')
