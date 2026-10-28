@@ -15,6 +15,7 @@ use App\Services\Appointments\AppointmentRequestNotificationService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -77,9 +78,11 @@ class AppointmentFormPage extends Component
         $this->selectedOffice = null;
     }
 
+    #[On('reset-appointment-form')]
     public function clear()
     {
         $this->reset([
+            'appointment',
             'selectedUser',
             'selectedDoctor',
             'selectedOffice',
@@ -88,8 +91,11 @@ class AppointmentFormPage extends Component
             'newUnregisteredService',
             'selectedDate',
             'selectedTime',
+            'user',
+            'doctor',
             'offices',
         ]);
+        $this->resetValidation();
 
         $this->selectedDate = $this->availableDates[0]['id'];
         $this->selectedTime = $this->availableHours[0]['id'] ?? null;

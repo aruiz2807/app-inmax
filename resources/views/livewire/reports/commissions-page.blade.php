@@ -64,6 +64,10 @@
                     <x-ui.text class="text-xl md:text-2xl font-bold text-red-300 wrap-break-word">-${{ number_format($totals['coupon_discount'], 2) }}</x-ui.text>
                 </div>
                 <div class="flex-1 min-w-35 px-2">
+                    <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Descuento membresía</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold text-red-300 wrap-break-word">-${{ number_format($totals['membership_discount'], 2) }}</x-ui.text>
+                </div>
+                <div class="flex-1 min-w-35 px-2">
                     <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Pago Usuarios</x-ui.text>
                     <x-ui.text class="text-xl md:text-2xl font-bold wrap-break-word">${{ number_format($totals['user_payment'], 2) }}</x-ui.text>
                 </div>
@@ -106,6 +110,7 @@
                                 <th class="px-4 py-3 font-semibold">Paciente</th>
                                 <th class="px-4 py-3 font-semibold text-right">Subtotal</th>
                                 <th class="px-4 py-3 font-semibold text-right">Cupón</th>
+                                <th class="px-4 py-3 font-semibold text-right">Descuento membresía</th>
                                 <th class="px-4 py-3 font-semibold text-right">Pago Usuario</th>
                                 <th class="px-4 py-3 font-semibold text-right">Comisión INMAX</th>
                                 <th class="px-4 py-3 font-semibold text-right">Ganancia S.</th>
@@ -126,6 +131,9 @@
                                     </td>
                                     <td class="px-4 py-3 text-right text-red-500">
                                         -${{ number_format($appointment->coupon_discount, 2) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-red-500">
+                                        -${{ number_format(\App\Services\Reports\CommissionSummary::membershipDiscountFor($appointment), 2) }}
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         ${{ number_format($appointment->user_payment, 2) }}
@@ -156,6 +164,7 @@
                                 <td colspan="2" class="px-4 py-3 text-right">Subtotal Médico</td>
                                 <td class="px-4 py-3 text-right">${{ number_format($appointments->sum('subtotal'), 2) }}</td>
                                 <td class="px-4 py-3 text-right text-red-500">-${{ number_format($appointments->sum('coupon_discount'), 2) }}</td>
+                                <td class="px-4 py-3 text-right text-red-500">-${{ number_format($appointments->sum(fn ($appointment) => \App\Services\Reports\CommissionSummary::membershipDiscountFor($appointment)), 2) }}</td>
                                 <td class="px-4 py-3 text-right">${{ number_format($appointments->sum('user_payment'), 2) }}</td>
                                 <td class="px-4 py-3 text-right text-teal-600">{{ $subCommission < 0 ? '-' : '' }}${{ number_format(abs($subCommission), 2) }}</td>
                                 <td class="px-4 py-3 text-right">${{ number_format($subTotal, 2) }}</td>

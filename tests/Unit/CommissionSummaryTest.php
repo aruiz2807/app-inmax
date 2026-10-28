@@ -34,10 +34,38 @@ class CommissionSummaryTest extends TestCase
         $this->assertSame([
             'subtotal' => 300,
             'coupon_discount' => 30,
+            'membership_discount' => 0.0,
             'user_payment' => 270,
             'commission' => -135,
             'total' => 75,
             'mg_specialty_id' => 2,
         ], $totals);
+    }
+
+    public function test_it_sums_membership_discounts_from_each_doctor_configuration(): void
+    {
+        $appointments = new Collection([
+            (object) [
+                'subtotal' => 800,
+                'coupon_discount' => 0,
+                'user_payment' => 672,
+                'commission' => 0,
+                'total' => 0,
+                'doctor' => (object) ['discount' => 16],
+            ],
+            (object) [
+                'subtotal' => 1000,
+                'coupon_discount' => 100,
+                'user_payment' => 810,
+                'commission' => 0,
+                'total' => 0,
+                'doctor' => (object) ['discount' => 10],
+            ],
+        ]);
+
+        $totals = CommissionSummary::calculate($appointments, null);
+
+        $this->assertSame(128.0, CommissionSummary::membershipDiscountFor($appointments[0]));
+        $this->assertSame(218.0, $totals['membership_discount']);
     }
 }

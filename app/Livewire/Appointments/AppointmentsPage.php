@@ -81,6 +81,7 @@ class AppointmentsPage extends Component
     {
         $this->appointmentId = null;
         $this->resetPatientHistory();
+        $this->dispatch('reset-appointment-form')->to(AppointmentFormPage::class);
     }
 
     #[On('orderAppointment')]

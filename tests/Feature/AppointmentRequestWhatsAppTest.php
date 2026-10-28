@@ -21,6 +21,28 @@ class AppointmentRequestWhatsAppTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_resetting_appointment_form_clears_all_selections(): void
+    {
+        Livewire::test(AppointmentFormPage::class, ['appointmentId' => null])
+            ->set('selectedUser', '42')
+            ->set('selectedDoctor', '42')
+            ->set('selectedOffice', '42')
+            ->set('selectedServices', ['42'])
+            ->set('unregisteredServices', ['Servicio personalizado'])
+            ->set('newUnregisteredService', 'Otro servicio')
+            ->dispatch('reset-appointment-form')
+            ->assertSet('appointment', null)
+            ->assertSet('selectedUser', null)
+            ->assertSet('selectedDoctor', null)
+            ->assertSet('selectedOffice', null)
+            ->assertSet('selectedServices', [])
+            ->assertSet('unregisteredServices', [])
+            ->assertSet('newUnregisteredService', '')
+            ->assertSet('user', null)
+            ->assertSet('doctor', null)
+            ->assertHasNoErrors();
+    }
+
     public function test_creating_appointment_sends_request_template_to_doctor(): void
     {
         $scheduler = User::factory()->create([
