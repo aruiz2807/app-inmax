@@ -244,6 +244,7 @@
             <x-ui.select
                 placeholder="Seleccione el metodo de pago..."
                 icon="wallet"
+                required
                 wire:model="payment_method"
             >
                 <x-ui.select.option value="CS">Efectivo</x-ui.select.option>
@@ -255,9 +256,9 @@
             <x-ui.error name="payment_method" />
         </x-ui.field>
 
-        <x-ui.field class="mt-2">
+        <x-ui.field class="mt-2" required>
             <x-ui.label>Referencia</x-ui.label>
-            <x-ui.input wire:model="payment_reference" name="payment_reference" placeholder="Referencia de pago" />
+            <x-ui.input wire:model="payment_reference" name="payment_reference" placeholder="Referencia de pago" required />
             <x-ui.error name="payment_reference" />
         </x-ui.field>
 

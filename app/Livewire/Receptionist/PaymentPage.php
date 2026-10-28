@@ -16,7 +16,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -97,7 +96,8 @@ class PaymentPage extends Component
 
         if ($this->canManageServices || $this->canCapturePrices) {
             foreach ($this->appointment->services as $service) {
-                $this->servicesToComplete[$service->id] = $service->status === AppointmentStatus::COMPLETED->value;
+                $this->servicesToComplete[$service->id] = ! $this->canManageServices
+                    && $service->status === AppointmentStatus::COMPLETED->value;
                 $this->servicePrices[$service->id] = $this->defaultServicePrice($service);
             }
 
@@ -146,6 +146,17 @@ class PaymentPage extends Component
             }
 
             $this->syncSubtotalWithServices();
+            $this->checkCouponAvailability();
+
+            if (str_starts_with($name, 'servicesToComplete.') && $value) {
+                $appointmentServiceId = (int) substr($name, strlen('servicesToComplete.'));
+                $service = $this->appointment->services->firstWhere('id', $appointmentServiceId);
+
+                if ($service?->service_id) {
+                    $this->selectFirstCouponForService((int) $service->service_id);
+                }
+            }
+
             $this->calculateTotals();
         } elseif (str_starts_with($name, 'selectedCouponIds')) {
             $this->normalizeSelectedCouponIds();
@@ -276,6 +287,8 @@ class PaymentPage extends Component
             return;
         }
 
+        $this->validatePaymentFields();
+
         $this->dispatch('open-payment-modal');
     }
 
@@ -394,22 +407,17 @@ class PaymentPage extends Component
 
     private function validatePaymentFields(): void
     {
-        $validated = $this->validate([
+        $this->validate([
             'payment_method' => ['required', Rule::in(['CS', 'CC', 'DC', 'TR', 'SI'])],
-            'payment_reference' => ['nullable', 'string', 'max:100'],
+            'payment_reference' => ['required', 'string', 'max:100'],
             'payment_attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
         ], [
             'payment_method.required' => 'Seleccione un metodo de pago.',
             'payment_method.in' => 'Seleccione un metodo de pago valido.',
+            'payment_reference.required' => 'Ingrese la referencia de pago.',
             'payment_attachment.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
             'payment_attachment.max' => 'El comprobante no debe superar 2MB.',
         ]);
-
-        if (in_array($validated['payment_method'], ['CC', 'DC', 'TR'], true) && blank($validated['payment_reference'])) {
-            throw ValidationException::withMessages([
-                'payment_reference' => 'La referencia es obligatoria para este metodo de pago.',
-            ]);
-        }
     }
 
     public function checkCouponAvailability(): void
@@ -445,6 +453,7 @@ class PaymentPage extends Component
             ->where('policy_id', $policyId)
             ->whereNotNull('coupon_id')
             ->whereColumn('used', '<', 'included')
+            ->orderBy('id')
             ->whereHas('coupon', function ($query) use ($serviceIds, $subtotal) {
                 $query->whereHas('doctors', function ($dq) {
                     $dq->where('doctor_id', $this->appointment->doctor_id);
@@ -480,6 +489,31 @@ class PaymentPage extends Component
             $this->selectedCouponIds = [];
         }
 
+        $this->normalizeSelectedCouponIds();
+    }
+
+    private function selectFirstCouponForService(int $serviceId): void
+    {
+        $benefit = $this->availableCoupons->first(
+            fn ($benefit) => (int) $benefit->coupon?->service_id === $serviceId
+        );
+
+        if (! $benefit) {
+            return;
+        }
+
+        $this->selectedCouponIds = array_values(array_filter(
+            $this->selectedCouponIds,
+            function ($selectedId) use ($serviceId) {
+                $selectedBenefit = $this->availableCoupons->firstWhere('id', (int) $selectedId);
+                $selectedServiceId = $selectedBenefit?->coupon?->service_id;
+
+                return $selectedBenefit
+                    && $selectedServiceId
+                    && (int) $selectedServiceId !== $serviceId;
+            }
+        ));
+        $this->selectedCouponIds[] = $benefit->id;
         $this->normalizeSelectedCouponIds();
     }
 

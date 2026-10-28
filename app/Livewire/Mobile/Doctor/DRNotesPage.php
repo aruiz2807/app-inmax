@@ -109,7 +109,8 @@ class DRNotesPage extends Component
             ->exists() ?? false;
 
         foreach ($this->services as $service) {
-            $this->form->services[$service->id] = (string) $service->status === AppointmentStatus::COMPLETED->value;
+            $this->form->services[$service->id] = $this->appointment->status !== AppointmentStatus::BOOKED
+                && (string) $service->status === AppointmentStatus::COMPLETED->value;
             $this->form->attachments[$service->id] = null;
             $this->form->servicePrices[$service->id] = $this->defaultServicePrice($service);
         }
@@ -259,6 +260,7 @@ class DRNotesPage extends Component
         $this->availableCoupons = PolicyService::with('coupon')
             ->where('policy_id', $policyId)
             ->whereColumn('used', '<', 'included')
+            ->orderBy('id')
             ->whereHas('coupon', $couponCheck)
             ->get()
             ->filter(function ($benefit) {
@@ -279,6 +281,31 @@ class DRNotesPage extends Component
             $this->selectedCouponIds = [];
         }
 
+        $this->normalizeSelectedCouponIds();
+    }
+
+    private function selectFirstCouponForService(int $serviceId): void
+    {
+        $benefit = $this->availableCoupons->first(
+            fn ($benefit) => (int) $benefit->coupon?->service_id === $serviceId
+        );
+
+        if (! $benefit) {
+            return;
+        }
+
+        $this->selectedCouponIds = array_values(array_filter(
+            $this->selectedCouponIds,
+            function ($selectedId) use ($serviceId) {
+                $selectedBenefit = $this->availableCoupons->firstWhere('id', (int) $selectedId);
+                $selectedServiceId = $selectedBenefit?->coupon?->service_id;
+
+                return $selectedBenefit
+                    && $selectedServiceId
+                    && (int) $selectedServiceId !== $serviceId;
+            }
+        ));
+        $this->selectedCouponIds[] = $benefit->id;
         $this->normalizeSelectedCouponIds();
     }
 
@@ -341,6 +368,17 @@ class DRNotesPage extends Component
             }
 
             $this->syncSubtotalWithServices();
+            $this->checkCouponAvailability();
+
+            if (str_starts_with($name, 'form.services.') && $value) {
+                $appointmentServiceId = (int) substr($name, strlen('form.services.'));
+                $service = $this->services->firstWhere('id', $appointmentServiceId);
+
+                if ($service?->service_id) {
+                    $this->selectFirstCouponForService((int) $service->service_id);
+                }
+            }
+
             $this->calculateTotals();
         } elseif (str_starts_with($name, 'selectedCouponIds')) {
             $this->normalizeSelectedCouponIds();
