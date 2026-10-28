@@ -90,5 +90,5 @@
         </x-ui.card>
     </div>
 
-    @include('livewire.receptionist.appointment-details-modal')
+    @include('livewire.appointments.appointment-details-modal')
 </div>

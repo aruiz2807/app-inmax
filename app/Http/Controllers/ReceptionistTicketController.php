@@ -11,7 +11,19 @@ class ReceptionistTicketController extends Controller
 {
     public function __invoke(Appointment $appointment, $type)
     {
-        if (! Auth::user()->staffDoctors()->whereKey($appointment->doctor_id)->exists()) {
+        abort_unless(in_array($type, ['partner', 'member'], true), 404);
+        abort_unless(! is_null($appointment->subtotal), 403);
+
+        $user = Auth::user();
+        $doctor = $user->doctor;
+        $isAssignedDoctor = $doctor && (
+            (int) $appointment->doctor_id === (int) $doctor->id
+            || $doctor->offices()->whereKey($appointment->office_id)->exists()
+        );
+        $isAssignedStaff = $appointment->doctor_id
+            && $user->staffDoctors()->whereKey($appointment->doctor_id)->exists();
+
+        if (! $isAssignedDoctor && ! $isAssignedStaff) {
             abort(403);
         }
 

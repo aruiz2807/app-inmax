@@ -289,6 +289,9 @@ Route::middleware([
         Route::get('/history', DRHistoryPage::class)
             ->middleware('permission:view.doctor.history')
             ->name('doctor.history');
+        Route::get('/payment/{appointment}/{type}/ticket', ReceptionistTicketController::class)
+            ->middleware('permission:view.doctor.history')
+            ->name('doctor.appointment.ticket');
         Route::get('/history/note/{appointment}', DRHistoryNotePage::class)->name('history.notes');
         Route::get('/results-pending', DRResultsPendingPage::class)->name('doctor.results-pending');
 

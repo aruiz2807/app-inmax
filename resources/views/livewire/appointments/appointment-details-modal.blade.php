@@ -1,11 +1,11 @@
 <x-ui.modal
-    id="receptionist-appointment-detail-modal"
+    id="appointment-details-modal"
     animation="fade"
     width="2xl"
     heading="Detalle de consulta"
     description="Informacion de paciente, servicios y cierre de cuenta"
-    x-on:open-receptionist-appointment-detail-modal.window="$data.open()"
-    x-on:close-receptionist-appointment-detail-modal.window="$data.close()"
+    x-on:open-appointment-details-modal.window="$data.open()"
+    x-on:close-appointment-details-modal.window="$data.close()"
 >
     @if($selectedAppointment)
         <div class="space-y-4">

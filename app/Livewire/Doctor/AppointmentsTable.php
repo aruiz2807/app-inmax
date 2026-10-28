@@ -27,6 +27,7 @@ final class AppointmentsTable extends PowerGridComponent
     public string $sortDirection = 'desc';
     public ?string $dateFrom = null;
     public ?string $dateTo = null;
+    private ?bool $doctorHasReceptionistStaff = null;
 
     public function mount(): void
     {
@@ -210,10 +211,13 @@ final class AppointmentsTable extends PowerGridComponent
                     ->slot(Blade::render('<a href="'.route('doctor.notes', ['appointment' => $row->id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="clipboard" variant="outline" class="w-5 h-5"/><span>Atender</span></a>'))
                     ->id()
                     ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
-                : Button::add('detail')
-                    ->slot(Blade::render('<a href="'.route('history.notes', ['appointment' => $row->id]).'" class="inline-flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></a>'))
-                    ->id()
-                    ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors'),
+                : null,
+
+            Button::add('detail')
+                ->slot(Blade::render('<div class="inline-flex items-center gap-2"><x-ui.icon name="eye" variant="outline" class="w-5 h-5"/><span>Detalle</span></div>'))
+                ->id()
+                ->class('text-sky-600 hover:bg-sky-50 px-2 py-1 rounded transition-colors')
+                ->dispatch('showDoctorAppointmentDetail', ['appointmentId' => $row->id]),
 
             Button::add('record')
                 ->slot(Blade::render('<div class="inline-flex items-center gap-2"><x-ui.icon name="clipboard-document-list" variant="outline" class="w-5 h-5"/><span>Historial</span></div>'))
@@ -250,9 +254,53 @@ final class AppointmentsTable extends PowerGridComponent
                     ->class('w-[120px] text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
                     ->dispatch('doctorPrintAppointment', ['appointmentId' => $row->id])
                 : null,
+
+            $this->tab === 'past' && $isCompleted && ! $this->doctorHasReceptionistStaff()
+                ? (is_null($row->subtotal)
+                    ? Button::add('ticket_disabled')
+                        ->slot(Blade::render('<div class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-500 px-2 py-1 rounded cursor-not-allowed" aria-disabled="true"><x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/><span>Ticket</span></div>'))
+                        ->id()
+                        ->class('text-neutral-500')
+                    : Button::add('ticket_menu')
+                        ->slot(Blade::render(<<<'BLADE'
+                            <x-ui.dropdown portal>
+                                <x-slot:button class="text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors inline-flex items-center gap-2">
+                                    <x-ui.icon name="ticket" variant="outline" class="w-5 h-5"/>
+                                    <span>Ticket</span>
+                                    <x-ui.icon name="chevron-down" variant="outline" class="w-4 h-4"/>
+                                </x-slot:button>
+
+                                <x-slot:menu>
+                                    <x-ui.dropdown.item as="a" href="{{ $partnerUrl }}" target="_blank" icon="ticket" iconVariant="outline">
+                                        Ticket socio
+                                    </x-ui.dropdown.item>
+
+                                    <x-ui.dropdown.item as="a" href="{{ $memberUrl }}" target="_blank" icon="ticket" iconVariant="outline">
+                                        Ticket miembro
+                                    </x-ui.dropdown.item>
+                                </x-slot:menu>
+                            </x-ui.dropdown>
+                        BLADE, [
+                            'partnerUrl' => route('doctor.appointment.ticket', ['appointment' => $row->id, 'type' => 'partner']),
+                            'memberUrl' => route('doctor.appointment.ticket', ['appointment' => $row->id, 'type' => 'member']),
+                        ]))
+                        ->id()
+                        ->class('text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors'))
+                : null,
         ];
 
         return array_values(array_filter($buttons, fn (?object $button) => $button !== null));
+    }
+
+    private function doctorHasReceptionistStaff(): bool
+    {
+        if ($this->doctorHasReceptionistStaff === null) {
+            $doctor = Auth::user()->doctor;
+            $this->doctorHasReceptionistStaff = ! $doctor
+                || $doctor->staff()->where('profile', 'Receptionist')->exists();
+        }
+
+        return $this->doctorHasReceptionistStaff;
     }
 
     #[On('doctorPrintAppointment')]

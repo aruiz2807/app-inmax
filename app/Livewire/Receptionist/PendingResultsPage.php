@@ -43,7 +43,7 @@ class PendingResultsPage extends Component
         }
 
         $this->selectedAppointment = $appointment;
-        $this->dispatch('open-receptionist-appointment-detail-modal');
+        $this->dispatch('open-appointment-details-modal');
     }
 
     public function getPendingResultsCountProperty(): int

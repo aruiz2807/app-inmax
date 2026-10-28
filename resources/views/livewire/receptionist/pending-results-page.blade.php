@@ -28,7 +28,7 @@
         </x-ui.card>
     </div>
 
-    @include('livewire.receptionist.appointment-details-modal')
+    @include('livewire.appointments.appointment-details-modal')
 
     <x-ui.modal
         id="receptionist-upload-results-modal"

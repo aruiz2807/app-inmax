@@ -71,7 +71,7 @@ class AppointmentsPage extends Component
         }
 
         $this->selectedAppointment = $appointment;
-        $this->dispatch('open-receptionist-appointment-detail-modal');
+        $this->dispatch('open-appointment-details-modal');
     }
 
     #[On('receptionistAppointmentsDateRangeChanged')]

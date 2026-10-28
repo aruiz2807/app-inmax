@@ -28,6 +28,7 @@ class DRHistoryPage extends Component
     public ?string $dateFrom = null;
     public ?string $dateTo = null;
     public string $tab = 'upcoming';
+    public ?Appointment $selectedAppointment = null;
 
     public function render()
     {
@@ -161,6 +162,40 @@ class DRHistoryPage extends Component
     public function openDoctorNoshowModal(int $appointmentId): void
     {
         $this->noshow($appointmentId);
+    }
+
+    #[On('showDoctorAppointmentDetail')]
+    public function openAppointmentDetails(int $appointmentId): void
+    {
+        $doctor = Auth::user()->doctor;
+
+        if (! $doctor) {
+            return;
+        }
+
+        $officeIds = $doctor->offices()->pluck('offices.id');
+        $appointment = Appointment::query()
+            ->with([
+                'user.policy',
+                'doctor.user',
+                'doctor.specialty',
+                'office',
+                'note',
+                'services.service',
+            ])
+            ->whereKey($appointmentId)
+            ->where(function ($query) use ($doctor, $officeIds) {
+                $query->where('doctor_id', $doctor->id)
+                    ->orWhereIn('office_id', $officeIds);
+            })
+            ->first();
+
+        if (! $appointment) {
+            return;
+        }
+
+        $this->selectedAppointment = $appointment;
+        $this->dispatch('open-appointment-details-modal');
     }
 
     public function setTab(string $tab): void

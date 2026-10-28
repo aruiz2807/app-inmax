@@ -87,5 +87,6 @@
     </div>
 
     @include('livewire.doctor.appointments-details')
+    @include('livewire.appointments.appointment-details-modal')
     @include('livewire.appointments.history-modal', ['isMobileDevice' => false])
 </div>
