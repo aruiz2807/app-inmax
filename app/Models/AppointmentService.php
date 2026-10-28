@@ -160,6 +160,10 @@ class AppointmentService extends Model
             return true;
         }
 
+        if ($this->coupon_id) {
+            return 'by coupon';
+        }
+
         if (! $this->service_id) {
             return false;
         }
