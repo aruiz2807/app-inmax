@@ -626,26 +626,35 @@ class DRNotesPage extends Component
         $selectedBenefits = $this->selectedCouponBenefits();
         $couponCoverageTotal = 0;
 
-        foreach ($selectedBenefits as $benefit) {
+        foreach ($selectedBenefits->filter(fn ($benefit) => $benefit->coupon->service_id) as $benefit) {
             $coupon = $benefit->coupon;
-            $couponServiceAmount = $coupon->service_id
-                ? $this->getCouponServiceAmount($coupon->service_id)
-                : 0;
+            $couponServiceAmount = $this->getCouponServiceAmount($coupon->service_id);
             $couponDiscount = 0;
 
             if ($coupon->type === 'Amount') {
                 $couponDiscount = (float) $coupon->value;
             } elseif ($coupon->type === 'Percentage') {
-                $couponBase = $coupon->service_id ? $couponServiceAmount : $subtotal;
-                $couponDiscount = round($couponBase * ($coupon->value / 100), 2);
+                $couponDiscount = round($couponServiceAmount * ($coupon->value / 100), 2);
             } elseif ($coupon->type === 'Service') {
                 $couponDiscount = $couponServiceAmount;
             }
 
             $this->couponDiscountValue += $couponDiscount;
             $couponCoverage = round($coupon->inmax_coverage_percent / 100, 2);
-            $coverageBase = $coupon->service_id ? $couponServiceAmount : $subtotal;
-            $couponCoverageTotal += round($coverageBase * $couponCoverage, 2);
+            $couponCoverageTotal += round($couponServiceAmount * $couponCoverage, 2);
+        }
+
+        // General coupons are applied before the membership discount, capped to the remaining amount.
+        foreach ($selectedBenefits->filter(fn ($benefit) => ! $benefit->coupon->service_id) as $benefit) {
+            $coupon = $benefit->coupon;
+            $remaining = max(0, $payableSubtotal - $this->couponDiscountValue);
+            $couponDiscount = $coupon->type === 'Percentage'
+                ? round($remaining * ($coupon->value / 100), 2)
+                : (float) $coupon->value;
+            $couponDiscount = min($couponDiscount, $remaining);
+
+            $this->couponDiscountValue += $couponDiscount;
+            $couponCoverageTotal += round($couponDiscount * round($coupon->inmax_coverage_percent / 100, 2), 2);
         }
 
         $memberDiscountBase = max(0, $payableSubtotal - $this->couponDiscountValue);
@@ -714,11 +723,11 @@ class DRNotesPage extends Component
             ->filter(fn ($benefit) => $benefit->coupon->service_id)
             ->keyBy(fn ($benefit) => (int) $benefit->coupon->service_id);
         $serviceCouponIds = $serviceCouponBenefits->keys()->all();
-        $couponCoverageTotal = $selectedBenefits->sum(function ($benefit) use ($totalSubtotal) {
+        $couponCoverageTotal = $selectedBenefits->sum(function ($benefit) use ($totalCoupon) {
             $coupon = $benefit->coupon;
             $serviceAmount = $coupon->service_id
                 ? $this->getCouponServiceAmount($coupon->service_id)
-                : $totalSubtotal;
+                : $totalCoupon;
 
             return round(
                 $serviceAmount * round((float) $coupon->inmax_coverage_percent / 100, 2),
