@@ -23,7 +23,7 @@
 
                 
                     <div class="flex flex-col w-full gap-2">
-                        @foreach($selectedAppointment->services as $service)
+                        @foreach($selectedAppointment->services->where('status', \App\Enums\AppointmentStatus::COMPLETED->value) as $service)
                             <div class="flex p-2 bg-[#FFFFFF] rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-white/50">
                                 <x-ui.avatar size="xl" icon="user" color="teal" src="/img/checkup.png" circle />
 
