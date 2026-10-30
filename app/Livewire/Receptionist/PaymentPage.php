@@ -63,6 +63,9 @@ class PaymentPage extends Component
 
     public array $servicePrices = [];
 
+    /** Services added by the receptionist that are not stored until the payment is confirmed, keyed by temporary negative id. */
+    public array $pendingServices = [];
+
     #[Layout('layouts.app')]
     public function render()
     {
@@ -165,7 +168,40 @@ class PaymentPage extends Component
     }
 
     /**
-     * Persist a newly selected service as an AppointmentService marked as done.
+     * Livewire re-queries the appointment on every request, so pending (unsaved) services must be re-attached.
+     */
+    public function hydrate(): void
+    {
+        $this->attachPendingServices();
+    }
+
+    private function attachPendingServices(): void
+    {
+        if (empty($this->pendingServices)) {
+            return;
+        }
+
+        $persisted = $this->appointment->services->filter(fn ($service) => $service->exists);
+
+        $pending = collect($this->pendingServices)->map(function (array $data, $tempId) {
+            $service = (new AppointmentService)->forceFill([
+                'id' => (int) $tempId,
+                'appointment_id' => $this->appointment->id,
+                'service_id' => $data['service_id'],
+                'unregistered_service' => $data['unregistered_service'],
+                'covered' => $data['covered'],
+                'status' => AppointmentStatus::COMPLETED->value,
+            ]);
+            $service->setRelation('appointment', $this->appointment);
+
+            return $service;
+        })->values();
+
+        $this->appointment->setRelation('services', $persisted->concat($pending)->values());
+    }
+
+    /**
+     * Keep a newly selected service in memory; it is only stored once the payment is confirmed.
      */
     public function registerNewService(array $serviceData): void
     {
@@ -173,16 +209,20 @@ class PaymentPage extends Component
             return;
         }
 
-        $appointmentService = AppointmentService::create([
-            'appointment_id' => $this->appointment->id,
+        $tempId = min(array_merge([0], array_keys($this->pendingServices))) - 1;
+
+        $this->pendingServices[$tempId] = [
             'service_id' => $serviceData['id'] ?? null,
             'unregistered_service' => $serviceData['unregistered_service'] ?? null,
-            'covered' => $serviceData['included'] ? 1 : 0,
-            'status' => AppointmentStatus::COMPLETED->value,
-        ]);
+            'covered' => ! empty($serviceData['included']) ? 1 : 0,
+        ];
 
-        $this->servicesToComplete[$appointmentService->id] = true;
-        $this->servicePrices[$appointmentService->id] = $this->defaultServicePrice($appointmentService);
+        $this->attachPendingServices();
+
+        $pendingService = $this->appointment->services->firstWhere('id', $tempId);
+
+        $this->servicesToComplete[$tempId] = true;
+        $this->servicePrices[$tempId] = $this->defaultServicePrice($pendingService);
     }
 
     /**
@@ -191,8 +231,32 @@ class PaymentPage extends Component
     public function refreshAppointmentServices(): void
     {
         $this->appointment->load('services.service:id,name');
+        $this->attachPendingServices();
         $this->syncSubtotalWithServices();
         $this->calculateTotals();
+    }
+
+    /**
+     * Store the pending services and remap their temporary ids to the persisted ones.
+     */
+    private function persistPendingServices(): void
+    {
+        foreach ($this->pendingServices as $tempId => $data) {
+            $created = AppointmentService::create([
+                'appointment_id' => $this->appointment->id,
+                'service_id' => $data['service_id'],
+                'unregistered_service' => $data['unregistered_service'],
+                'covered' => $data['covered'],
+                'status' => AppointmentStatus::COMPLETED->value,
+            ]);
+
+            $this->servicesToComplete[$created->id] = $this->servicesToComplete[$tempId] ?? true;
+            $this->servicePrices[$created->id] = $this->servicePrices[$tempId] ?? '';
+            unset($this->servicesToComplete[$tempId], $this->servicePrices[$tempId]);
+        }
+
+        $this->pendingServices = [];
+        $this->appointment->load('services.service:id,name');
     }
 
     /**
@@ -319,6 +383,7 @@ class PaymentPage extends Component
         }
 
         if ($isClosingAccount) {
+            $this->persistPendingServices();
             $this->persistServicesCompletion();
         }
 

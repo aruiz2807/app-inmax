@@ -1,5 +1,35 @@
 <div
-    x-data="{ customServiceModal: false }"
+    x-data="{
+        customServiceModal: false,
+        leaving: false,
+        get hasUnsavedChanges() {
+            return !this.leaving && Object.keys($wire.pendingServices ?? {}).length > 0 && !$wire.paymentSaved;
+        },
+        confirmLeave() {
+            if (!this.hasUnsavedChanges) return true;
+            this.leaving = confirm('Hay cambios sin guardar. Si sales, los servicios agregados se perderán. ¿Deseas salir?');
+            return this.leaving;
+        },
+        init() {
+            this._beforeUnload = (e) => {
+                if (this.hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            };
+            this._navigate = (e) => {
+                if (!this.confirmLeave()) {
+                    e.preventDefault();
+                }
+            };
+            window.addEventListener('beforeunload', this._beforeUnload);
+            document.addEventListener('livewire:navigate', this._navigate);
+        },
+        destroy() {
+            window.removeEventListener('beforeunload', this._beforeUnload);
+            document.removeEventListener('livewire:navigate', this._navigate);
+        }
+    }"
     @close-custom-service-modal.window="customServiceModal = false"
     x-on:payment-completed.window="
         if ($event.detail.ticketUrl) {
@@ -16,7 +46,7 @@
     </x-slot>
 
     <div class="grid grid-cols-[2rem_auto] items-center pt-4 pb-4">
-        <x-ui.icon name="arrow-left" class="w-5 h-5 cursor-pointer" x-on:click="window.history.back()" />
+        <x-ui.icon name="arrow-left" class="w-5 h-5 cursor-pointer" x-on:click="confirmLeave() && window.history.back()" />
         <x-ui.text class="text-2xl">Cierre de cuenta</x-ui.text>
     </div>
 
