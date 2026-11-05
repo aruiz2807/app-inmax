@@ -681,22 +681,11 @@ class DRNotesPage extends Component
             $this->total = number_format(200, 2);
             $this->commision = number_format(0, 2);
         } elseif ($selectedBenefits->isNotEmpty()) {
-            $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
-            $this->commision = number_format($effectiveSubtotal - ($subtotal - $memberDiscount - $commission_amount), 2);
-
-            if (
-                $selectedBenefits->count() > 1
-                || $selectedBenefits->contains(fn ($benefit) => $benefit->coupon->type === 'Service')
-                || $couponCoverageTotal > 0
-            ) {
-                $remainingCommission = $effectiveSubtotal * $doc_commision;
-
-                $this->commision = number_format($remainingCommission - $couponCoverageTotal, 2);
-                $this->total = number_format(
-                    max(0, $effectiveSubtotal - $remainingCommission) + $couponCoverageTotal,
-                    2
-                );
-            }
+            $this->commision = number_format($commission_amount - $couponCoverageTotal, 2);
+            $this->total = number_format(
+                max(0, $effectiveSubtotal - $commission_amount) + $couponCoverageTotal,
+                2
+            );
         } else {
             $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
             $this->commision = number_format($commission_amount, 2);

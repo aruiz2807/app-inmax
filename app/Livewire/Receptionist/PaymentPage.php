@@ -761,22 +761,10 @@ class PaymentPage extends Component
             $this->total = $this->formatMoney(200);
             $this->commision = $this->formatMoney(0);
         } elseif ($selectedBenefits->isNotEmpty()) {
-            $providerTotal = $subtotal - $memberDiscount - $commission;
-            $this->total = $this->formatMoney($providerTotal);
-            $this->commision = $this->formatMoney($effectiveSubtotal - $providerTotal);
-
-            if (
-                $selectedBenefits->count() > 1
-                || $selectedBenefits->contains(fn ($benefit) => $benefit->coupon->type === 'Service')
-                || $couponCoverageTotal > 0
-            ) {
-                $remainingCommission = $effectiveSubtotal * $doctorCommission;
-
-                $this->commision = $this->formatMoney($remainingCommission - $couponCoverageTotal);
-                $this->total = $this->formatMoney(
-                    max(0, $effectiveSubtotal - $remainingCommission) + $couponCoverageTotal
-                );
-            }
+            $this->commision = $this->formatMoney($commission - $couponCoverageTotal);
+            $this->total = $this->formatMoney(
+                max(0, $effectiveSubtotal - $commission) + $couponCoverageTotal
+            );
         } else {
             $this->commision = $this->formatMoney($commission);
             $this->total = $this->formatMoney($subtotal - $memberDiscount - $commission);
