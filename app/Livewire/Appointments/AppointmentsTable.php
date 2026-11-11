@@ -4,9 +4,11 @@ namespace App\Livewire\Appointments;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Blade;
+use Livewire\Attributes\On;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
@@ -142,7 +144,10 @@ final class AppointmentsTable extends PowerGridComponent
 
     public function actions(Appointment $row): array
     {
-        return [
+        $isCompleted = $row->status === AppointmentStatus::COMPLETED;
+        $hasPrescriptions = $row->prescriptions()->exists();
+
+        $buttons = [
             Button::add('edit')
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="pencil-square" variant="outline" class="w-5 h-5"/><span>Editar</span></div>'))
                 ->id()
@@ -165,8 +170,18 @@ final class AppointmentsTable extends PowerGridComponent
                 ->slot(Blade::render('<div class="flex items-center gap-2"><x-ui.icon name="document-arrow-down" variant="outline" class="w-5 h-5"/><span>Orden</span></div>'))
                 ->id()
                 ->class('text-gray-600 hover:bg-gray-50 px-2 py-1 rounded transition-colors')
-                ->dispatch('orderAppointment', ['appointmentId' => $row->id])
+                ->dispatch('orderAppointment', ['appointmentId' => $row->id]),
+
+            $isCompleted && $hasPrescriptions
+                ? Button::add('print')
+                    ->slot(Blade::render('<div class="inline-flex items-center gap-2"><x-ui.icon name="document" variant="outline" class="w-5 h-5"/><span>Receta</span></div>'))
+                    ->id()
+                    ->class('w-[120px] text-neutral-700 hover:bg-neutral-100 px-2 py-1 rounded transition-colors')
+                    ->dispatch('doctorPrintAppointment', ['appointmentId' => $row->id])
+                : null,
         ];
+
+        return array_values(array_filter($buttons, fn (?object $button) => $button !== null));
     }
 
     public function actionRules(): array
@@ -197,5 +212,21 @@ final class AppointmentsTable extends PowerGridComponent
                 ->hide(),
 
         ];
+    }
+
+    #[On('doctorPrintAppointment')]
+    public function print(int $appointmentId)
+    {
+        $note = Appointment::findOrFail($appointmentId)->note;
+
+        $pdf = Pdf::loadView('pdf.prescription', [
+            'note' => $note,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx'
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            'receta.pdf'
+        );
     }
 }

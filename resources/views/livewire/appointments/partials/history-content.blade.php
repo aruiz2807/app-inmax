@@ -288,10 +288,23 @@
                             </x-ui.card>
 
                             <x-ui.card size="full" class="bg-neutral-50 border border-neutral-200">
-                                <x-ui.heading class="flex pb-2" level="h3" size="sm">
-                                    <x-ui.icon name="document-text" class="self-center" />
-                                    <x-ui.text class="ml-2 text-base">Recetas emitidas</x-ui.text>
-                                </x-ui.heading>
+                                <div class="flex items-center justify-between pb-2">
+                                    <x-ui.heading class="flex" level="h3" size="sm">
+                                        <x-ui.icon name="document-text" class="self-center" />
+                                        <x-ui.text class="ml-2 text-base">Recetas emitidas</x-ui.text>
+                                    </x-ui.heading>
+                                    @if(!$historyItem->prescriptions->isEmpty() && $historyItem->status === \App\Enums\AppointmentStatus::COMPLETED)
+                                        <x-ui.button
+                                            type="button"
+                                            icon="document"
+                                            variant="outline"
+                                            size="xs"
+                                            wire:click="$dispatch('doctorPrintAppointment', { appointmentId: {{ $historyItem->id }} })"
+                                        >
+                                            Descargar
+                                        </x-ui.button>
+                                    @endif
+                                </div>
 
                                 @if($historyItem->prescriptions->isEmpty())
                                     <x-ui.text class="text-sm opacity-70">No hay recetas para esta cita.</x-ui.text>

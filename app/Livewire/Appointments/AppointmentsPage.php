@@ -98,4 +98,20 @@ class AppointmentsPage extends Component
             "order-{$appointment->id}.pdf"
         );
     }
+
+    #[On('doctorPrintAppointment')]
+    public function print(int $appointmentId)
+    {
+        $note = Appointment::findOrFail($appointmentId)->note;
+
+        $pdf = Pdf::loadView('pdf.prescription', [
+            'note' => $note,
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx'
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            'receta.pdf'
+        );
+    }
 }
