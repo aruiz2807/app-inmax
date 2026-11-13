@@ -620,6 +620,7 @@ class DRNotesPage extends Component
         $doctorDiscountPercent = $doctor->discount / 100;
 
         $selectedBenefits = $this->selectedCouponBenefits();
+        $proportionalDiscounts = $this->calculateProportionalAmountCouponDiscounts($selectedBenefits);
         $serviceCouponMap = $this->mapCouponsToServices($selectedBenefits);
 
         $totalPatientPayment = 0;
@@ -637,7 +638,9 @@ class DRNotesPage extends Component
             $coupon = $serviceCouponMap[$service->service_id] ?? null;
 
             if ($coupon) {
-                $patientCharge = $this->calculatePatientChargeWithCoupon($servicePrice, $coupon);
+                $benefit = $selectedBenefits->firstWhere('coupon.id', $coupon->id);
+                $benefitId = $benefit ? $benefit->id : null;
+                $patientCharge = $this->calculatePatientChargeWithCoupon($servicePrice, $coupon, $proportionalDiscounts, $service->service_id, $benefitId);
                 $inmaxPays = $this->calculateInmaxPaysWithCoupon($servicePrice, $patientCharge, $coupon, $doctorDiscountPercent);
             } else {
                 $patientCharge = $this->calculatePatientChargeNoCoupon($servicePrice, $doctorDiscountPercent);
@@ -959,26 +962,36 @@ class DRNotesPage extends Component
     private function mapCouponsToServices($selectedBenefits): array
     {
         $couponMap = [];
-        $usedServiceIds = [];
 
         foreach ($selectedBenefits as $benefit) {
-            $serviceId = $benefit->coupon->service_id;
-            if ($serviceId && !isset($usedServiceIds[$serviceId])) {
-                $couponMap[$serviceId] = $benefit->coupon;
-                $usedServiceIds[$serviceId] = true;
+            $coupon = $benefit->coupon;
+            $couponServiceIds = $this->getServiceCouponServiceIds($coupon);
+            
+            // Map coupon to all its services
+            foreach ($couponServiceIds as $serviceId) {
+                if (!isset($couponMap[$serviceId])) {
+                    $couponMap[$serviceId] = $coupon;
+                }
             }
-
         }
 
         return $couponMap;
     }
 
-    private function calculatePatientChargeWithCoupon(float $servicePrice, $coupon): float
+    private function calculatePatientChargeWithCoupon(float $servicePrice, $coupon, ?array $proportionalDiscounts = null, ?int $serviceId = null, ?int $benefitId = null): float
     {
         $discount = 0;
 
         if ($coupon->type === 'Amount') {
-            $discount = (float) $coupon->value;
+            // Check if this is a multi-service Amount coupon with proportional discount
+            $couponServiceIds = $this->getServiceCouponServiceIds($coupon);
+            if (count($couponServiceIds) > 1 && $proportionalDiscounts !== null && $serviceId !== null && $benefitId !== null) {
+                // Use pre-calculated proportional discount
+                $discount = $proportionalDiscounts[$serviceId][$benefitId] ?? (float) $coupon->value;
+            } else {
+                // Single service or no proportional calculation
+                $discount = (float) $coupon->value;
+            }
         } elseif ($coupon->type === 'Percentage') {
             $discount = $servicePrice * ((float) $coupon->value / 100);
         } elseif ($coupon->type === 'Service') {
@@ -1000,6 +1013,52 @@ class DRNotesPage extends Component
         $inmaxCoveragePercent = (float) ($coupon->inmax_coverage_percent ?? 0) / 100;
 
         return $inmaxPaysAmount * $inmaxCoveragePercent;
+    }
+
+    private function getServiceCouponServiceIds($coupon): array
+    {
+        return $coupon->services->modelKeys();
+    }
+
+    private function calculateProportionalAmountCouponDiscounts($selectedBenefits): array
+    {
+        $discounts = []; // Format: [$serviceId][$couponId] = discountAmount
+
+        foreach ($selectedBenefits as $benefit) {
+            $coupon = $benefit->coupon;
+            
+            if ($coupon->type !== 'Amount') {
+                continue;
+            }
+
+            $couponServiceIds = $this->getServiceCouponServiceIds($coupon);
+            if (count($couponServiceIds) <= 1) {
+                continue;
+            }
+
+            $totalPrice = 0;
+            $servicePrices = [];
+
+            foreach ($this->services as $service) {
+                if (empty($this->form->services[$service->id]) || !in_array((int) $service->service_id, $couponServiceIds)) {
+                    continue;
+                }
+
+                $servicePrice = $this->getCouponServiceAmount($service->service_id);
+                $totalPrice += $servicePrice;
+                $servicePrices[(int) $service->service_id] = $servicePrice;
+            }
+
+            if ($totalPrice > 0) {
+                foreach ($servicePrices as $serviceId => $servicePrice) {
+                    $proportion = $servicePrice / $totalPrice;
+                    $discount = round((float) $coupon->value * $proportion, 2);
+                    $discounts[$serviceId][$benefit->id] = $discount;
+                }
+            }
+        }
+
+        return $discounts;
     }
 }
 
