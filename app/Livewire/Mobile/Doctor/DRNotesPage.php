@@ -205,12 +205,13 @@ class DRNotesPage extends Component
             ->get();
     }
 
-    public function checkCouponAvailability()
+    public function checkCouponAvailability(): void
     {
         $this->hasCouponAvailable = false;
         $this->availableCoupons = collect();
 
         $policy = $this->appointment->user->policy;
+
         if (! $policy) {
             $this->selectedCouponIds = [];
 
@@ -218,7 +219,7 @@ class DRNotesPage extends Component
         }
 
         $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
-        $doctorId = $this->user->doctor->id;
+
         $serviceIds = $this->services
             ->filter(fn ($service) => ! empty($this->form->services[$service->id]))
             ->pluck('service_id')
@@ -227,54 +228,44 @@ class DRNotesPage extends Component
             ->values()
             ->all();
 
+        $subtotal = (float) str_replace(',', '', (string) $this->subtotal);
+
         if ($serviceIds === []) {
             $this->selectedCouponIds = [];
 
             return;
         }
 
-        $subtotal = (float) str_replace(',', '', (string) $this->subtotal);
-
-        $couponCheck = function ($q) use ($serviceIds, $doctorId, $subtotal) {
-            // Check if coupon is valid for this doctor (must be assigned to them)
-            $q->whereHas('doctors', function ($dq) use ($doctorId) {
-                $dq->where('doctor_id', $doctorId);
-            });
-
-            // Universal coupon (no service_id) or specific to one of the appointment services
-            $q->where(function ($q2) use ($serviceIds) {
-                $q2->whereNull('service_id')
-                    ->orWhereIn('service_id', $serviceIds);
-            });
-
-            // Check limits
-            $q->where(function ($q2) use ($subtotal) {
-                $q2->where('limit_min', '<=', 0)
-                   ->orWhere('limit_min', '<=', $subtotal);
-            })->where(function ($q2) use ($subtotal) {
-                $q2->where('limit_max', '<=', 0)
-                   ->orWhere('limit_max', '>', $subtotal);
-            });
-        };
-
-        // Search for all available coupons for this doctor and the services in the appointment
-        $this->availableCoupons = PolicyService::with('coupon')
+        $this->availableCoupons = PolicyService::with('coupon.services')
             ->where('policy_id', $policyId)
             ->whereNotNull('coupon_id')
             ->whereColumn('used', '<', 'included')
             ->orderBy('id')
-            ->whereHas('coupon', $couponCheck)
-            ->get()
-            ->filter(function ($benefit) {
-                $serviceId = $benefit->coupon->service_id;
-                if (! $serviceId) {
-                    return true;
-                }
-
-                $service = $this->services->firstWhere('service_id', $serviceId);
-
-                return $service && ! empty($this->form->services[$service->id]);
+            ->whereHas('coupon', function ($query) use ($serviceIds, $subtotal) {
+                $query->whereHas('doctors', function ($dq) {
+                    $dq->where('doctor_id', $this->appointment->doctor_id);
+                })
+                    ->where(function ($serviceQuery) use ($serviceIds) {
+                        $serviceQuery
+                            ->whereIn('service_id', $serviceIds)
+                            ->orWhereHas('services', function ($sq) use ($serviceIds) {
+                                $sq->whereIn('services.id', $serviceIds);
+                            })
+                            ->orWhere(function ($q) {
+                                $q->whereNull('service_id')
+                                    ->whereDoesntHave('services');
+                            });
+                    })
+                    ->where(function ($limitMinQuery) use ($subtotal) {
+                        $limitMinQuery->where('limit_min', '<=', 0)
+                            ->orWhere('limit_min', '<=', $subtotal);
+                    })
+                    ->where(function ($limitMaxQuery) use ($subtotal) {
+                        $limitMaxQuery->where('limit_max', '<=', 0)
+                            ->orWhere('limit_max', '>', $subtotal);
+                    });
             })
+            ->get()
             ->values();
 
         if ($this->availableCoupons->isNotEmpty()) {
@@ -289,26 +280,65 @@ class DRNotesPage extends Component
     private function selectFirstCouponForService(int $serviceId): void
     {
         $benefit = $this->availableCoupons->first(
-            fn ($benefit) => (int) $benefit->coupon?->service_id === $serviceId
+            fn ($benefit) => in_array($serviceId, $this->couponServiceIds($benefit), true)
         );
 
         if (! $benefit) {
             return;
         }
 
+        $newCovered = $this->completedCouponServiceIds($benefit);
+
         $this->selectedCouponIds = array_values(array_filter(
             $this->selectedCouponIds,
-            function ($selectedId) use ($serviceId) {
+            function ($selectedId) use ($newCovered) {
                 $selectedBenefit = $this->availableCoupons->firstWhere('id', (int) $selectedId);
-                $selectedServiceId = $selectedBenefit?->coupon?->service_id;
 
-                return $selectedBenefit
-                    && $selectedServiceId
-                    && (int) $selectedServiceId !== $serviceId;
+                if (! $selectedBenefit || $this->isGlobalCoupon($selectedBenefit)) {
+                    return false;
+                }
+
+                // Se conserva solo si no comparte servicios con el nuevo cupón
+                return array_intersect(
+                    $this->completedCouponServiceIds($selectedBenefit),
+                    $newCovered
+                ) === [];
             }
         ));
+
         $this->selectedCouponIds[] = $benefit->id;
         $this->normalizeSelectedCouponIds();
+    }
+
+    /** IDs de servicios que cubre el cupón (service_id directo o pivote). */
+    private function couponServiceIds($benefit): array
+    {
+        $coupon = $benefit?->coupon;
+
+        if (! $coupon) {
+            return [];
+        }
+
+        $ids = $coupon->service_id
+            ? [(int) $coupon->service_id]
+            : $coupon->services->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        return array_values(array_unique($ids));
+    }
+
+    /** Servicios que cubre el cupón Y que están realizados en la cita. */
+    private function completedCouponServiceIds($benefit): array
+    {
+        return array_values(array_filter(
+            $this->couponServiceIds($benefit),
+            fn ($id) => $this->hasCompletedCouponService($id)
+        ));
+    }
+
+    /** Cupón sin ningún servicio asignado: aplica a todo y es exclusivo. */
+    private function isGlobalCoupon($benefit): bool
+    {
+        return $this->couponServiceIds($benefit) === [];
     }
 
     public function addMedication()
@@ -509,17 +539,16 @@ class DRNotesPage extends Component
     private function normalizeSelectedCouponIds(): void
     {
         $selectedIds = [];
-        $selectedServiceIds = [];
+        $usedServiceIds = [];
 
         foreach ($this->selectedCouponIds as $selectedId) {
             $benefit = $this->availableCoupons->firstWhere('id', (int) $selectedId);
-            $serviceId = $benefit?->coupon?->service_id;
 
             if (! $benefit) {
                 continue;
             }
 
-            if (! $serviceId) {
+            if ($this->isGlobalCoupon($benefit)) {
                 if ($selectedIds === []) {
                     $selectedIds[] = $benefit->id;
                 }
@@ -527,14 +556,15 @@ class DRNotesPage extends Component
                 break;
             }
 
-            if (! $this->hasCompletedCouponService($serviceId)) {
+            $covered = $this->completedCouponServiceIds($benefit);
+
+            // Ningún servicio cubierto está realizado, o ya lo usa otro cupón
+            if ($covered === [] || array_intersect($covered, $usedServiceIds) !== []) {
                 continue;
             }
 
-            if (! in_array((int) $serviceId, $selectedServiceIds, true)) {
-                $selectedIds[] = $benefit->id;
-                $selectedServiceIds[] = (int) $serviceId;
-            }
+            $selectedIds[] = $benefit->id;
+            $usedServiceIds = array_merge($usedServiceIds, $covered);
         }
 
         $this->selectedCouponIds = $selectedIds;
@@ -550,12 +580,8 @@ class DRNotesPage extends Component
                     return false;
                 }
 
-                $serviceId = $benefit->coupon->service_id;
-                if (! $serviceId) {
-                    return true;
-                }
-
-                return $this->hasCompletedCouponService($serviceId);
+                return $this->isGlobalCoupon($benefit)
+                    || $this->completedCouponServiceIds($benefit) !== [];
             })
             ->values();
     }
@@ -563,19 +589,24 @@ class DRNotesPage extends Component
     public function canSelectCoupon(int $benefitId): bool
     {
         $benefit = $this->availableCoupons->firstWhere('id', $benefitId);
+
         if (! $benefit || in_array($benefitId, $this->selectedCouponIds)) {
             return (bool) $benefit;
         }
 
-        $serviceId = $benefit->coupon->service_id;
-        if ($serviceId && ! $this->hasCompletedCouponService($serviceId)) {
+        $isGlobal = $this->isGlobalCoupon($benefit);
+        $covered = $this->completedCouponServiceIds($benefit);
+
+        if (! $isGlobal && $covered === []) {
             return false;
         }
 
         foreach ($this->selectedCouponBenefits() as $selectedBenefit) {
-            $selectedServiceId = $selectedBenefit->coupon->service_id;
+            if ($isGlobal || $this->isGlobalCoupon($selectedBenefit)) {
+                return false;
+            }
 
-            if (! $serviceId || ! $selectedServiceId || (int) $serviceId === (int) $selectedServiceId) {
+            if (array_intersect($covered, $this->completedCouponServiceIds($selectedBenefit)) !== []) {
                 return false;
             }
         }
@@ -1010,6 +1041,8 @@ class DRNotesPage extends Component
     {
         $priceWithDiscount = $servicePrice * (1 - $doctorDiscountPercent);
         $inmaxPaysAmount = $priceWithDiscount - $patientCharge;
+        if ($inmaxPaysAmount < 0) $inmaxPaysAmount = 0;
+        
         $inmaxCoveragePercent = (float) ($coupon->inmax_coverage_percent ?? 0) / 100;
 
         return $inmaxPaysAmount * $inmaxCoveragePercent;

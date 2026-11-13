@@ -81,8 +81,19 @@ class CouponsForm extends Form
 
     private function couponAttributes(): array
     {
+        // For Amount type coupons with multiple services, service_id should be null
+        // For other types, use the single selected service
+        $serviceId = null;
+        if ($this->type === 'Amount') {
+            // Amount coupons use only the many-to-many relationship
+            $serviceId = null;
+        } else {
+            // Percentage and Service type coupons use service_id
+            $serviceId = $this->service;
+        }
+
         return [
-            'service_id' => $this->selectedServices()[0],
+            'service_id' => $serviceId,
             'name' => $this->name,
             'type' => $this->type,
             'value' => str_replace(',', '', $this->value),
