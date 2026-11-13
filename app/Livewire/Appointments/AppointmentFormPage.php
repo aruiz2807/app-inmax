@@ -322,7 +322,8 @@ class AppointmentFormPage extends Component
         $discardedDays = [];
         if (in_array($this->selectedOffice, $inmaxOffices)) {
             $discardedDays = [
-                '2026-10-12', 
+                '2026-10-12',
+                '2026-11-16', 
                 '2026-12-25', 
                 '2027-01-01', 
                 '2027-02-01', 
