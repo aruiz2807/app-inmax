@@ -15,6 +15,7 @@ use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Models\Service;
 use App\Services\Appointments\AppointmentCompletedNotificationService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -101,7 +102,7 @@ class DRNotesPage extends Component
             'prescriptions.medication',
             'services.service',
         ])->findOrFail($appointment);
-        $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->get();
+        $this->services = AppointmentService::where('appointment_id', $this->appointment->id)->orderBy('id')->get();
         $this->form->isDoctor = $this->user->doctor->type === DoctorType::Doctor;
         $this->hasReceptionistAssigned = $this->user->doctor
             ?->staff()
@@ -232,9 +233,9 @@ class DRNotesPage extends Component
             return;
         }
 
-        $subtotal = floatval(str_replace(',', '', $this->subtotal));
+        $subtotal = (float) str_replace(',', '', (string) $this->subtotal);
 
-        $couponCheck = function ($q) use ($serviceIds, $doctorId) {
+        $couponCheck = function ($q) use ($serviceIds, $doctorId, $subtotal) {
             // Check if coupon is valid for this doctor (must be assigned to them)
             $q->whereHas('doctors', function ($dq) use ($doctorId) {
                 $dq->where('doctor_id', $doctorId);
@@ -247,18 +248,19 @@ class DRNotesPage extends Component
             });
 
             // Check limits
-            /*$q->where(function ($q2) use ($subtotal) {
+            $q->where(function ($q2) use ($subtotal) {
                 $q2->where('limit_min', '<=', 0)
                    ->orWhere('limit_min', '<=', $subtotal);
             })->where(function ($q2) use ($subtotal) {
                 $q2->where('limit_max', '<=', 0)
                    ->orWhere('limit_max', '>', $subtotal);
-            });*/
+            });
         };
 
         // Search for all available coupons for this doctor and the services in the appointment
         $this->availableCoupons = PolicyService::with('coupon')
             ->where('policy_id', $policyId)
+            ->whereNotNull('coupon_id')
             ->whereColumn('used', '<', 'included')
             ->orderBy('id')
             ->whereHas('coupon', $couponCheck)
@@ -477,6 +479,10 @@ class DRNotesPage extends Component
             return 0;
         }
 
+        if ($service->subtotal !== null) {
+            return (float) $service->subtotal;
+        }
+
         $capturedPrice = $this->form->servicePrices[$service->id] ?? null;
 
         return $capturedPrice !== null && $capturedPrice !== ''
@@ -534,7 +540,7 @@ class DRNotesPage extends Component
         $this->selectedCouponIds = $selectedIds;
     }
 
-    private function selectedCouponBenefits()
+    private function selectedCouponBenefits(): Collection
     {
         $selectedIds = array_map('intval', $this->selectedCouponIds);
 
@@ -562,10 +568,8 @@ class DRNotesPage extends Component
         }
 
         $serviceId = $benefit->coupon->service_id;
-        if ($serviceId) {
-            if (! $this->hasCompletedCouponService($serviceId)) {
-                return false;
-            }
+        if ($serviceId && ! $this->hasCompletedCouponService($serviceId)) {
+            return false;
         }
 
         foreach ($this->selectedCouponBenefits() as $selectedBenefit) {
@@ -593,103 +597,64 @@ class DRNotesPage extends Component
             return;
         }
 
-        // Check if an included MG consultation is being performed
-        $mgParam = Parameter::where('type', 'MG')->where('key', 'Consulta')->first();
-        $mgServiceId = $mgParam ? (int) $mgParam->value : null;
-
-        $isMGIncluded = false;
-        if ($mgServiceId) {
-            $isMGIncluded = $this->services->where('service_id', $mgServiceId)
-                ->where('covered', 1)
-                ->filter(fn ($s) => ! empty($this->form->services[$s->id]))
-                ->isNotEmpty();
-        }
-
-        $costoParam = Parameter::where('type', 'MG')->where('key', 'Costo')->first();
-        if ($costoParam && $isMGIncluded) {
-            $this->subtotal = number_format($costoParam->value, 2);
-        }
-
         $this->checkCouponAvailability();
-
-        $subtotal = floatval(str_replace(',', '', $this->subtotal));
-        // Services marked as "incluido" are covered by the policy, so the patient owes nothing for them.
-        $coveredAmount = $this->calculateCoveredServicesAmount();
-        $payableSubtotal = max(0, $subtotal - $coveredAmount);
+        $this->normalizeSelectedCouponIds();
 
         $doctor = $this->appointment->doctor ?: $this->user->doctor;
-        $doc_discount = $doctor->discount / 100;
-        $doc_commision = $doctor->commission / 100;
+        if (!$doctor) {
+            $totalSubtotal = 0;
+            foreach ($this->services as $service) {
+                if (! empty($this->form->services[$service->id])) {
+                    $totalSubtotal += $this->getCouponServiceAmount($service->service_id);
+                }
+            }
+            $this->couponDiscountValue = 0;
+            $this->user_payment = number_format($totalSubtotal, 2);
+            $this->commision = '0.00';
+            $this->total = number_format($totalSubtotal, 2);
 
-        $this->couponDiscountValue = 0;
-        $this->normalizeSelectedCouponIds();
+            return;
+        }
+
+        $doctorCommissionPercent = $doctor->commission / 100;
+        $doctorDiscountPercent = $doctor->discount / 100;
+
         $selectedBenefits = $this->selectedCouponBenefits();
-        $couponCoverageTotal = 0;
+        $serviceCouponMap = $this->mapCouponsToServices($selectedBenefits);
 
-        foreach ($selectedBenefits->filter(fn ($benefit) => $benefit->coupon->service_id) as $benefit) {
-            $coupon = $benefit->coupon;
-            $couponServiceAmount = $this->getCouponServiceAmount($coupon->service_id);
-            $couponDiscount = 0;
+        $totalPatientPayment = 0;
+        $totalInmaxPays = 0;
+        $totalSubtotal = 0;
 
-            if ($coupon->type === 'Amount') {
-                $couponDiscount = (float) $coupon->value;
-            } elseif ($coupon->type === 'Percentage') {
-                $couponDiscount = round($couponServiceAmount * ($coupon->value / 100), 2);
-            } elseif ($coupon->type === 'Service') {
-                $couponDiscount = $couponServiceAmount;
+        foreach ($this->services as $service) {
+            if (empty($this->form->services[$service->id])) {
+                continue;
             }
 
-            $this->couponDiscountValue += $couponDiscount;
-            $couponCoverage = round($coupon->inmax_coverage_percent / 100, 2);
-            $couponCoverageTotal += round($couponServiceAmount * $couponCoverage, 2);
+            $servicePrice = $this->getCouponServiceAmount($service->service_id);
+            $totalSubtotal += $servicePrice;
+
+            $coupon = $serviceCouponMap[$service->service_id] ?? null;
+
+            if ($coupon) {
+                $patientCharge = $this->calculatePatientChargeWithCoupon($servicePrice, $coupon);
+                $inmaxPays = $this->calculateInmaxPaysWithCoupon($servicePrice, $patientCharge, $coupon, $doctorDiscountPercent);
+            } else {
+                $patientCharge = $this->calculatePatientChargeNoCoupon($servicePrice, $doctorDiscountPercent);
+                $inmaxPays = 0;
+            }
+
+            $totalPatientPayment += $patientCharge;
+            $totalInmaxPays += $inmaxPays;
         }
 
-        // General coupons are applied before the membership discount, capped to the remaining amount.
-        foreach ($selectedBenefits->filter(fn ($benefit) => ! $benefit->coupon->service_id) as $benefit) {
-            $coupon = $benefit->coupon;
-            $remaining = max(0, $payableSubtotal - $this->couponDiscountValue);
-            $couponDiscount = $coupon->type === 'Percentage'
-                ? round($remaining * ($coupon->value / 100), 2)
-                : (float) $coupon->value;
-            $couponDiscount = min($couponDiscount, $remaining);
+        $this->subtotal = number_format($totalSubtotal, 2);
+        $this->user_payment = number_format($totalPatientPayment, 2);
 
-            $this->couponDiscountValue += $couponDiscount;
-            $couponCoverageTotal += round($couponDiscount * round($coupon->inmax_coverage_percent / 100, 2), 2);
-        }
+        $inMaxCommission = ($totalPatientPayment * $doctorCommissionPercent) - $totalInmaxPays;
 
-        $memberDiscountBase = max(0, $payableSubtotal - $this->couponDiscountValue);
-        $memberDiscount = round($memberDiscountBase * $doc_discount, 2);
-
-        // Determine effective subtotal (what the user pays)
-        // If it's an included MG consultation, it's 100% covered (user pays 0)
-        if ($isMGIncluded) {
-            $effectiveSubtotal = 0;
-        } elseif ($selectedBenefits->isNotEmpty()) {
-            $effectiveSubtotal = max(0, $payableSubtotal - $this->couponDiscountValue - $memberDiscount);
-        } else {
-            $effectiveSubtotal = max(0, $payableSubtotal - $memberDiscount);
-        }
-
-        $this->user_payment = number_format($effectiveSubtotal, 2);
-
-        // The commission Inmax charges the doctor
-        $commission_amount = $effectiveSubtotal * $doc_commision;
-
-        // Total for the doctor: Subtotal - Platform Commission - Discount/Coupon
-
-        if ($isMGIncluded) {
-            $this->total = number_format(200, 2);
-            $this->commision = number_format(0, 2);
-        } elseif ($selectedBenefits->isNotEmpty()) {
-            $this->commision = number_format($commission_amount - $couponCoverageTotal, 2);
-            $this->total = number_format(
-                max(0, $effectiveSubtotal - $commission_amount) + $couponCoverageTotal,
-                2
-            );
-        } else {
-            $this->total = number_format($subtotal - $memberDiscount - $commission_amount, 2);
-            $this->commision = number_format($commission_amount, 2);
-        }
+        $this->commision = number_format($inMaxCommission, 2);
+        $this->total = number_format($totalPatientPayment - $inMaxCommission, 2);
     }
 
     /**
@@ -773,9 +738,11 @@ class DRNotesPage extends Component
 
                 $serviceAmount = $this->getCouponServiceAmount($coupon->service_id);
 
-                return $coupon->type === 'Amount'
-                    ? (float) $coupon->value
-                    : round($serviceAmount * ((float) $coupon->value / 100), 2);
+                return match ($coupon->type) {
+                    'Amount' => (float) $coupon->value,
+                    'Percentage' => round($serviceAmount * ((float) $coupon->value / 100), 2),
+                    default => 0,
+                };
             });
             if ($serviceCoupon) {
                 $serviceCouponDiscount = match ($serviceCoupon->coupon->type) {
@@ -912,9 +879,11 @@ class DRNotesPage extends Component
         }
 
         // Redeem coupon if used
-        foreach ($this->selectedCouponBenefits() as $selectedBenefit) {
-            $selectedBenefit->increment('used');
-            $this->storeRedeemedCoupon($selectedBenefit->coupon_id, $selectedBenefit->coupon?->service_id);
+        if (! $this->hasReceptionistAssigned && (float) $this->appointment->coupon_discount <= 0) {
+            foreach ($this->selectedCouponBenefits() as $selectedBenefit) {
+                $selectedBenefit->increment('used');
+                $this->storeRedeemedCoupon($selectedBenefit->coupon_id, $selectedBenefit->coupon?->service_id);
+            }
         }
 
         $this->subtotal = str_replace(',', '', $this->subtotal);
@@ -986,4 +955,51 @@ class DRNotesPage extends Component
 
         return $missingServiceNames;
     }
+
+    private function mapCouponsToServices($selectedBenefits): array
+    {
+        $couponMap = [];
+        $usedServiceIds = [];
+
+        foreach ($selectedBenefits as $benefit) {
+            $serviceId = $benefit->coupon->service_id;
+            if ($serviceId && !isset($usedServiceIds[$serviceId])) {
+                $couponMap[$serviceId] = $benefit->coupon;
+                $usedServiceIds[$serviceId] = true;
+            }
+
+        }
+
+        return $couponMap;
+    }
+
+    private function calculatePatientChargeWithCoupon(float $servicePrice, $coupon): float
+    {
+        $discount = 0;
+
+        if ($coupon->type === 'Amount') {
+            $discount = (float) $coupon->value;
+        } elseif ($coupon->type === 'Percentage') {
+            $discount = $servicePrice * ((float) $coupon->value / 100);
+        } elseif ($coupon->type === 'Service') {
+            $discount = $servicePrice;
+        }
+
+        return max(0, $servicePrice - $discount);
+    }
+
+    private function calculatePatientChargeNoCoupon(float $servicePrice, float $doctorDiscountPercent): float
+    {
+        return $servicePrice * (1 - $doctorDiscountPercent);
+    }
+
+    private function calculateInmaxPaysWithCoupon(float $servicePrice, float $patientCharge, $coupon, float $doctorDiscountPercent): float
+    {
+        $priceWithDiscount = $servicePrice * (1 - $doctorDiscountPercent);
+        $inmaxPaysAmount = $priceWithDiscount - $patientCharge;
+        $inmaxCoveragePercent = (float) ($coupon->inmax_coverage_percent ?? 0) / 100;
+
+        return $inmaxPaysAmount * $inmaxCoveragePercent;
+    }
 }
+

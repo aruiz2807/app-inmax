@@ -219,7 +219,7 @@ class Appointment extends Model
     */
     public function services(): HasMany
     {
-        return $this->hasMany(AppointmentService::class);
+        return $this->hasMany(AppointmentService::class)->orderBy('appointment_services.id');
     }
 
     /**

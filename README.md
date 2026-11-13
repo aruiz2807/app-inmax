@@ -38,6 +38,11 @@ php artisan serve
 yarn dev
 ```
 
+## Cupones
+Los cupones de importe permiten seleccionar varios servicios y consumen su saldo en el orden de los servicios de la cita. Los cupones de porcentaje y servicio requieren un solo servicio. Los cupones universales existentes conservan su configuración.
+
+Al desplegar esta funcionalidad, ejecuta `php artisan migrate` para crear la relación de servicios y trasladar las asociaciones existentes. La migración no se puede revertir mientras haya cupones con varios servicios.
+
 ## Build
 ```bash
 yarn run build

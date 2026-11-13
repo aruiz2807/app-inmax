@@ -72,6 +72,17 @@ class CouponsPage extends Component
         $this->couponId = null;
     }
 
+    public function updatingFormType($type): void
+    {
+        if ($type === 'Amount' && $this->form->type !== 'Amount') {
+            $this->form->services = $this->form->service ? [(string) $this->form->service] : [];
+        } elseif ($type !== 'Amount' && $this->form->type === 'Amount') {
+            $this->form->service = count($this->form->services) === 1 ? $this->form->services[0] : null;
+        }
+
+        $this->resetValidation(['form.service', 'form.services', 'form.services.*']);
+    }
+
     public function clearService()
     {
         $this->form->service = null;

@@ -37,7 +37,7 @@
             @csrf
 
             <x-ui.fieldset label="Información del cupón">
-                <x-ui.radio.group wire:model="form.type" name="type" label="Tipo de cupón" variant="cards" direction="horizontal">
+                <x-ui.radio.group wire:model.live="form.type" name="type" label="Tipo de cupón" variant="cards" direction="horizontal">
                     <x-ui.radio.item
                         icon="currency-dollar"
                         value="Amount"
@@ -65,29 +65,33 @@
                     <x-ui.error name="form.name" />
                 </x-ui.field>
 
-                <x-ui.field required>
-                    <x-ui.label>Valor</x-ui.label>
-                    <x-ui.input wire:model="form.value" name="value" x-mask:dynamic="$money($input)" placeholder="0.00">
-                        <x-slot name="prefix">$</x-slot>
-                    </x-ui.input>
-                    <x-ui.error name="form.value" />
-                </x-ui.field>
+                @if($form->type !== 'Service')
+                    <x-ui.field required>
+                        <x-ui.label>{{ $form->type === 'Percentage' ? 'Porcentaje' : 'Valor' }}</x-ui.label>
+                        <x-ui.input wire:model="form.value" name="value" x-mask:dynamic="$money($input)" placeholder="0.00">
+                            <x-slot name="prefix">{{ $form->type === 'Percentage' ? '%' : '$' }}</x-slot>
+                        </x-ui.input>
+                        <x-ui.error name="form.value" />
+                    </x-ui.field>
+                @endif
 
-                <x-ui.field required>
-                    <x-ui.label>Limite inferior</x-ui.label>
-                    <x-ui.input wire:model="form.min" name="min" x-mask:dynamic="$money($input)" placeholder="0.00">
-                        <x-slot name="prefix">$</x-slot>
-                    </x-ui.input>
-                    <x-ui.error name="form.min" />
-                </x-ui.field>
+                @if($form->type === 'Amount')
+                    <x-ui.field required>
+                        <x-ui.label>Limite inferior</x-ui.label>
+                        <x-ui.input wire:model="form.min" name="min" x-mask:dynamic="$money($input)" placeholder="0.00">
+                            <x-slot name="prefix">$</x-slot>
+                        </x-ui.input>
+                        <x-ui.error name="form.min" />
+                    </x-ui.field>
 
-                <x-ui.field required>
-                    <x-ui.label>Limite superior</x-ui.label>
-                    <x-ui.input wire:model="form.max" name="max" x-mask:dynamic="$money($input)" placeholder="0.00">
-                        <x-slot name="prefix">$</x-slot>
-                    </x-ui.input>
-                    <x-ui.error name="form.max" />
-                </x-ui.field>
+                    <x-ui.field required>
+                        <x-ui.label>Limite superior</x-ui.label>
+                        <x-ui.input wire:model="form.max" name="max" x-mask:dynamic="$money($input)" placeholder="0.00">
+                            <x-slot name="prefix">$</x-slot>
+                        </x-ui.input>
+                        <x-ui.error name="form.max" />
+                    </x-ui.field>
+                @endif
 
                 <x-ui.field required>
                     <x-ui.label>Porcentaje de cobertura Inmax</x-ui.label>
@@ -97,24 +101,24 @@
                     <x-ui.error name="form.inmax_coverage_percent" />
                 </x-ui.field>
 
-                <x-ui.field>
+                <x-ui.field required>
                     <x-ui.label>Servicios disponibles</x-ui.label>
-                    <x-ui.select
-                        wire:model="form.service"
-                        placeholder="Buscar servicio..."
-                        icon="wallet"
-                        searchable
-                        clearable
-                    >
-                        <x-ui.select.option value="">
-                            Cualquier servicio (Universal)
-                        </x-ui.select.option>
-                        @foreach($services as $service)
-                            <x-ui.select.option value="{{ $service->id }}">
-                                {{ $service->name }}
-                            </x-ui.select.option>
-                        @endforeach
-                    </x-ui.select>
+                    @if($form->type === 'Amount')
+                        <x-ui.select wire:key="coupon-services-multiple" wire:model="form.services" placeholder="Buscar servicios..." icon="wallet" searchable multiple clearable>
+                            @foreach($services as $service)
+                                <x-ui.select.option value="{{ $service->id }}">{{ $service->name }}</x-ui.select.option>
+                            @endforeach
+                        </x-ui.select>
+                        <x-ui.error name="form.services" />
+                        <x-ui.error name="form.services.*" />
+                    @else
+                        <x-ui.select wire:key="coupon-service-single" wire:model="form.service" placeholder="Buscar servicio..." icon="wallet" searchable clearable>
+                            @foreach($services as $service)
+                                <x-ui.select.option value="{{ $service->id }}">{{ $service->name }}</x-ui.select.option>
+                            @endforeach
+                        </x-ui.select>
+                        <x-ui.error name="form.service" />
+                    @endif
                 </x-ui.field>
             </x-ui.fieldset>
 
