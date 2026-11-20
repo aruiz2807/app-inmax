@@ -130,13 +130,11 @@ class CouponsForm extends Form
         $this->max = str_replace(',', '', (string) $this->max);
         $this->inmax_coverage_percent = str_replace(',', '', (string) $this->inmax_coverage_percent);
 
-        if ($this->type !== 'Amount') {
-            $this->min = '0';
-            $this->max = '0';
-        }
-
         if ($this->type === 'Service') {
             $this->value = '100';
+
+            $this->min = '0';
+            $this->max = '0';
         }
     }
 }
