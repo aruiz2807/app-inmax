@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -153,30 +154,26 @@ class AppointmentService extends Model
 
     /**
      * Whether the service is covered, either stored as such or via an unused "Service" coupon on the patient's policy.
+     * 
+     * For unpaid appointments: check if service has coupon_id
+     * For paid appointments: check if coupon_discount > 0
      */
     public function isEffectivelyCovered()
     {
-        if ($this->covered) {
-            return true;
-        }
-
+        $appointment = $this->appointment;
+        $isPaid = $appointment && $appointment->status === AppointmentStatus::COMPLETED;
+    
         if ($this->coupon_id) {
+            if ($isPaid) {
+                // Coupon was associated, but check if it was actually applied
+                return $this->coupon_discount > 0 ? 'by coupon' : false;
+            }
+            // Unpaid appointment with coupon associated
             return 'by coupon';
-        }
-
-        if (! $this->service_id) {
+        } else {
             return false;
         }
 
-        $policy = $this->appointment?->user?->policy;
-
-        if (! $policy) {
-            return false;
-        }
-
-        $policyId = $policy->type === 'Member' ? $policy->parent_policy_id : $policy->id;
-
-        return PolicyService::coversService($policyId, $this->service_id, $this->appointment->doctor_id);
     }
 
     /**
