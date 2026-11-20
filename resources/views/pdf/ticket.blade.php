@@ -133,6 +133,11 @@
                 </tr>
 
                 <tr>
+                    <td class="desc">Descuento proveedor: </td>
+                    <td class="price">${{ $provider_discount }} </td>
+                </tr>
+
+                <tr>
                     <td class="desc">Cobro al paciente: </td>
                     <td class="price">${{ $payment }} </td>
                 </tr>

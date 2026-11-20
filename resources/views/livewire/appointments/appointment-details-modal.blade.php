@@ -57,11 +57,11 @@
                 <p class="text-sm"><span class="font-semibold">Total cuenta:</span> ${{ $allServicesCovered && is_null($selectedAppointment->user_payment) ? '0.00' : number_format((float) $selectedAppointment->subtotal, 2) }}</p>
 
                 @if((float) $selectedAppointment->coupon_discount > 0)
-                    <p class="text-sm"><span class="font-semibold">Descuento cupon:</span> -${{ number_format((float) $selectedAppointment->coupon_discount, 2) }}</p>
+                    <p class="text-sm"><span class="font-semibold">Descuento cupon:</span> ${{ number_format((float) $selectedAppointment->coupon_discount, 2) }}</p>
                 @else
                     <p class="text-sm"><span class="font-semibold">Descuento cupon:</span> No aplicado</p>
                 @endif
-
+                <p class="text-sm"><span class="font-semibold">Descuento proveedor:</span> ${{ number_format((float) $selectedAppointment->subtotal - ($selectedAppointment->coupon_discount + $selectedAppointment->user_payment), 2) }}</p>
                 <p class="text-sm"><span class="font-semibold">Cobro al paciente:</span> ${{ number_format((float) $selectedAppointment->user_payment, 2) }}</p>
                 <p class="text-sm"><span class="font-semibold">Comision Inmax:</span> ${{ number_format((float) $selectedAppointment->commission, 2) }}</p>
                 <p class="text-sm"><span class="font-semibold">Ganancia proveedor:</span> ${{ number_format((float) $selectedAppointment->total, 2) }}</p>

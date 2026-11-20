@@ -66,6 +66,7 @@ class NotesConfirmationPage extends Component
         $pdf = Pdf::loadView('pdf.ticket', [
             'note' => $this->note,
             'subtotal' => $this->getSubtotalProperty(),
+            'provider_discount' => $this->getProviderDiscountProperty(),
             'coupon_discount' => $this->getCouponDiscountProperty(),
             'payment' => $this->getPaymentProperty(),
             'commision' => $this->getCommissionProperty(),
@@ -90,9 +91,9 @@ class NotesConfirmationPage extends Component
         return $this->formatServiceAmount('coupon_discount');
     }
 
-    public function getDiscountProperty()
+    public function getProviderDiscountProperty()
     {
-        return number_format($this->note->appointment->subtotal * ($this->note->appointment->doctor->discount / 100), 2);
+        return number_format($this->note->appointment->subtotal - ($this->note->appointment->coupon_discount + $this->note->appointment->user_payment), 2);
     }
 
     public function getPaymentProperty()

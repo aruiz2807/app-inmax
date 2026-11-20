@@ -40,6 +40,7 @@ class ReceptionistTicketController extends Controller
         $pdf = Pdf::loadView('pdf.ticket', [
             'note' => $note,
             'subtotal' => $this->formatServiceAmount($appointment, 'subtotal'),
+            'provider_discount' => $this->formatServiceAmount($appointment, 'provider_discount'),
             'coupon_discount' => $this->formatServiceAmount($appointment, 'coupon_discount'),
             'payment' => $this->formatServiceAmount($appointment, 'user_payment'),
             'commision' => $this->formatServiceAmount($appointment, 'commission'),
@@ -57,6 +58,10 @@ class ReceptionistTicketController extends Controller
     private function formatServiceAmount(Appointment $appointment, string $column): string
     {
         $completedServices = $appointment->services->where('status', 'Completed');
+
+        if ($column === 'provider_discount') {
+            return number_format($appointment->subtotal - ($appointment->coupon_discount + $appointment->user_payment), 2);
+        }
 
         $hasServiceAmounts = $completedServices->contains(fn ($service) => $service->{$column} !== null);
         $amount = $hasServiceAmounts
