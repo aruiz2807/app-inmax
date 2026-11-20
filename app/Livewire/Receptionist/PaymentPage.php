@@ -410,7 +410,7 @@ class PaymentPage extends Component
 
         $updateData = [
             'subtotal' => $subtotal,
-            'coupon_discount' => $this->couponDiscountValue,
+            'coupon_discount' => 0,
             'user_payment' => $this->parseMoney($this->user_payment),
             'commission' => $this->parseMoney($this->commision),
             'total' => $this->parseMoney($this->total),
@@ -430,6 +430,9 @@ class PaymentPage extends Component
 
         $this->appointment->update($updateData);
         $this->persistServiceFinancials($subtotal);
+
+        $totalCouponDiscount = $this->appointment->services->sum('coupon_discount');
+        $this->appointment->update(['coupon_discount' => $totalCouponDiscount]);
 
         $this->dispatch('close-payment-modal');
         $this->paymentSaved = true;

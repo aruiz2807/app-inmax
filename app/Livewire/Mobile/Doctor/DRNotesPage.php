@@ -827,7 +827,7 @@ class DRNotesPage extends Component
 
                 if (! $this->hasReceptionistAssigned) {
                     $updateData['subtotal'] = str_replace(',', '', (string) $this->subtotal) ?: null;
-                    $updateData['coupon_discount'] = $this->couponDiscountValue ?: null;
+                    $updateData['coupon_discount'] = 0;
                     $updateData['user_payment'] = str_replace(',', '', (string) $this->user_payment) ?: null;
                     $updateData['commission'] = str_replace(',', '', (string) $this->commision) ?: null;
                     $updateData['total'] = str_replace(',', '', (string) $this->total) ?: null;
@@ -840,6 +840,9 @@ class DRNotesPage extends Component
                 if (! empty($updateData)) {
                     $this->appointment->update($updateData);
                     $this->persistServiceFinancials();
+                    
+                    $totalCouponDiscount = $this->appointment->services->sum('coupon_discount');
+                    $this->appointment->update(['coupon_discount' => $totalCouponDiscount]);
                 }
 
                 $this->dispatch('close-notes-modal');
@@ -929,7 +932,7 @@ class DRNotesPage extends Component
 
         if (! $this->hasReceptionistAssigned) {
             $updateData['subtotal'] = $this->subtotal ?: null;
-            $updateData['coupon_discount'] = $this->couponDiscountValue ?: null;
+            $updateData['coupon_discount'] = 0;
             $updateData['user_payment'] = str_replace(',', '', $this->user_payment) ?: null;
             $updateData['commission'] = str_replace(',', '', $this->commision) ?: null;
             $updateData['total'] = str_replace(',', '', $this->total) ?: null;
@@ -937,6 +940,9 @@ class DRNotesPage extends Component
 
         $this->appointment->update($updateData);
         $this->persistServiceFinancials();
+
+        $totalCouponDiscount = $this->appointment->services->sum('coupon_discount');
+        $this->appointment->update(['coupon_discount' => $totalCouponDiscount]);
 
         if (! empty($this->prescriptions)) { // has at least one element
             $this->appointment->update([
