@@ -248,7 +248,7 @@
                 </x-ui.alerts>
             </x-ui.field>
 
-            <x-ui.field class="mt-2">
+            {{--<x-ui.field class="mt-2">
                 <x-ui.label>Comision Inmax</x-ui.label>
                 <x-ui.alerts variant="info" icon="currency-dollar">
                     <x-ui.alerts.description>{{$commision}}</x-ui.alerts.description>
@@ -260,7 +260,7 @@
                 <x-ui.alerts variant="info" icon="currency-dollar">
                     <x-ui.alerts.description>{{$total}}</x-ui.alerts.description>
                 </x-ui.alerts>
-            </x-ui.field>
+            </x-ui.field>--}}
         </x-ui.card>
 
     <x-ui.card size="full" class="mx-auto mt-2">
