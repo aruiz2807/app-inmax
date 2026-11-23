@@ -299,9 +299,11 @@ class AppointmentFormPage extends Component
                 $hasCoupon = PolicyService::query()
                     ->where('policy_id', $policyId)
                     ->whereHas('coupon', function ($query) use ($service) {
-                        $query->where('service_id', $service->id);
+                        $query->where('service_id', $service->id)
+                            ->orWhereHas('services', function ($q) use ($service) {
+                                $q->where('services.id', $service->id);
+                            });
                     })
-                    ->whereColumn('used', '<', 'included')
                 ->exists();
 
                 $coveredMode = $isCovered ? 'by service' : false;
