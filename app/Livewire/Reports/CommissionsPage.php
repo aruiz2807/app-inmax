@@ -53,7 +53,8 @@ class CommissionsPage extends Component
     public function getAppointmentsProperty()
     {
         $query = Appointment::with(['user', 'note', 'doctor.user', 'doctor.specialty'])
-            ->where('status', AppointmentStatus::COMPLETED);
+            ->whereIn('status', [AppointmentStatus::COMPLETED, AppointmentStatus::RESULTS_PENDING])
+            ->where('subtotal', '>', 0);
 
         if ($this->year) {
             $query->whereYear('date', $this->year);
