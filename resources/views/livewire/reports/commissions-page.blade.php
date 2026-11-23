@@ -129,7 +129,7 @@
                                     <td class="px-4 py-3 text-right">
                                         ${{ number_format($appointment->subtotal, 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-right text-red-500">
+                                    <td class="px-4 py-3 text-right {{ $appointment->coupon_discount > 0 ? 'text-red-500' : '' }}">
                                         -${{ number_format($appointment->coupon_discount, 2) }}
                                     </td>
                                     <td class="px-4 py-3 text-right text-red-500">
@@ -138,9 +138,16 @@
                                     <td class="px-4 py-3 text-right">
                                         ${{ number_format($appointment->user_payment, 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-right font-medium text-teal-600">
-                                        ${{ number_format($appointment->commission, 2) }}
-                                    </td>
+                                    @if ($appointment->commission > 0)
+                                        <td class="px-4 py-3 text-right font-medium text-teal-600">
+                                            ${{ number_format($appointment->commission, 2) }}
+                                        </td>
+                                    @else
+                                        <td class="px-4 py-3 text-right font-medium text-red-500">
+                                            -${{ number_format(abs($appointment->commission), 2) }}
+                                        </td>
+                                    @endif
+                                    
                                     <td class="px-4 py-3 text-right font-bold">
                                         ${{ number_format($appointment->total, 2) }}
                                     </td>

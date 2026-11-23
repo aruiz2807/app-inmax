@@ -129,12 +129,12 @@
 
                 <tr>
                     <td class="desc">Descuento cupón: </td>
-                    <td class="price">${{ $coupon_discount }} </td>
+                    <td class="price">-${{ $coupon_discount }} </td>
                 </tr>
 
                 <tr>
                     <td class="desc">Descuento proveedor: </td>
-                    <td class="price">${{ $provider_discount }} </td>
+                    <td class="price">-${{ $provider_discount }} </td>
                 </tr>
 
                 <tr>
@@ -145,7 +145,12 @@
                 @if ($type == 'partner')
                     <tr>
                         <td class="desc">Comisión Inmax: </td>
-                        <td class="price">${{ $commision }} </td>
+                        @if($commision < 0)
+                            <td class="price">-${{ abs($commision) }} </td>
+                        @endif  
+                        @if($commision >= 0)
+                            <td class="price">${{ $commision }} </td>
+                        @endif
                     </tr>
 
                     <tr>

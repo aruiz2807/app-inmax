@@ -60,7 +60,7 @@ class ReceptionistTicketController extends Controller
         $completedServices = $appointment->services->where('status', 'Completed');
 
         if ($column === 'provider_discount') {
-            return number_format($appointment->subtotal - ($appointment->coupon_discount + $appointment->user_payment), 2);
+            return number_format($appointment->subtotal - (abs($appointment->coupon_discount) + $appointment->user_payment), 2);
         }
 
         $hasServiceAmounts = $completedServices->contains(fn ($service) => $service->{$column} !== null);
