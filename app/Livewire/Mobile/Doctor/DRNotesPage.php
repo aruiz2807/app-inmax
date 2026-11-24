@@ -657,6 +657,7 @@ class DRNotesPage extends Component
         $totalPatientPayment = 0;
         $totalInmaxPays = 0;
         $totalSubtotal = 0;
+        $this->couponDiscountValue = 0;
 
         foreach ($this->services as $service) {
             if (empty($this->form->services[$service->id])) {
@@ -673,6 +674,7 @@ class DRNotesPage extends Component
                 $benefitId = $benefit ? $benefit->id : null;
                 $patientCharge = $this->calculatePatientChargeWithCoupon($servicePrice, $coupon, $proportionalDiscounts, $service->service_id, $benefitId);
                 $inmaxPays = $this->calculateInmaxPaysWithCoupon($servicePrice, $patientCharge, $coupon, $doctorDiscountPercent);
+                $this->couponDiscountValue += ($servicePrice - $patientCharge);
             } else {
                 $patientCharge = $this->calculatePatientChargeNoCoupon($servicePrice, $doctorDiscountPercent);
                 $inmaxPays = 0;
