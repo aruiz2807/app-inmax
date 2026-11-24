@@ -63,7 +63,7 @@
                 @endif
                 <p class="text-sm"><span class="font-semibold">Descuento proveedor:</span> ${{ number_format((float) $selectedAppointment->subtotal - ($selectedAppointment->coupon_discount + $selectedAppointment->user_payment), 2) }}</p>
                 <p class="text-sm"><span class="font-semibold">Cobro al paciente:</span> ${{ number_format((float) $selectedAppointment->user_payment, 2) }}</p>
-                <p class="text-sm"><span class="font-semibold">Comision Inmax:</span> ${{ number_format((float) $selectedAppointment->commission, 2) }}</p>
+                <p class="text-sm"><span class="font-semibold">Comision Inmax:</span> -${{ number_format((float) abs($selectedAppointment->commission), 2) }}</p>
                 <p class="text-sm"><span class="font-semibold">Ganancia proveedor:</span> ${{ number_format((float) $selectedAppointment->total, 2) }}</p>
             </div>
         </div>

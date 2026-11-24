@@ -73,7 +73,14 @@
                 </div>
                 <div class="flex-1 min-w-35 px-2">
                     <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total Comisiones INMAX</x-ui.text>
-                    <x-ui.text class="text-xl md:text-2xl font-bold text-teal-300 wrap-break-word">${{ number_format($totals['commission'], 2) }}</x-ui.text>
+                    <x-ui.text class="text-xl md:text-2xl font-bold {{ $totals['commission'] < 0 ? 'text-red-300' : '' }} wrap-break-word">
+                        @if ($totals['commission'] < 0)
+                            -${{ number_format(abs($totals['commission']), 2) }}
+                        @else
+                            ${{ number_format(abs($totals['commission']), 2) }}
+                        @endif
+                        
+                    </x-ui.text>
                 </div>
                 <div class="flex-1 min-w-35 px-2">
                     <x-ui.text class="text-xs uppercase tracking-wide opacity-70 font-semibold mb-1 block">Total G. Socios</x-ui.text>
@@ -138,8 +145,8 @@
                                     <td class="px-4 py-3 text-right">
                                         ${{ number_format($appointment->user_payment, 2) }}
                                     </td>
-                                    @if ($appointment->commission > 0)
-                                        <td class="px-4 py-3 text-right font-medium text-teal-600">
+                                    @if ($appointment->commission >= 0)
+                                        <td class="px-4 py-3 text-right font-medium">
                                             ${{ number_format($appointment->commission, 2) }}
                                         </td>
                                     @else
@@ -173,7 +180,7 @@
                                 <td class="px-4 py-3 text-right text-red-500">-${{ number_format($appointments->sum('coupon_discount'), 2) }}</td>
                                 <td class="px-4 py-3 text-right text-red-500">-${{ number_format($appointments->sum(fn ($appointment) => \App\Services\Reports\CommissionSummary::membershipDiscountFor($appointment)), 2) }}</td>
                                 <td class="px-4 py-3 text-right">${{ number_format($appointments->sum('user_payment'), 2) }}</td>
-                                <td class="px-4 py-3 text-right text-teal-600">{{ $subCommission < 0 ? '-' : '' }}${{ number_format(abs($subCommission), 2) }}</td>
+                                <td class="px-4 py-3 text-right {{ $subCommission < 0 ? 'text-red-500' : '' }}">{{ $subCommission < 0 ? '-' : '' }}${{ number_format(abs($subCommission), 2) }}</td>
                                 <td class="px-4 py-3 text-right">${{ number_format($subTotal, 2) }}</td>
                                 <td></td>
                             </tr>
