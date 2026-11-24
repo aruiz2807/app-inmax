@@ -162,18 +162,40 @@ class AppointmentService extends Model
     {
         $appointment = $this->appointment;
         $isPaid = $appointment && $appointment->status === AppointmentStatus::COMPLETED;
-    
+
         if ($this->coupon_id) {
             if ($isPaid) {
-                // Coupon was associated, but check if it was actually applied
                 return $this->coupon_discount > 0 ? 'by coupon' : false;
             }
-            // Unpaid appointment with coupon associated
             return 'by coupon';
-        } else {
+        }
+
+        // Sin coupon_id asignado: buscar cupón disponible vía la pivote coupon_service
+        if (! $isPaid && $this->hasAvailableCouponViaPivot()) {
+            return 'by coupon';
+        }
+
+        return false;
+    }
+
+    protected function hasAvailableCouponViaPivot(): bool
+    {
+        $policyId = $this->appointment?->user?->policy?->id;
+
+        if (! $policyId) {
             return false;
         }
 
+        return PolicyService::query()
+            ->where('policy_id', $policyId)
+            ->whereHas('coupon', function ($query) {
+                $query->where('service_id', $this->service_id)
+                    ->orWhereHas('services', function ($q) {
+                        $q->where('services.id', $this->service_id);
+                    });
+            })
+            ->whereColumn('used', '<', 'included')
+            ->exists();
     }
 
     /**

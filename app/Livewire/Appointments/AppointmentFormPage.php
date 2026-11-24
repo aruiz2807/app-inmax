@@ -304,7 +304,8 @@ class AppointmentFormPage extends Component
                                 $q->where('services.id', $service->id);
                             });
                     })
-                ->exists();
+                    ->whereColumn('used', '<', 'included')
+                    ->exists();
 
                 $coveredMode = $isCovered ? 'by service' : false;
                 if ($hasCoupon) {
