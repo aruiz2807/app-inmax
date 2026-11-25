@@ -31,12 +31,17 @@
                         $isDispensed = $prescription->status === 'Dispensed'; 
                         $isManual = is_null($prescription->medication_id);
                         $hasRequiredQuantity = !is_null($prescription->required_quantity);
+                        $hasStock = !$isManual && $prescription->medication?->existences > 0;
+                        $stock = max(0, (int) ($prescription->medication?->existences ?? 0));
+                        $maxDelivery = $hasRequiredQuantity
+                            ? min($stock, max(0, (int) $prescription->required_quantity - (int) ($prescription->delivered_quantity ?? 0)))
+                            : $stock;
                     @endphp
 
                     <div 
                         class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center gap-4
-                            {{ $isDispensed ? 'opacity-50 border-gray-300' : 'border-gray-100' }}"
-                        aria-disabled="{{ $isDispensed ? 'true' : 'false' }}"
+                            {{ ($isDispensed || !$hasStock) ? 'opacity-50 border-gray-300' : 'border-gray-100' }}"
+                        aria-disabled="{{ ($isDispensed || !$hasStock) ? 'true' : 'false' }}"
                     >
                         <div class="flex-1">
                             <x-ui.text class="font-bold text-base">
@@ -64,6 +69,10 @@
                                 <x-ui.text class="text-xs text-amber-600 mt-1">
                                     Medicamento no disponible en catálogo
                                 </x-ui.text>
+                            @elseif(!$hasStock && !$isManual)
+                                <x-ui.text class="text-xs text-red-600 mt-1 font-semibold">
+                                    No se puede surtir por falta de medicamentos
+                                </x-ui.text>
                             @endif
                         </div>
 
@@ -75,10 +84,14 @@
                                     <x-ui.input 
                                         type="number" 
                                         min="0"
-                                        :max="$hasRequiredQuantity ? max(0, ((int) $prescription->required_quantity) - ((int) ($prescription->delivered_quantity ?? 0))) : null"
+                                        :max="$maxDelivery"
+                                        x-on:input.stop="if ($event.target.value !== '' && Number($event.target.value) > Number($event.target.max)) $event.target.value = $event.target.max"
                                         wire:model.live="deliveryQuantities.{{ $prescription->id }}"
-                                        :disabled="$isDispensed"
+                                        :disabled="$isDispensed || !$hasStock"
                                     />
+                                    @error('deliveryQuantities.' . $prescription->id)
+                                        <span class="text-xs text-red-600">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 
                                 @if(!$hasRequiredQuantity)
@@ -89,7 +102,8 @@
                                             type="number" 
                                             min="0"
                                             value="1"
-                                            wire:model.live="requiredQuantities.{{ $prescription->id }}"  
+                                            wire:model.live="requiredQuantities.{{ $prescription->id }}"
+                                            :disabled="!$hasStock"
                                         />
                                     </div>
 

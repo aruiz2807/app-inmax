@@ -9,8 +9,10 @@ use App\Models\Parameter;
 use App\Models\PolicyService;
 use App\Models\User;
 use App\Models\MedicationMovement;
+use App\Models\Medication;
 
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -57,6 +59,17 @@ class CheckoutModal extends Component
         }
     }
 
+    public function updatedDeliveryQuantities($value, $key)
+    {
+        $prescription = collect($this->prescriptions)->firstWhere('id', $key);
+        if ($prescription && is_numeric($value)) {
+            $stock = max(0, (int) ($prescription->medication?->existences ?? 0));
+            $this->deliveryQuantities[$key] = min((int) $value, $stock);
+        }
+
+        $this->resetErrorBag("deliveryQuantities.$key");
+    }
+
     public function getTotalProperty()
     {
         $subtotalPublic = 0;
@@ -65,6 +78,11 @@ class CheckoutModal extends Component
         foreach ($this->prescriptions as $prescription) 
         {
             if (!is_null($prescription->medication_id) && $prescription->status === 'Prescribed') {
+                $hasStock = $prescription->medication?->existences > 0;
+                if (!$hasStock) {
+                    continue;
+                }
+                
                 $quantity = (int) ($this->requiredQuantities[$prescription->id] ?? 0);
                 $subtotalPublic += $quantity * $prescription->medication->price_public;
                 $subtotalMembers += $quantity * $prescription->medication->price_members;
@@ -94,18 +112,39 @@ class CheckoutModal extends Component
             return false;
         }
 
-        $hasQuantity = collect($this->deliveryQuantities)->map(fn($qty) => (int) $qty)->sum() > 0;
+        $hasValidQuantity = false;
+        foreach ($this->prescriptions as $prescription) {
+            if ($prescription->status === 'Dispensed') {
+                continue;
+            }
+            
+            $hasStock = !is_null($prescription->medication_id) && $prescription->medication?->existences > 0;
+            if (!$hasStock) {
+                continue;
+            }
+            
+            $qty = (int) ($this->deliveryQuantities[$prescription->id] ?? 0);
+            if ($qty > 0) {
+                $hasValidQuantity = true;
+                break;
+            }
+        }
+
+        if (!$hasValidQuantity) {
+            return false;
+        }
+
         $hasBenefitSelected = $this->useCoupon || $this->useMembersDiscount;
 
         if ($this->total == 0) {
-            return $hasQuantity;
+            return $hasValidQuantity;
         }
 
         if($this->isPartialDispensation) {
             return true;
         }
 
-        return $hasQuantity && $hasBenefitSelected;
+        return $hasValidQuantity && $hasBenefitSelected;
     }
 
     public function getIsAppointmentDispensedProperty(): bool
@@ -144,6 +183,8 @@ class CheckoutModal extends Component
         $this->requiredQuantities = [];
         foreach ($this->prescriptions as $prescription) 
         {
+            $hasStock = !is_null($prescription->medication_id) && $prescription->medication?->existences > 0;
+            
             $deliveredSoFar = (int) ($prescription->delivered_quantity ?? 0);
             $requiredTotal = (int) ($prescription->required_quantity ?? 0);
             $pending = max(0, $requiredTotal - $deliveredSoFar);
@@ -152,15 +193,20 @@ class CheckoutModal extends Component
             {
                 $this->deliveryQuantities[$prescription->id] = $prescription->delivered_quantity;
             }
+            elseif (!$hasStock)
+            {
+                $this->deliveryQuantities[$prescription->id] = 0;
+            }
             elseif (!is_null($prescription->required_quantity))
             {
-                $this->deliveryQuantities[$prescription->id] = $pending;
+                $this->deliveryQuantities[$prescription->id] = min($pending, (int) $prescription->medication->existences);
             }
             else
             {
                 $this->deliveryQuantities[$prescription->id] = 1;
             }
-            $this->requiredQuantities[$prescription->id] = $prescription->required_quantity ?? 1;
+            
+            $this->requiredQuantities[$prescription->id] = !$hasStock ? 0 : ($prescription->required_quantity ?? 1);
         }
 
         $this->checkDiscountsAvailability();
@@ -235,10 +281,39 @@ class CheckoutModal extends Component
             return;
         }
 
+        DB::transaction(function () {
+            $this->dispenseInTransaction();
+        });
+    }
+
+    protected function dispenseInTransaction(): void
+    {
         $shouldPrintTicket = false;
 
-        $appointment = Appointment::with('prescriptions')->find($this->appointmentId);
+        $appointment = Appointment::whereKey($this->appointmentId)->lockForUpdate()->firstOrFail();
+        $appointment->load('prescriptions');
         $currentPrescriptions = $appointment->prescriptions->keyBy('id');
+
+        $medicationIds = $currentPrescriptions->pluck('medication_id')->filter()->unique()->sort()->values();
+        $medications = Medication::whereIn('id', $medicationIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+        $requestedByMedication = [];
+
+        foreach ($this->prescriptions as $prescription) {
+            $current = $currentPrescriptions->get($prescription->id);
+            if (!$current || $current->status === 'Dispensed' || !$current->medication_id) {
+                continue;
+            }
+
+            $quantity = max(0, (int) ($this->deliveryQuantities[$current->id] ?? 0));
+            $medication = $medications->get($current->medication_id);
+            $requestedByMedication[$current->medication_id] = ($requestedByMedication[$current->medication_id] ?? 0) + $quantity;
+
+            if ($quantity > 0 && $requestedByMedication[$current->medication_id] > max(0, (int) ($medication?->existences ?? 0))) {
+                $this->addError("deliveryQuantities.{$current->id}", 'La cantidad solicitada supera las existencias disponibles.');
+                $this->dispatch('notify', type: 'error', content: 'Las existencias cambiaron o son insuficientes. Ajusta las cantidades antes de surtir.');
+                return;
+            }
+        }
 
         $hasDispensedChanges = false;
 
@@ -251,6 +326,11 @@ class CheckoutModal extends Component
             }
 
             if ((string) $currentPrescription->status === 'Dispensed') {
+                continue;
+            }
+
+            $hasStock = $medications->get($currentPrescription->medication_id)?->existences > 0;
+            if (!$hasStock) {
                 continue;
             }
 
