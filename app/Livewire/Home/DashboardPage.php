@@ -28,6 +28,14 @@ class DashboardPage extends Component
             ->orderBy('time')
             ->get();
 
+        $oldAppointments = Appointment::query()
+            ->with(['user:id,name', 'doctor.user:id,name', 'office:id,name'])
+            ->where('status', AppointmentStatus::BOOKED->value)
+            ->where('date', '<', $today)
+            ->orderBy('date')
+            ->orderBy('time')
+            ->paginate(10);
+
         $commissionAppointments = Appointment::query()
             ->with('doctor:id,specialty_id')
             ->where('status', AppointmentStatus::COMPLETED->value)
@@ -37,6 +45,7 @@ class DashboardPage extends Component
 
         return view('livewire.home.dashboard-page', [
             'upcomingAppointments' => $upcomingAppointments,
+            'oldAppointments' => $oldAppointments,
             'totals' => CommissionSummary::calculate(
                 $commissionAppointments,
                 $mgSpecialty ? (int) $mgSpecialty->value : null

@@ -56,6 +56,49 @@
     </x-ui.card>
 
     <x-ui.card size="full" class="mt-6">
+        <x-ui.heading size="sm" class="mb-4">Citas vencidas pendientes de cierre</x-ui.heading>
+
+        <div class="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 shadow-sm">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-neutral-50 text-neutral-600 dark:bg-neutral-950 dark:text-neutral-400">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Id</th>
+                        <th class="px-4 py-3 font-semibold">Miembro</th>
+                        <th class="px-4 py-3 font-semibold">Médico/Consultorio</th>
+                        <th class="px-4 py-3 font-semibold">Fecha</th>
+                        <th class="px-4 py-3 font-semibold">Hora</th>
+                        <th class="px-4 py-3 font-semibold">Estatus</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
+                    @forelse($oldAppointments as $appointment)
+                        <tr class="hover:bg-neutral-50 dark:hover:bg-neutral-950/50 transition-colors">
+                            <td class="px-4 py-3">{{ $appointment->id }}</td>
+                            <td class="px-4 py-3 font-medium">{{ $appointment->user?->name }}</td>
+                            <td class="px-4 py-3">{{ $appointment->doctor?->user?->name ?? $appointment->office?->name }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap">{{ $appointment->date?->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap">{{ $appointment->time?->format('H:i A') }}</td>
+                            <td class="px-4 py-3"><x-status-badge :status="$appointment->status" /></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-6 text-center text-neutral-500">
+                                No hay citas vencidas pendientes de cierre.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if ($oldAppointments->hasPages())
+            <div class="mt-4">
+                {{ $oldAppointments->links() }}
+            </div>
+        @endif
+    </x-ui.card>
+
+    <x-ui.card size="full" class="mt-6">
         <x-ui.heading size="sm" class="mb-4">Resumen General</x-ui.heading>
 
         <div class="flex flex-wrap justify-center gap-6 lg:justify-between text-center py-4">
