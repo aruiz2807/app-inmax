@@ -39,9 +39,12 @@ class CommissionSummary
 
     public static function membershipDiscountFor(object $appointment): float
     {
-        $discountPercent = (float) ($appointment->doctor?->discount ?? 0);
-        $discountBase = max(0, (float) $appointment->subtotal - (float) $appointment->coupon_discount);
+        //$discountPercent = (float) ($appointment->doctor?->discount ?? 0);
+        //$discountBase = max(0, (float) $appointment->subtotal - (float) $appointment->coupon_discount);
 
-        return round($discountBase * ($discountPercent / 100), 2);
+        $discount = round($appointment->subtotal - ($appointment->coupon_discount + $appointment->user_payment), 2);
+        
+        //return round($discountBase * ($discountPercent / 100), 2);
+        return $discount;
     }
 }
