@@ -37,7 +37,7 @@ class ReceptionistTicketController extends Controller
         // Citas liquidadas antes de tener nota (ej. cerradas desde recepcion) la generan aqui
         $note = $appointment->note ?: AppointmentNote::firstOrCreate(['appointment_id' => $appointment->id]);
 
-        $pdf = Pdf::loadView('pdf.ticket', [
+        /*$pdf = Pdf::loadView('pdf.ticket', [
             'note' => $note,
             'subtotal' => $this->formatServiceAmount($appointment, 'subtotal'),
             'provider_discount' => $this->formatServiceAmount($appointment, 'provider_discount'),
@@ -45,6 +45,18 @@ class ReceptionistTicketController extends Controller
             'payment' => $this->formatServiceAmount($appointment, 'user_payment'),
             'commision' => $this->formatServiceAmount($appointment, 'commission'),
             'total' => $this->formatServiceAmount($appointment, 'total'),
+            'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx',
+            'type' => $type,
+        ])->setPaper([0, 0, 226, 567], 'portrait');*/
+
+        $pdf = Pdf::loadView('pdf.ticket', [
+            'note' => $note,
+            'subtotal' => number_format($appointment->subtotal, 2),
+            'provider_discount' => $this->formatServiceAmount($appointment, 'provider_discount'),
+            'coupon_discount' => number_format($appointment->coupon_discount, 2),
+            'payment' => number_format($appointment->user_payment, 2),
+            'commision' => number_format($appointment->commission, 2),
+            'total' => number_format($appointment->total, 2),
             'contactEmail' => \App\Models\Parameter::where('type', 'RS')->where('key', 'Email')->value('value') ?? 'contacto@inmax.mx',
             'type' => $type,
         ])->setPaper([0, 0, 226, 567], 'portrait');
