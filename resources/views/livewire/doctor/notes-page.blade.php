@@ -309,7 +309,7 @@
                     @if($hasCouponAvailable)
                         <div class="mt-4 mb-4">
                             <x-ui.label class="mb-2 block text-teal-900 font-semibold">Cupones disponibles</x-ui.label>
-                            <p class="mb-2 text-xs text-gray-500">Puedes combinar cupones de distintos servicios; solo uno por servicio. Los cupones generales son exclusivos.</p>
+                            <p class="mb-2 text-xs text-gray-500">Puedes combinar cupones de distintos servicios; solo uno por servicio.</p>
 
                             <div class="space-y-2">
                                 <button type="button" wire:click="$set('selectedCouponIds', [])" class="w-full text-left flex items-center gap-3 p-3 rounded-lg border transition-colors {{ $isEditing ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-gray-50' }} {{ empty($selectedCouponIds) ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white' }}" @disabled($isEditing)>
@@ -348,7 +348,7 @@
                         <x-ui.field class="mt-2">
                             <x-ui.label>Descuento por cupon</x-ui.label>
                             <x-ui.alerts variant="success" icon="ticket">
-                                <x-ui.alerts.heading>-{{ $couponDiscountValue }}</x-ui.alerts.heading>
+                                <x-ui.alerts.heading>-${{ number_format($couponDiscountValue, 2) }}</x-ui.alerts.heading>
                             </x-ui.alerts>
                         </x-ui.field>
                     @endif
