@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property-read int|null $coupon_doctors_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Doctor> $doctors
  * @property-read int|null $doctors_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Service> $services
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Coupon query()
@@ -67,16 +68,36 @@ class Coupon extends Model
     }
 
     /**
-     * Each coupon can have or be one kind of service.
+     * Servicio directo del cupón (cupones de tipo Service, o con un solo servicio).
      */
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
     }
 
+    /**
+     * Servicios del cupón vía tabla pivote (cupones con varios servicios).
+     * Verifica que el nombre de la tabla coincida con tu migración (coupon_service vs coupon_services).
+     */
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'coupon_service');
+    }
+
+    /**
+     * IDs de servicios que cubre el cupón: el service_id directo o, si no tiene, los del pivote.
+     * Es la única fuente de verdad para saber a qué servicios aplica un cupón.
+     * Conviene cargar la relación `services` con eager loading para evitar N+1.
+     *
+     * @return array<int, int>
+     */
+    public function serviceIds(): array
+    {
+        $ids = $this->service_id
+            ? [(int) $this->service_id]
+            : $this->services->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        return array_values(array_unique($ids));
     }
 
     /**

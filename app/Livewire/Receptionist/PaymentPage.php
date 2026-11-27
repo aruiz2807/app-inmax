@@ -66,6 +66,13 @@ class PaymentPage extends Component
     /** Services added by the receptionist that are not stored until the payment is confirmed, keyed by temporary negative id. */
     public array $pendingServices = [];
 
+    /**
+     * Desglose financiero por servicio, calculado en calculateTotals() con la misma fórmula del appointment.
+     * Es privada a propósito: Livewire no la serializa, y confirmPayment() siempre llama a calculateTotals()
+     * justo antes de persistir. Formato: [appointment_service.id => [subtotal, coupon_discount, user_payment, commission, total]].
+     */
+    private array $serviceFinancials = [];
+
     #[Layout('layouts.app')]
     public function render()
     {
@@ -132,22 +139,8 @@ class PaymentPage extends Component
     public function updated($name, $value): void
     {
         if (str_starts_with($name, 'servicesToComplete.') || str_starts_with($name, 'servicePrices.')) {
-            if (str_starts_with($name, 'servicesToComplete.') && ! $value) {
-                $appointmentServiceId = (int) substr($name, strlen('servicesToComplete.'));
-                $service = $this->appointment->services->firstWhere('id', $appointmentServiceId);
-
-                if ($service?->service_id) {
-                    $this->selectedCouponIds = array_values(array_filter(
-                        $this->selectedCouponIds,
-                        function ($selectedId) use ($service) {
-                            $benefit = $this->availableCoupons->firstWhere('id', (int) $selectedId);
-
-                            return (int) $benefit?->coupon?->service_id !== (int) $service->service_id;
-                        }
-                    ));
-                }
-            }
-
+            // Al desmarcar un servicio, checkCouponAvailability() -> normalizeSelectedCouponIds()
+            // descarta los cupones que ya no tienen servicios realizados.
             $this->syncSubtotalWithServices();
             $this->checkCouponAvailability();
 
@@ -387,6 +380,7 @@ class PaymentPage extends Component
             $this->persistServicesCompletion();
         }
 
+        // Debe ir antes de persistServiceFinancials(): llena $serviceFinancials y los totales del appointment.
         $this->calculateTotals();
 
         if ($isClosingAccount) {
@@ -396,7 +390,7 @@ class PaymentPage extends Component
         if ((float) $this->appointment->coupon_discount <= 0) {
             foreach ($this->selectedCouponBenefits() as $selectedBenefit) {
                 $selectedBenefit->increment('used');
-                $this->storeRedeemedCoupon($selectedBenefit->coupon_id, $selectedBenefit->coupon?->service_id);
+                $this->storeRedeemedCoupon($selectedBenefit);
             }
         }
 
@@ -429,7 +423,7 @@ class PaymentPage extends Component
         }
 
         $this->appointment->update($updateData);
-        $this->persistServiceFinancials($subtotal);
+        $this->persistServiceFinancials();
 
         $totalCouponDiscount = $this->appointment->services->sum('coupon_discount');
         $this->appointment->update(['coupon_discount' => $totalCouponDiscount]);
@@ -454,22 +448,27 @@ class PaymentPage extends Component
         $this->reset('payment_attachment');
     }
 
-    private function storeRedeemedCoupon(?int $couponId, ?int $serviceId): void
+    /**
+     * Marca el cupón en los servicios realizados que cubre (service_id directo o pivote).
+     */
+    private function storeRedeemedCoupon($benefit): void
     {
-        if (! $couponId) {
+        if (! $benefit->coupon_id) {
             return;
         }
+
+        $serviceIds = $this->couponServiceIds($benefit);
 
         $completedServices = $this->appointment->services->filter(
             fn ($service) => $this->isServiceCompleted($service)
         );
 
-        if ($serviceId) {
-            $completedServices = $completedServices->where('service_id', $serviceId);
+        if ($serviceIds !== []) {
+            $completedServices = $completedServices->whereIn('service_id', $serviceIds);
         }
 
         foreach ($completedServices as $service) {
-            $service->update(['coupon_id' => $couponId]);
+            $service->update(['coupon_id' => $benefit->coupon_id]);
         }
     }
 
@@ -671,20 +670,12 @@ class PaymentPage extends Component
         return true;
     }
 
-    /** IDs de servicios que cubre el cupón (service_id directo o pivote). */
+    /** IDs de servicios que cubre el beneficio (service_id directo o pivote). */
     private function couponServiceIds($benefit): array
     {
         $coupon = $benefit?->coupon;
 
-        if (! $coupon) {
-            return [];
-        }
-
-        $ids = $coupon->service_id
-            ? [(int) $coupon->service_id]
-            : $coupon->services->pluck('id')->map(fn ($id) => (int) $id)->all();
-
-        return array_values(array_unique($ids));
+        return $coupon ? $coupon->serviceIds() : [];
     }
 
     /** Servicios que cubre el cupón Y que están realizados en la cita. */
@@ -714,13 +705,24 @@ class PaymentPage extends Component
     {
         $this->checkCouponAvailability();
 
+        $this->serviceFinancials = [];
+
         $doctor = $this->appointment->doctor;
 
-        if (!$doctor) {
+        if (! $doctor) {
             $totalSubtotal = 0;
             foreach ($this->appointment->services as $service) {
                 if ($this->isServiceCompleted($service)) {
-                    $totalSubtotal += $this->getCouponServiceAmount($service->service_id);
+                    $amount = $this->getCouponServiceAmount($service->service_id);
+                    $totalSubtotal += $amount;
+
+                    $this->serviceFinancials[$service->id] = [
+                        'subtotal' => $amount,
+                        'coupon_discount' => 0,
+                        'user_payment' => $amount,
+                        'commission' => 0,
+                        'total' => $amount,
+                    ];
                 }
             }
             $this->couponDiscountValue = 0;
@@ -745,7 +747,7 @@ class PaymentPage extends Component
         $this->couponDiscountValue = 0;
 
         foreach ($this->appointment->services as $service) {
-            if (!$this->isServiceCompleted($service)) {
+            if (! $this->isServiceCompleted($service)) {
                 continue;
             }
 
@@ -753,17 +755,31 @@ class PaymentPage extends Component
             $totalSubtotal += $servicePrice;
 
             $coupon = $serviceCouponMap[$service->service_id] ?? null;
+            $couponDiscount = 0;
 
             if ($coupon) {
                 $benefit = $selectedBenefits->firstWhere('coupon.id', $coupon->id);
                 $benefitId = $benefit ? $benefit->id : null;
                 $patientCharge = $this->calculatePatientChargeWithCoupon($servicePrice, $coupon, $proportionalDiscounts, $service->service_id, $benefitId);
                 $inmaxPays = $this->calculateInmaxPaysWithCoupon($servicePrice, $patientCharge, $coupon, $doctorDiscountPercent);
-                $this->couponDiscountValue += ($servicePrice - $patientCharge);
+                $couponDiscount = $servicePrice - $patientCharge;
+                $this->couponDiscountValue += $couponDiscount;
             } else {
                 $patientCharge = $this->calculatePatientChargeNoCoupon($servicePrice, $doctorDiscountPercent);
                 $inmaxPays = 0;
             }
+
+            // Misma fórmula que el total del appointment, aplicada por servicio: la suma de los servicios
+            // coincide con el appointment (salvo centavos de redondeo, que persistServiceFinancials() absorbe).
+            $serviceCommission = ($patientCharge * $doctorCommissionPercent) - $inmaxPays;
+
+            $this->serviceFinancials[$service->id] = [
+                'subtotal' => $servicePrice,
+                'coupon_discount' => $couponDiscount,
+                'user_payment' => $patientCharge,
+                'commission' => $serviceCommission,
+                'total' => $patientCharge - $serviceCommission,
+            ];
 
             $totalPatientPayment += $patientCharge;
             $totalInmaxPays += $inmaxPays;
@@ -871,114 +887,48 @@ class PaymentPage extends Component
     }
 
     /**
-     * Distribute the appointment-level financial breakdown across every completed service,
-     * proportionally to the price captured for each one.
+     * Guarda el desglose financiero de cada servicio realizado.
+     *
+     * Los valores salen de calculateTotals() (misma fórmula que el appointment), así que no se recalcula nada aquí.
+     * Cada servicio se redondea a 2 decimales y el residuo de centavos se absorbe en el último servicio
+     * para que la suma por servicio sea exactamente igual a los totales del appointment.
      */
-    private function persistServiceFinancials(float $totalSubtotal): void
+    private function persistServiceFinancials(): void
     {
         if (! $this->canManageServices && ! $this->canCapturePrices) {
             return;
         }
 
-        $totalCoupon = $this->couponDiscountValue;
-        $totalUserPayment = $this->parseMoney($this->user_payment);
-        $totalCommission = $this->parseMoney($this->commision);
-        $totalAmount = $this->parseMoney($this->total);
-        $selectedBenefits = $this->selectedCouponBenefits();
-        $serviceCouponBenefits = $selectedBenefits
-            ->filter(fn ($benefit) => $benefit->coupon->service_id)
-            ->keyBy(fn ($benefit) => (int) $benefit->coupon->service_id);
-        $serviceCouponIds = $serviceCouponBenefits->keys()->all();
-        $couponCoverageTotal = $selectedBenefits->sum(function ($benefit) use ($totalCoupon) {
-            $coupon = $benefit->coupon;
-            $serviceAmount = $coupon->service_id
-                ? $this->getCouponServiceAmount($coupon->service_id)
-                : $totalCoupon;
+        $rows = collect($this->serviceFinancials)->map(fn ($row) => array_map(
+            fn ($value) => round($value, 2),
+            $row
+        ));
 
-            return round($serviceAmount * round((float) $coupon->inmax_coverage_percent / 100, 2), 2);
-        });
-        $coveredAmount = $this->appointment->services->reduce(function ($carry, $service) use ($serviceCouponIds) {
-            if (! $this->isServiceCompleted($service) || ! $service->covered || in_array((int) $service->service_id, $serviceCouponIds, true)) {
-                return $carry;
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $lastId = $rows->keys()->last();
+        $targets = [
+            'user_payment' => $this->parseMoney($this->user_payment),
+            'commission' => $this->parseMoney($this->commision),
+            'total' => $this->parseMoney($this->total),
+        ];
+
+        foreach ($targets as $column => $target) {
+            $diff = round($target - $rows->sum($column), 2);
+
+            if ($diff !== 0.0) {
+                $row = $rows[$lastId];
+                $row[$column] = round($row[$column] + $diff, 2);
+                $rows[$lastId] = $row;
             }
-
-            return $carry + $this->parseMoney($this->servicePrices[$service->id] ?? 0);
-        }, 0.0);
-        $serviceCouponDiscountTotal = $serviceCouponBenefits->sum(function ($benefit) {
-            $coupon = $benefit->coupon;
-            $serviceAmount = $this->getCouponServiceAmount($coupon->service_id);
-
-            return match ($coupon->type) {
-                'Service' => $serviceAmount,
-                'Percentage' => round($serviceAmount * ((float) $coupon->value / 100), 2),
-                'Amount' => (float) $coupon->value,
-                default => 0,
-            };
-        });
-        $remainingSubtotal = max(0, $totalSubtotal - $serviceCouponDiscountTotal - $coveredAmount);
-        $totalAmountForShare = $totalAmount - $couponCoverageTotal - $coveredAmount;
+        }
 
         foreach ($this->appointment->services as $service) {
-            if (! $this->isServiceCompleted($service)) {
-                continue;
+            if ($rows->has($service->id)) {
+                $service->update($rows[$service->id]);
             }
-
-            $price = $this->parseMoney($this->servicePrices[$service->id] ?? 0);
-
-            $serviceCoupon = $serviceCouponBenefits->get((int) $service->service_id);
-            if ($service->covered && ! $serviceCoupon) {
-                $service->update([
-                    'subtotal' => $price,
-                    'coupon_discount' => 0,
-                    'user_payment' => 0,
-                    'commission' => 0,
-                    'total' => $price,
-                ]);
-
-                continue;
-            }
-
-            $serviceCouponDiscount = $selectedBenefits->sum(function ($benefit) use ($service) {
-                $coupon = $benefit->coupon;
-
-                if (! $coupon->service_id || (int) $coupon->service_id !== (int) $service->service_id || $coupon->type === 'Service') {
-                    return 0;
-                }
-
-                $serviceAmount = $this->getCouponServiceAmount($coupon->service_id);
-
-                return match ($coupon->type) {
-                    'Amount' => (float) $coupon->value,
-                    'Percentage' => round($serviceAmount * ((float) $coupon->value / 100), 2),
-                    default => 0,
-                };
-            });
-            if ($serviceCoupon) {
-                $serviceCouponDiscount = match ($serviceCoupon->coupon->type) {
-                    'Service' => $price,
-                    'Percentage' => round($price * ((float) $serviceCoupon->coupon->value / 100), 2),
-                    'Amount' => (float) $serviceCoupon->coupon->value,
-                    default => 0,
-                };
-            }
-            $shareBase = max(0, $price - $serviceCouponDiscount);
-            $share = $remainingSubtotal > 0 ? $shareBase / $remainingSubtotal : 0;
-            $generalCouponDiscount = ($selectedBenefits->isEmpty()
-                || $selectedBenefits->contains(fn ($benefit) => ! $benefit->coupon->service_id))
-                ? $totalCoupon
-                : 0;
-            $coverage = $serviceCoupon
-                ? round($price * round((float) $serviceCoupon->coupon->inmax_coverage_percent / 100, 2), 2)
-                : 0;
-            $normalCommission = round(($totalCommission + $couponCoverageTotal) * $share, 2);
-
-            $service->update([
-                'subtotal' => $price,
-                'coupon_discount' => $serviceCouponDiscount + round($generalCouponDiscount * $share, 2),
-                'user_payment' => round($totalUserPayment * $share, 2),
-                'commission' => $normalCommission - $coverage,
-                'total' => round($totalAmountForShare * $share, 2) + $coverage,
-            ]);
         }
     }
 
@@ -987,18 +937,19 @@ class PaymentPage extends Component
         return number_format($this->parseMoney($value), 2, '.', ',');
     }
 
+    /** IDs de servicios que cubre un cupón (service_id directo o pivote). */
     private function getServiceCouponServiceIds($coupon): array
     {
-        return $coupon->services->modelKeys();
+        return $coupon->serviceIds();
     }
 
     private function calculateProportionalAmountCouponDiscounts($selectedBenefits): array
     {
-        $discounts = []; // Format: [$serviceId][$couponId] = discountAmount
+        $discounts = []; // Format: [$serviceId][$benefitId] = discountAmount
 
         foreach ($selectedBenefits as $benefit) {
             $coupon = $benefit->coupon;
-            
+
             if ($coupon->type !== 'Amount') {
                 continue;
             }
@@ -1012,7 +963,7 @@ class PaymentPage extends Component
             $servicePrices = [];
 
             foreach ($this->appointment->services as $service) {
-                if (!$this->isServiceCompleted($service) || !in_array((int) $service->service_id, $couponServiceIds)) {
+                if (! $this->isServiceCompleted($service) || ! in_array((int) $service->service_id, $couponServiceIds)) {
                     continue;
                 }
 
@@ -1040,10 +991,10 @@ class PaymentPage extends Component
         foreach ($selectedBenefits as $benefit) {
             $coupon = $benefit->coupon;
             $couponServiceIds = $this->getServiceCouponServiceIds($coupon);
-            
+
             // Map coupon to all its services
             foreach ($couponServiceIds as $serviceId) {
-                if (!isset($couponMap[$serviceId])) {
+                if (! isset($couponMap[$serviceId])) {
                     $couponMap[$serviceId] = $coupon;
                 }
             }
@@ -1084,11 +1035,12 @@ class PaymentPage extends Component
     {
         $priceWithDiscount = $servicePrice * (1 - $doctorDiscountPercent);
         $inmaxPaysAmount = $priceWithDiscount - $patientCharge;
-        if ($inmaxPaysAmount < 0) $inmaxPaysAmount = 0;
+        if ($inmaxPaysAmount < 0) {
+            $inmaxPaysAmount = 0;
+        }
 
         $inmaxCoveragePercent = (float) ($coupon->inmax_coverage_percent ?? 0) / 100;
 
         return $inmaxPaysAmount * $inmaxCoveragePercent;
     }
 }
-
